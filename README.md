@@ -25,8 +25,9 @@ Cách học rất nhẹ nhàng: mỗi buổi là một file "làm theo từng b�
 
 | Thư mục / file | Nội dung |
 |---|---|
-| [`bai-hoc-4-buoi/`](bai-hoc-4-buoi/) | Bài giảng làm theo từng bước. Hiện có **Buổi 1** và **Buổi 2** (Buổi 3, 4 sẽ cập nhật sau). |
+| [`bai-hoc-4-buoi/`](bai-hoc-4-buoi/) | Bài giảng làm theo từng bước. Hiện có **Buổi 1**, **Buổi 2** và **Buổi 3** (Buổi 4 sẽ cập nhật sau). |
 | [`bo-skill/`](bo-skill/) | Bộ **8 skill** nghiên cứu. Mỗi skill có `SKILL.md` + thư mục `quy-trinh/` chứa các quy trình chi tiết. |
+| [`du-lieu-mau/`](du-lieu-mau/) | **Dữ liệu mẫu thực hành** (giả lập). Buổi 3 dùng bộ khảo sát CSV + template báo cáo. |
 | [`workbook/`](workbook/) | Workbook `.docx` cho học viên (Buổi 2). |
 | `README.md` | File này. |
 
@@ -77,8 +78,9 @@ Học lần lượt hai buổi đã có, làm tuần tự từ trên xuống tro
 
 1. 🛠️ **[Buổi 1 - Thiết lập dự án luận án](bai-hoc-4-buoi/buoi-01-thiet-lap-du-an-luan-an.md)**: dựng `CLAUDE.md`, cây thư mục, cài 8 skill.
 2. 📑 **[Buổi 2 - Tổng quan tài liệu](bai-hoc-4-buoi/buoi-02-lam-theo-tung-buoc.md)**: gom nguồn, tìm research gap, viết báo cáo tổng quan có trích dẫn, tự tạo skill.
+3. 📊 **[Buổi 3 - Phân tích dữ liệu và báo cáo](bai-hoc-4-buoi/buoi-03-phan-tich-du-lieu-va-bao-cao.md)**: làm sạch dữ liệu khảo sát, chạy Cronbach/hồi quy/trung gian, viết báo cáo có khai báo dùng AI.
 
-> Buổi 3 (phân tích dữ liệu) và Buổi 4 (portfolio) sẽ được bổ sung vào `bai-hoc-4-buoi/` khi có.
+> Buổi 4 (portfolio) sẽ được bổ sung vào `bai-hoc-4-buoi/` khi có.
 
 ---
 
