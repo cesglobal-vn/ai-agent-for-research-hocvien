@@ -1,0 +1,2622 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khóa Học AI Cho Nghiên Cứu (K3) - Buổi 01: Thiết Lập Dự Án Luận Án Với Claude Code | CES Global</title>
+  
+  <style>
+    /* ==========================================================================
+       FONT MANDATE: 100% Times New Roman theo quy chuẩn toàn cục bắt buộc
+       Monospace chỉ áp dụng cho khối Code, Terminal và thông số kỹ thuật.
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Times New Roman', Times, serif !important;
+    }
+
+    code, pre, .font-mono, .terminal-code, .timer-digits-text {
+      font-family: Consolas, 'Courier New', 'JetBrains Mono', monospace !important;
+    }
+
+    :root {
+      /* Theme Canvas (Mặc định: Executive Academic Dark) */
+      --canvas-bg: #070b14;
+      --surface-base: #0d1527;
+      --surface-card: rgba(18, 29, 53, 0.88);
+      --surface-card-hover: rgba(26, 42, 77, 0.98);
+      --surface-glass: rgba(15, 23, 42, 0.85);
+      --terminal-bg: #050811;
+
+      /* Borders & Shadows */
+      --border-subtle: #1e2c4f;
+      --border-medium: #314878;
+      --border-highlight: #38bdf8;
+      --shadow-elevation: 0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 24px rgba(56, 189, 248, 0.08);
+      --shadow-card: 0 6px 20px -2px rgba(0, 0, 0, 0.4);
+
+      /* Typography Colors */
+      --text-main: #f8fafc;
+      --text-body: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --text-white: #ffffff;
+
+      /* Vibrant Academic Accent Colors */
+      --brand-blue: #38bdf8;
+      --brand-blue-glow: rgba(56, 189, 248, 0.25);
+      --brand-blue-deep: #0284c7;
+      --brand-gold: #f59e0b;
+      --brand-gold-glow: rgba(245, 158, 11, 0.25);
+      --brand-emerald: #10b981;
+      --brand-rose: #f43f5e;
+      --brand-purple: #c084fc;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Light Theme (Chế độ phòng họp sáng hoặc in ấn nghiên cứu) */
+    body.light-theme {
+      --canvas-bg: #f8fafc;
+      --surface-base: #ffffff;
+      --surface-card: rgba(255, 255, 255, 0.94);
+      --surface-card-hover: #ffffff;
+      --surface-glass: rgba(255, 255, 255, 0.9);
+      --terminal-bg: #0f172a;
+
+      --border-subtle: #e2e8f0;
+      --border-medium: #cbd5e1;
+      --border-highlight: #0284c7;
+      --shadow-elevation: 0 16px 36px -8px rgba(15, 23, 42, 0.12);
+      --shadow-card: 0 4px 14px -2px rgba(15, 23, 42, 0.06);
+
+      --text-main: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --text-white: #ffffff;
+
+      --brand-blue: #0284c7;
+      --brand-blue-glow: rgba(2, 132, 199, 0.15);
+      --brand-blue-deep: #0369a1;
+      --brand-gold: #d97706;
+      --brand-gold-glow: rgba(217, 119, 6, 0.15);
+      --brand-emerald: #059669;
+      --brand-rose: #e11d48;
+      --brand-purple: #7c3aed;
+    }
+
+    body {
+      background-color: var(--canvas-bg);
+      color: var(--text-main);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    /* Ambient Dynamic Mesh Canvas */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 85% 20%, rgba(192, 132, 252, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.06) 0%, transparent 55%),
+        linear-gradient(180deg, rgba(7, 11, 20, 0.95) 0%, var(--canvas-bg) 100%);
+      transition: background 0.4s ease;
+    }
+
+    body.light-theme .ambient-canvas {
+      background: 
+        radial-gradient(circle at 15% 15%, rgba(2, 132, 199, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 85% 20%, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 50% 85%, rgba(217, 119, 6, 0.04) 0%, transparent 55%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    /* ==========================================================================
+       TOP FLOATING MINIMAL NAVIGATION BAR
+       ========================================================================== */
+    .top-navbar {
+      position: relative;
+      z-index: 50;
+      height: 56px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ces-logo-badge {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 1px;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .course-breadcrumb {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .session-chip {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--brand-blue);
+      font-size: 0.85rem;
+      font-weight: bold;
+      padding: 2px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slide-badge {
+      background: var(--surface-base);
+      border: 1px solid var(--border-medium);
+      color: var(--text-main);
+      font-weight: bold;
+      font-size: 0.9rem;
+      padding: 4px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-buttons-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-keynote {
+      background: var(--surface-card);
+      border: 1px solid var(--border-medium);
+      color: var(--text-body);
+      font-size: 0.88rem;
+      font-weight: bold;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn-keynote:hover {
+      background: var(--surface-card-hover);
+      border-color: var(--brand-blue);
+      color: var(--brand-blue);
+      transform: translateY(-1px);
+    }
+
+    .btn-keynote-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border-color: #38bdf8;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .btn-keynote-primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #0c4a6e 100%);
+      color: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.45);
+    }
+
+    /* Top Active Progress Line */
+    .top-progress-track {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    body.light-theme .top-progress-track {
+      background: #e2e8f0;
+    }
+
+    .top-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--brand-blue) 0%, var(--brand-gold) 100%);
+      width: 4.54%;
+      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ==========================================================================
+       FULL-VIEWPORT SLIDE CANVAS & SMOOTH TRANSITIONS
+       ========================================================================== */
+    .slide-canvas {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      width: 100vw;
+      height: calc(100vh - 56px);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .slide-page {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 24px 56px 32px;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+      animation: keynoteSlideFade 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .slide-page.active {
+      display: flex;
+    }
+
+    @keyframes keynoteSlideFade {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.995);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .slide-page::-webkit-scrollbar {
+      width: 6px;
+    }
+    .slide-page::-webkit-scrollbar-thumb {
+      background: var(--border-medium);
+      border-radius: 999px;
+    }
+
+    /* ==========================================================================
+       SLIDE HEADER BLOCK
+       ========================================================================== */
+    .slide-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .header-text-group {
+      flex: 1;
+    }
+
+    .slide-badge-category {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 12px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--brand-blue);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      margin-bottom: 6px;
+    }
+
+    .slide-h2 {
+      font-size: 2.1rem;
+      font-weight: bold;
+      color: var(--text-main);
+      line-height: 1.25;
+      letter-spacing: -0.2px;
+    }
+
+    .slide-lead {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      line-height: 1.45;
+    }
+
+    .slide-pill-meta {
+      font-size: 0.88rem;
+      font-weight: bold;
+      padding: 4px 14px;
+      border-radius: 999px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-medium);
+      color: var(--text-body);
+      white-space: nowrap;
+    }
+
+    /* ==========================================================================
+       SLIDE BODY CONTENT & BENTO GRIDS
+       ========================================================================== */
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .bento-grid {
+      display: grid;
+      gap: 16px;
+      width: 100%;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid-1-2 { grid-template-columns: 1fr 2fr; }
+    .grid-2-1 { grid-template-columns: 2fr 1fr; }
+
+    .bento-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 22px;
+      box-shadow: var(--shadow-card);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .bento-card:hover {
+      border-color: var(--border-medium);
+      box-shadow: var(--shadow-elevation);
+      transform: translateY(-2px);
+    }
+
+    .bento-card-featured {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(13, 21, 39, 0.95) 100%);
+      border: 1.5px solid var(--brand-blue);
+      box-shadow: 0 4px 20px var(--brand-blue-glow);
+    }
+
+    body.light-theme .bento-card-featured {
+      background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+      border-color: #93c5fd;
+    }
+
+    .bento-card-dark {
+      background: linear-gradient(135deg, #090e1c 0%, #111a33 100%);
+      border: 1px solid var(--border-medium);
+    }
+
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    .card-text {
+      font-size: 1.05rem;
+      color: var(--text-body);
+      line-height: 1.55;
+    }
+
+    .icon-chip-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.92rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(56, 189, 248, 0.35);
+    }
+
+    /* Comparison Panels */
+    .compare-card-bad {
+      background: rgba(244, 63, 94, 0.06);
+      border: 1.5px solid rgba(244, 63, 94, 0.3);
+    }
+    .compare-card-bad .card-title {
+      color: var(--brand-rose);
+    }
+
+    .compare-card-good {
+      background: rgba(56, 189, 248, 0.06);
+      border: 1.5px solid rgba(56, 189, 248, 0.35);
+    }
+    .compare-card-good .card-title {
+      color: var(--brand-blue);
+    }
+
+    /* Structured Bullet Lists */
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-top: 8px;
+    }
+
+    .bullet-list li {
+      font-size: 1.05rem;
+      color: var(--text-body);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.5;
+    }
+
+    .bullet-check {
+      color: var(--brand-emerald);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .bullet-cross {
+      color: var(--brand-rose);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .bullet-dot {
+      color: var(--brand-blue);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    /* Tables */
+    .table-container {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+
+    .modern-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 1.05rem;
+    }
+
+    .modern-table th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--brand-gold);
+      font-weight: bold;
+      padding: 12px 18px;
+      border-bottom: 2px solid var(--border-medium);
+      font-size: 1rem;
+    }
+
+    body.light-theme .modern-table th {
+      background: #f1f5f9;
+      color: var(--brand-gold);
+    }
+
+    .modern-table td {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-body);
+      line-height: 1.48;
+    }
+
+    .modern-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .modern-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    body.light-theme .modern-table tr:hover td {
+      background: #f8fafc;
+    }
+
+    /* Terminal Console */
+    .terminal-box {
+      background: var(--terminal-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      margin-top: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+
+    .terminal-header {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .terminal-dots {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .terminal-tag {
+      font-size: 0.84rem;
+      font-weight: bold;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+    }
+
+    .btn-copy {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--brand-blue);
+      border: 1px solid var(--brand-blue);
+      padding: 4px 14px;
+      font-size: 0.88rem;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn-copy:hover {
+      background: var(--brand-blue);
+      color: #070b14;
+      transform: translateY(-1px);
+    }
+
+    .btn-copy.copied {
+      background: var(--brand-emerald);
+      border-color: var(--brand-emerald);
+      color: #ffffff;
+    }
+
+    .terminal-code {
+      padding: 14px 20px;
+      color: #a5f3fc;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      user-select: text;
+    }
+
+    /* Highlight Notification Banners */
+    .callout-banner {
+      border-left: 4px solid var(--brand-blue);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 12px 20px;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin-top: 10px;
+      font-size: 1.08rem;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    .callout-amber {
+      border-left-color: var(--brand-gold);
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--text-main);
+    }
+
+    .callout-emerald {
+      border-left-color: var(--brand-emerald);
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--text-main);
+    }
+
+    /* Tree View Box */
+    .tree-box {
+      background: var(--terminal-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #f1f5f9;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    /* Hero Cover Layout */
+    .hero-split-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 36px;
+      align-items: center;
+      height: 100%;
+      padding: 10px;
+    }
+
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .hero-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 999px;
+      color: var(--brand-blue);
+      font-weight: bold;
+      font-size: 0.92rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px var(--brand-blue-glow);
+    }
+
+    .hero-h1 {
+      font-size: 3.4rem;
+      font-weight: bold;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, var(--brand-blue) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    body.light-theme .hero-h1 {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, var(--brand-blue) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-h2 {
+      font-size: 1.75rem;
+      font-weight: bold;
+      color: var(--brand-gold);
+      margin-bottom: 16px;
+      line-height: 1.35;
+    }
+
+    .hero-session-pill {
+      font-size: 1.12rem;
+      font-weight: bold;
+      color: var(--text-main);
+      margin-bottom: 22px;
+      padding: 8px 22px;
+      background: var(--surface-card);
+      border-radius: 999px;
+      border: 1px solid var(--border-medium);
+      box-shadow: var(--shadow-card);
+    }
+
+    .hero-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+
+    .hero-meta-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-meta-card .meta-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--brand-blue);
+      font-size: 1.2rem;
+    }
+
+    .hero-meta-card .meta-info .lbl {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .hero-meta-card .meta-info .val {
+      font-size: 1.02rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    .btn-hero-cta {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      padding: 14px 32px;
+      border-radius: 999px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      cursor: pointer;
+      border: 1px solid var(--brand-blue);
+      box-shadow: 0 8px 24px var(--brand-blue-glow);
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-hero-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(56, 189, 248, 0.45);
+    }
+
+    /* Hero Right Graphic Console */
+    .hero-console-card {
+      background: var(--terminal-bg);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-medium);
+      box-shadow: var(--shadow-elevation);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: floatSlow 5s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatSlow {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-8px); }
+    }
+
+    .hero-console-top {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-console-content {
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .console-status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    .status-active-pill {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: bold;
+    }
+
+    .hero-agent-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .hero-agent-tag {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #93c5fd;
+      font-size: 0.86rem;
+      font-weight: bold;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    /* Practice Countdown Timer */
+    .timer-card-panel {
+      background: var(--surface-card);
+      border: 2px solid var(--brand-blue);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-shadow: var(--shadow-card);
+    }
+
+    .timer-digits-text {
+      font-size: 3.6rem;
+      font-weight: bold;
+      color: var(--brand-gold);
+      letter-spacing: 2px;
+      margin: 6px 0;
+    }
+
+    .timer-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    /* Overview Modal ('O') */
+    .overview-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(7, 11, 20, 0.75);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .overview-modal.active {
+      display: flex;
+    }
+
+    .overview-dialog {
+      background: var(--surface-base);
+      border-radius: var(--radius-xl);
+      max-width: 1200px;
+      width: 100%;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-medium);
+      overflow: hidden;
+    }
+
+    .overview-header {
+      padding: 16px 26px;
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .overview-header h3 {
+      font-size: 1.4rem;
+      color: var(--brand-gold);
+      font-weight: bold;
+    }
+
+    .overview-grid {
+      padding: 24px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .overview-thumb {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: left;
+    }
+
+    .overview-thumb:hover {
+      border-color: var(--brand-blue);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card);
+    }
+
+    .overview-thumb.active {
+      border-color: var(--brand-gold);
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .overview-thumb .num {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--brand-gold);
+    }
+
+    .overview-thumb .ttl {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    /* Speaker Notes Drawer ('N') */
+    .speaker-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 240px;
+      background: var(--surface-base);
+      border-top: 3px solid var(--brand-gold);
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35);
+      z-index: 80;
+      padding: 16px 36px;
+      overflow-y: auto;
+      display: none;
+      animation: drawerUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .speaker-drawer.active {
+      display: block;
+    }
+
+    @keyframes drawerUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .speaker-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .speaker-badge-chip {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--brand-gold);
+      font-size: 0.9rem;
+      font-weight: bold;
+      padding: 3px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .speaker-body-text {
+      font-size: 1.1rem;
+      color: var(--text-body);
+      line-height: 1.6;
+    }
+
+    /* Toast */
+    .toast-box {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid var(--brand-emerald);
+      color: #34d399;
+      padding: 12px 22px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      font-size: 1.05rem;
+      font-weight: bold;
+      z-index: 200;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      animation: toastIn 0.2s ease;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        overflow: visible !important;
+      }
+      .top-navbar, .top-progress-track, .speaker-drawer, .overview-modal, .toast-box {
+        display: none !important;
+      }
+      .slide-page {
+        display: flex !important;
+        opacity: 1 !important;
+        page-break-after: always !important;
+        padding: 20mm !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Dynamic Mesh Background -->
+  <div class="ambient-canvas"></div>
+
+  <!-- TOP FLOATING NAVBAR -->
+  <header class="top-navbar">
+    <div class="brand-section">
+      <div class="ces-logo-badge">CES GLOBAL</div>
+      <div class="course-breadcrumb">
+        <span>K3: AI FOR RESEARCH</span>
+        <span class="session-chip">Buổi 01: Thiết Lập Dự Án Luận Án Với Claude Code</span>
+      </div>
+    </div>
+
+    <div class="nav-status">
+      <span class="slide-badge" id="slideIndicator">Slide 01 / 22</span>
+    </div>
+
+    <div class="nav-buttons-group">
+      <button class="btn-keynote" id="btnPrev" title="Phím mũi tên trái (←)">◀ Trước</button>
+      <button class="btn-keynote btn-keynote-primary" id="btnNext" title="Phím mũi tên phải (→) hoặc Phím Cách">Sau ▶</button>
+      <button class="btn-keynote" id="btnOverview" title="Phím tắt: O">📋 Danh sách (O)</button>
+      <button class="btn-keynote" id="btnNotes" title="Phím tắt: N">🎙️ Lời thoại (N)</button>
+      <button class="btn-keynote" id="btnTheme" title="Phím tắt: T">☀️ Đổi nền</button>
+      <button class="btn-keynote" id="btnFullscreen" title="Phím tắt: F">⛶ Toàn màn hình</button>
+    </div>
+
+    <!-- Active Progress Line -->
+    <div class="top-progress-track">
+      <div class="top-progress-fill" id="progressBar"></div>
+    </div>
+  </header>
+
+  <!-- FULL-VIEWPORT STAGE -->
+  <main class="slide-canvas">
+
+    <!-- ====================================================================
+         SLIDE 01: HERO COVER (SPLIT LAYOUT WITH ANIMATED CONSOLE BLOCK)
+         ==================================================================== -->
+    <section class="slide-page active" data-slide="1" data-title="Slide Tiêu Đề">
+      <div class="hero-split-layout">
+        <div class="hero-left">
+          <div class="hero-badge-tag">✦ K3 — BỘ KỸ NĂNG AI CHO NGHIÊN CỨU TIẾN SĨ & CAO HỌC</div>
+          <h1 class="hero-h1">AI FOR RESEARCH</h1>
+          <h2 class="hero-h2">Thiết Lập Dự Án Luận Án Với Claude Code</h2>
+          <div class="hero-session-pill">
+            BUỔI 01: BIẾN THƯ MỤC TRỐNG THÀNH "VĂN PHÒNG NGHIÊN CỨU AI" HOÀN CHỈNH
+          </div>
+
+          <div class="hero-meta-grid">
+            <div class="hero-meta-card">
+              <div class="meta-icon">🎓</div>
+              <div class="meta-info">
+                <div class="lbl">Đối tượng học viên</div>
+                <div class="val">NCS Tiến sĩ, Thạc sĩ, Nhà NCKH</div>
+              </div>
+            </div>
+            <div class="hero-meta-card">
+              <div class="meta-icon">⏱️</div>
+              <div class="meta-info">
+                <div class="lbl">Thời lượng</div>
+                <div class="val">90 Phút lên lớp + 30-60p bài tập</div>
+              </div>
+            </div>
+            <div class="hero-meta-card">
+              <div class="meta-icon">💻</div>
+              <div class="meta-info">
+                <div class="lbl">Môi trường làm việc</div>
+                <div class="val">Claude Desktop (Tab &lt;/&gt; Code)</div>
+              </div>
+            </div>
+            <div class="hero-meta-card">
+              <div class="meta-icon">🇻🇳</div>
+              <div class="meta-info">
+                <div class="lbl">Ngôn ngữ & Chuẩn</div>
+                <div class="val">100% Tiếng Việt • APA 7th Edition</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-hero-cta" onclick="nextSlide()">
+            <span>Khởi Động Workspace Luận Án</span>
+            <span>▶</span>
+          </button>
+        </div>
+
+        <div class="hero-right">
+          <div class="hero-console-card">
+            <div class="hero-console-top">
+              <div class="terminal-dots">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yellow"></div>
+                <div class="dot dot-green"></div>
+              </div>
+              <span class="terminal-tag">claude-desktop-research-v3.0</span>
+            </div>
+            <div class="hero-console-content">
+              <div class="console-status-row">
+                <span style="color: #94a3b8;">● Claude Code Core:</span>
+                <span class="status-active-pill">CONNECTED</span>
+              </div>
+              <div class="console-status-row">
+                <span style="color: #94a3b8;">● Academic Privacy:</span>
+                <span class="status-active-pill" style="background: rgba(56,189,248,0.2); color:#38bdf8; border-color: rgba(56,189,248,0.3);">100% SECURED</span>
+              </div>
+              <div class="console-status-row">
+                <span style="color: #94a3b8;">● Research Memory:</span>
+                <span class="status-active-pill" style="background: rgba(245,158,11,0.2); color:#fcd34d; border-color: rgba(252,211,77,0.3);">CLAUDE.md LOADED</span>
+              </div>
+
+              <div style="margin-top: 6px;">
+                <div style="font-size: 0.88rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                  BỘ 8 SKILL NGHIÊN CỨU SẴN SÀNG:
+                </div>
+                <div class="hero-agent-pill-row">
+                  <span class="hero-agent-tag">1. literature-review</span>
+                  <span class="hero-agent-tag">2. research-framework</span>
+                  <span class="hero-agent-tag">3. methodology-design</span>
+                  <span class="hero-agent-tag">4. data-analysis</span>
+                  <span class="hero-agent-tag">5. academic-writing</span>
+                  <span class="hero-agent-tag">6. citation-manager</span>
+                  <span class="hero-agent-tag">7. critical-review</span>
+                  <span class="hero-agent-tag">8. defense-prep</span>
+                </div>
+              </div>
+
+              <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px 14px; font-size: 0.95rem; color: #a5f3fc; border: 1px solid rgba(255,255,255,0.06);">
+                &gt; research-workspace --init --target=phd-thesis<br>
+                <span style="color: #34d399;">✓ Academic Workspace initialized on Claude Desktop.</span><br>
+                <span style="color: #cbd5e1;">Ready for Session 01 practical training...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 02: MỤC TIÊU & CHUẨN ĐẦU RA (RESEARCH FOCUS)
+         ==================================================================== -->
+    <section class="slide-page" data-slide="2" data-title="Mục Tiêu & Chuẩn Đầu Ra">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Chuẩn Đầu Ra Nghiên Cứu</span>
+          <h2 class="slide-h2">Mục Tiêu & Thành Tựu Sau Buổi 01</h2>
+          <p class="slide-lead">6 năng lực thực chiến nghiên cứu sinh làm chủ ngay tại lớp hôm nay mà không cần biết lập trình</p>
+        </div>
+        <span class="slide-pill-meta">90 Phút Thực Chiến</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-3">
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="icon-chip-num">1</span>
+              <span class="card-title">Môi Trường Claude Desktop</span>
+            </div>
+            <p class="card-text">Kích hoạt ứng dụng Claude Desktop và thành thạo thao tác chuyển sang tab Claude Code (<code>&lt;/&gt; Code</code>) để cắm thẳng vào thư mục luận án trên ổ cứng.</p>
+          </div>
+
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="icon-chip-num">2</span>
+              <span class="card-title">Bảo Mật Đề Tài 100%</span>
+            </div>
+            <p class="card-text">Thiết lập Privacy Settings để toàn bộ đề cương, dữ liệu khảo sát gốc và bản thảo bài báo ISI/Scopus không bị đưa vào tập huấn luyện AI công cộng.</p>
+          </div>
+
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="icon-chip-num">3</span>
+              <span class="card-title">Thông Số Vận Hành Nghiên Cứu</span>
+            </div>
+            <p class="card-text">Làm chủ 5 Mode thực thi, model Sonnet 5, thanh trượt Thinking Effort và kiểm soát Context Window để AI không bao giờ bị "lú" khi đọc nhiều tài liệu.</p>
+          </div>
+
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="icon-chip-num">4</span>
+              <span class="card-title">Hiến Pháp Luận Án CLAUDE.md</span>
+            </div>
+            <p class="card-text">Thiết lập hồ sơ NCS, chuyên ngành, chuẩn trích dẫn APA 7, phông Times New Roman 100% và kỷ luật thép cấm bịa nguồn trích dẫn / số liệu ảo.</p>
+          </div>
+
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="icon-chip-num">5</span>
+              <span class="card-title">Cây Thư Mục Luận Án 4 Năm</span>
+            </div>
+            <p class="card-text">Dùng prompt ra lệnh cho AI tự sinh cấu trúc phân tầng theo giai đoạn: đề cương, tổng quan tài liệu, phương pháp, dữ liệu thô/làm sạch, và các chương.</p>
+          </div>
+
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="icon-chip-num">6</span>
+              <span class="card-title">Bộ 8 Skill & Orchestrator</span>
+            </div>
+            <p class="card-text">Tải bộ 8 skill nghiên cứu chuyên sâu từ GitHub vào <code>.claude/skills/</code> và kích hoạt Trợ lý Điều phối (Orchestrator Agent) lập kế hoạch nghiên cứu tuần.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 03: THỰC TRẠNG VS AI RESEARCH WORKSPACE
+         ==================================================================== -->
+    <section class="slide-page" data-slide="3" data-title="Thực Trạng vs AI Research Workspace">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Chuyển Dịch Tư Duy Nghiên Cứu</span>
+          <h2 class="slide-h2">Thực Trạng Dùng Chatbot Rời Rạc vs AI Research Workspace</h2>
+          <p class="slide-lead">Vì sao nghiên cứu sinh dùng ChatGPT/Claude thường hay nản lòng và cách AI Workspace giải quyết triệt để</p>
+        </div>
+        <span class="slide-pill-meta">So Sánh Thực Tế</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-2">
+          <div class="bento-card compare-card-bad">
+            <div class="card-title-row">
+              <span class="card-title">❌ Nỗi Đau Của Nghiên Cứu Sinh Khi Chat Rời Rạc</span>
+            </div>
+            <ul class="bullet-list">
+              <li><span class="bullet-cross">✕</span> <strong>Mất trí nhớ ngữ cảnh:</strong> Mỗi phiên chat mới lại phải gõ lại: <em>"Tôi là NCS quản trị, đề tài về chuyển đổi số, trích dẫn APA 7..."</em></li>
+              <li><span class="bullet-cross">✕</span> <strong>Ảo giác & Bịa nguồn (Hallucination):</strong> Chatbot tự chế ra tên tác giả, năm xuất bản và số liệu thống kê không hề có thật.</li>
+              <li><span class="bullet-cross">✕</span> <strong>Lưu trữ tản mác, mất file:</strong> Bản thảo, ghi chú đọc bài báo vứt lung tung trên Desktop, không đồng bộ được.</li>
+              <li><span class="bullet-cross">✕</span> <strong>Thao tác thủ công mệt mỏi:</strong> Copy từng đoạn văn, dán qua lại Word/Excel hàng chục lần mỗi ngày.</li>
+            </ul>
+          </div>
+
+          <div class="bento-card compare-card-good">
+            <div class="card-title-row">
+              <span class="card-title">✅ Bước Nhảy Vọt Với AI Research Workspace</span>
+            </div>
+            <ul class="bullet-list">
+              <li><span class="bullet-check">✓</span> <strong>Cắm thẳng vào thư mục luận án:</strong> AI đọc trực tiếp file PDF bài báo, dữ liệu CSV/Excel và file Word trong máy bạn.</li>
+              <li><span class="bullet-check">✓</span> <strong>Trí nhớ vĩnh viễn (<code>CLAUDE.md</code>):</strong> Luôn nhớ chuyên ngành, đề tài, chuẩn APA 7 và quy tắc liêm chính học thuật.</li>
+              <li><span class="bullet-check">✓</span> <strong>Chống bịa nguồn 100%:</strong> Bắt buộc đối chiếu file nguồn trong <code>tai-lieu-tham-khao/</code>, không có là báo rõ.</li>
+              <li><span class="bullet-check">✓</span> <strong>Hệ thống 8 "nghề" tự động:</strong> Tự động kích hoạt skill viết tổng quan, thiết kế thang đo, chạy hồi quy, soạn slide bảo vệ.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout-banner">
+          💡 <strong>Kết luận:</strong> AI không làm hộ luận án cho bạn — AI là <strong>Trợ lý nghiên cứu cao cấp (Research Assistant)</strong> giúp bạn tăng tốc độ làm việc lên gấp 5 đến 10 lần!
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 04: MÔ HÌNH 4 TẦNG CỐT LÕI CHO DỰ ÁN LUẬN ÁN
+         ==================================================================== -->
+    <section class="slide-page" data-slide="4" data-title="Mô Hình 4 Tầng Luận Án">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Kiến Trúc Hệ Thống Luận Án</span>
+          <h2 class="slide-h2">Mô Hình 4 Tầng Cốt Lõi Của "Văn Phòng Nghiên Cứu AI"</h2>
+          <p class="slide-lead">Cấu trúc phân tầng chuẩn mực giúp luận án tiến sĩ đồng hành bền vững suốt 3–4 năm</p>
+        </div>
+        <span class="slide-pill-meta">Kiến Trúc 4 Layers</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid" style="grid-template-rows: repeat(4, auto); gap: 11px;">
+          <div class="bento-card bento-card-dark" style="padding: 13px 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="card-title-row" style="margin-bottom: 0;">
+                <span class="card-title">👑 TẦNG 1: TRỢ LÝ ĐIỀU PHỐI LUẬN ÁN (Orchestrator Agent)</span>
+              </div>
+              <span class="slide-pill-meta" style="background: rgba(255,255,255,0.15); color:#fff; border:none;">Buổi 01</span>
+            </div>
+            <p class="card-text" style="margin-top: 3px; font-size: 0.98rem; color: #94a3b8;">Bộ não tổng quản tiếp nhận mục tiêu nghiên cứu lớn, phân tích câu hỏi/giả thuyết và điều phối các công việc con.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 13px 20px; background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="card-title-row" style="margin-bottom: 0;">
+                <span class="card-title" style="color: var(--brand-blue);">⚡ TẦNG 2: CÁC KHÂU NGHIÊN CỨU CHUYÊN SÂU (Execution Layer)</span>
+              </div>
+              <span class="slide-pill-meta">Buổi 02 → 04</span>
+            </div>
+            <p class="card-text" style="margin-top: 3px; font-size: 0.98rem;">Tổng quan tài liệu & Research Gap (Buổi 2) · Phân tích định lượng & Khảo sát (Buổi 3) · Hệ thống hóa & Portfolio NCKH (Buổi 4).</p>
+          </div>
+
+          <div class="bento-card" style="padding: 13px 20px; background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="card-title-row" style="margin-bottom: 0;">
+                <span class="card-title" style="color: var(--brand-gold);">📦 TẦNG 3: BỘ 8 SKILL NGHIÊN CỨU CHUẨN HÓA (Reusability Layer)</span>
+              </div>
+              <span class="slide-pill-meta">.claude/skills/</span>
+            </div>
+            <p class="card-text" style="margin-top: 3px; font-size: 0.98rem;">8 gói nghiệp vụ đóng gói sẵn: literature-review, research-framework, methodology-design, data-analysis, academic-writing, citation-manager, critical-review, defense-prep.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 13px 20px; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="card-title-row" style="margin-bottom: 0;">
+                <span class="card-title" style="color: var(--brand-emerald);">🏛️ TẦNG 4: KNOWLEDGE & CONTEXT (Grounding Layer)</span>
+              </div>
+              <span class="slide-pill-meta" style="background: var(--brand-emerald); color:#fff; border:none;">Nền Móng Bắt Buộc</span>
+            </div>
+            <p class="card-text" style="margin-top: 3px; font-size: 0.98rem;">Hồ sơ <code>CLAUDE.md</code>, cây thư mục phân tầng, kho bài báo PDF, dữ liệu thô (<code>du-lieu/tho/</code>) và dữ liệu đã làm sạch trên máy tính.</p>
+          </div>
+        </div>
+
+        <div class="callout-banner callout-emerald" style="margin-top: 8px; padding: 10px 18px;">
+          📌 <strong>Nguyên lý:</strong> Muốn AI làm tổng quan và phân tích số liệu chuẩn, Tầng 4 (CLAUDE.md & Cây thư mục) phải được dựng vững chắc ngay hôm nay!
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 05: LỘ TRÌNH KHÓA K3 & BỘ 8 SKILL NGHIÊN CỨU
+         ==================================================================== -->
+    <section class="slide-page" data-slide="5" data-title="Lộ Trình Khóa K3 & 8 Skill">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Chương Trình Khóa Học K3</span>
+          <h2 class="slide-h2">Lộ Trình 4 Buổi & Chân Dung Bộ 8 Skill Nghiên Cứu</h2>
+          <p class="slide-lead">8 "nghề" chuyên biệt bao quát toàn bộ vòng đời từ đề cương đến bảo vệ luận án</p>
+        </div>
+        <span class="slide-pill-meta">4 Buổi Học • 8 Skills</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="table-container">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th style="width: 6%; text-align: center;">#</th>
+                <th style="width: 25%;">Tên Skill</th>
+                <th style="width: 53%;">Nhiệm vụ trong luận án & NCKH</th>
+                <th style="width: 16%; text-align: center;">Khâu luận án</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background: rgba(56, 189, 248, 0.1); font-weight: bold;">
+                <td style="text-align: center; color: var(--brand-blue);">01</td>
+                <td><strong><code>literature-review</code></strong></td>
+                <td>Tìm, phân loại, lập ma trận tổng hợp tài liệu và định vị Research Gap.</td>
+                <td style="text-align: center;"><span class="slide-pill-meta" style="background: var(--brand-blue-deep); color:#fff; border:none;">Buổi 02</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">02</td>
+                <td><strong><code>research-framework</code></strong></td>
+                <td>Xây dựng khung lý thuyết, mô hình nghiên cứu, định danh biến và giả thuyết.</td>
+                <td style="text-align: center;"><span class="slide-pill-meta">Buổi 02</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">03</td>
+                <td><strong><code>methodology-design</code></strong></td>
+                <td>Thiết kế cỡ mẫu, bảng hỏi khảo sát (thang đo Likert), phỏng vấn sâu.</td>
+                <td style="text-align: center;"><span class="slide-pill-meta">Buổi 03</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">04</td>
+                <td><strong><code>data-analysis</code></strong></td>
+                <td>Làm sạch số liệu, chạy Cronbach's Alpha, EFA/CFA, hồi quy, diễn giải kết quả.</td>
+                <td style="text-align: center;"><span class="slide-pill-meta">Buổi 03</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">05</td>
+                <td><strong><code>academic-writing</code></strong></td>
+                <td>Soạn thảo văn phong học thuật, trau chuốt từng chương luận án, bài báo ISI.</td>
+                <td style="text-align: center;"><span class="slide-pill-meta">Buổi 04</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">06</td>
+                <td><strong><code>citation-manager</code></strong></td>
+                <td>Chuẩn hóa định dạng trích dẫn APA 7th Edition, kiểm tra DOI, lập danh mục.</td>
+                <td style="text-align: center;"><span class="slide-pill-meta">Xuyên suốt</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">07</td>
+                <td><strong><code>critical-review</code></strong></td>
+                <td>Đóng vai người phản biện khó tính, tìm lỗ hổng lập luận và phương pháp.</td>
+                <td style="text-align: center;"><span class="slide-pill-meta">Buổi 04</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">08</td>
+                <td><strong><code>defense-prep</code></strong></td>
+                <td>Soạn slide bảo vệ, dự thảo câu hỏi hội đồng đánh giá và kịch bản trả lời.</td>
+                <td style="text-align: center;"><span class="slide-pill-meta">Bảo vệ</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 06: KHÁM PHÁ CLAUDE DESKTOP & TAB CODE
+         ==================================================================== -->
+    <section class="slide-page" data-slide="6" data-title="Khám Phá Claude Desktop & Tab Code">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Môi Trường Làm Việc Đơn Giản</span>
+          <h2 class="slide-h2">Khám Phá Claude Desktop & Kích Hoạt Tab Claude Code</h2>
+          <p class="slide-lead">Làm việc trực tiếp trên giao diện chính thức — Không cần cài đặt phần mềm lập trình phức tạp!</p>
+        </div>
+        <span class="slide-pill-meta">Kích hoạt &lt;/&gt; Code</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-2">
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="card-title">💬 1. Tab Chat Thông Thường</span>
+            </div>
+            <p class="card-text">Giao diện hỏi đáp truyền thống của Claude:</p>
+            <ul class="bullet-list" style="margin-top: 10px;">
+              <li><span class="bullet-dot">•</span> Dùng để dịch thuật đoạn văn, tra cứu thông tin nhanh, trao đổi ý tưởng ban đầu.</li>
+              <li><span class="bullet-cross">✕</span> <strong>Hạn chế lớn:</strong> Hoàn toàn cô lập với máy tính, không thể mở file PDF lớn, không thể tự tạo thư mục hay sửa dữ liệu bảng tính.</li>
+              <li><span class="bullet-cross">✕</span> Mọi tài liệu đều phải copy/paste thủ công từng đoạn rất mất thời gian.</li>
+            </ul>
+          </div>
+
+          <div class="bento-card bento-card-featured">
+            <div class="card-title-row">
+              <span class="card-title" style="color: var(--brand-blue);">⚡ 2. Tab Claude Code (<code>&lt;/&gt; Code</code>) — Môi Trường Nghiên Cứu</span>
+            </div>
+            <p class="card-text">Không gian chỉ huy chuyên nghiệp dành riêng cho AI Research Workspace:</p>
+            <ul class="bullet-list" style="margin-top: 10px;">
+              <li><span class="bullet-check">✓</span> <strong>Cắm thẳng vào thư mục luận án:</strong> AI nhìn thấy trọn vẹn cây thư mục và tất cả bài báo, số liệu khảo sát của bạn.</li>
+              <li><span class="bullet-check">✓</span> <strong>Toàn quyền thao tác an toàn:</strong> Tự động tạo cây thư mục, đọc dữ liệu khảo sát CSV/Excel, cập nhật bản thảo, nạp bộ skill.</li>
+              <li><span class="bullet-check">✓</span> <strong>Giao tiếp 100% tiếng Việt:</strong> Gõ yêu cầu tự nhiên, đọc kế hoạch và bấm <strong>Allow</strong> (Đồng ý).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout-banner callout-amber">
+          👉 <strong>Thao tác:</strong> Mở ứng dụng <strong>Claude Desktop</strong> > Nhìn lên thanh tiêu đề trên cùng > Bấm vào tab <strong><code>&lt;/&gt; Code</code></strong> để bắt đầu phiên thực hành!
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 07: BẢO MẬT DỮ LIỆU NGHIÊN CỨU (PRIVACY SETTINGS)
+         ==================================================================== -->
+    <section class="slide-page" data-slide="7" data-title="Bảo Mật Dữ Liệu Nghiên Cứu">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">An Toàn Học Thuật</span>
+          <h2 class="slide-h2">Bảo Mật Dữ Liệu Nghiên Cứu 100% (Privacy Settings)</h2>
+          <p class="slide-lead">Quy tắc sống còn trước khi đưa đề tài, số liệu khảo sát hay bản thảo luận án vào AI</p>
+        </div>
+        <span class="slide-pill-meta" style="background: rgba(244,63,94,0.15); color: var(--brand-rose); border-color: rgba(244,63,94,0.3);">Bắt buộc 100%</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-2">
+          <div class="bento-card compare-card-bad">
+            <div class="card-title-row">
+              <span class="card-title">⚠️ Nguy Cơ Lộ Đề Tài Khi Để Cấu Hình Mặc Định</span>
+            </div>
+            <p class="card-text">Nếu không tắt cấu hình này:</p>
+            <ul class="bullet-list">
+              <li><span class="bullet-cross">✕</span> Đề cương nghiên cứu mới, ý tưởng độc đáo chưa công bố có thể bị hệ thống AI dùng làm dữ liệu huấn luyện cho người khác.</li>
+              <li><span class="bullet-cross">✕</span> Dữ liệu phỏng vấn sâu, khảo sát doanh nghiệp nhạy cảm có nguy cơ bị rò rỉ, vi phạm quy định đạo đức nghiên cứu khoa học.</li>
+            </ul>
+          </div>
+
+          <div class="bento-card compare-card-good">
+            <div class="card-title-row">
+              <span class="card-title">🔒 4 Bước Thiết Lập Bảo Vệ Tuyệt Đối</span>
+            </div>
+            <ol style="margin-left: 20px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; font-size: 1.05rem; color: var(--text-body);">
+              <li>Mở ứng dụng <strong>Claude Desktop</strong> trên máy tính của bạn.</li>
+              <li>Bấm vào <strong>Ảnh đại diện / Tài khoản</strong> ở góc dưới bên trái > Chọn <strong><code>Settings</code></strong>.</li>
+              <li>Nhấp vào mục <strong><code>Privacy</code></strong>.</li>
+              <li>Tắt công tắc: <strong><code>Help improve our AI models</code></strong> (Chuyển sang <strong>OFF</strong>).</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="callout-banner callout-emerald">
+          🛡️ <strong>Cam kết từ Anthropic:</strong> Khi tắt tùy chọn này, toàn bộ dữ liệu file luận án và câu lệnh của bạn được bảo mật tuyệt đối, cam kết 100% không dùng để huấn luyện AI.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 08: CHẾ ĐỘ CẤP QUYỀN THỰC THI (MODE)
+         ==================================================================== -->
+    <section class="slide-page" data-slide="8" data-title="Chế Độ Cấp Quyền Thực Thi">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Cấu Hình Vận Hành</span>
+          <h2 class="slide-h2">Làm Chủ 5 Chế Độ Cấp Quyền Thực Thi (Mode)</h2>
+          <p class="slide-lead">Kiểm soát mức độ tự chủ của Claude Code phù hợp với từng khâu nghiên cứu</p>
+        </div>
+        <span class="slide-pill-meta">5 Execution Modes</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="table-container">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th style="width: 22%;">Chế độ (Mode)</th>
+                <th style="width: 50%;">Cơ chế hoạt động</th>
+                <th style="width: 28%;">Khuyên dùng khi nào?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background: rgba(56, 189, 248, 0.1); font-weight: bold;">
+                <td><strong style="color: var(--brand-blue);"><code>Auto</code></strong> <em>(Mặc định)</em></td>
+                <td>AI tự động đọc, phân tích và thực thi các bước thông thường, chỉ dừng lại xin phép khi gặp lệnh tác động lớn.</td>
+                <td><span class="slide-pill-meta" style="background: var(--brand-emerald); color: #fff; border:none;">Khuyên dùng tại lớp</span></td>
+              </tr>
+              <tr>
+                <td><strong><code>Manual</code></strong></td>
+                <td>Mỗi thao tác đọc tài liệu, tạo thư mục hay sửa bảng tính, AI đều dừng lại hỏi ý kiến bạn.</td>
+                <td>Khi xử lý dữ liệu thô gốc cần bảo toàn tuyệt đối.</td>
+              </tr>
+              <tr>
+                <td><strong><code>Accept edits</code></strong></td>
+                <td>Tự động chấp thuận mọi chỉnh sửa văn bản mà không cần bạn bấm xác nhận từng lần.</td>
+                <td>Khi trau chuốt câu từ chương luận án hàng loạt.</td>
+              </tr>
+              <tr>
+                <td><strong><code>Plan</code></strong></td>
+                <td>AI chỉ suy nghĩ, phản biện và lên dàn ý/kế hoạch ra màn hình, tuyệt đối chưa đụng vào file.</td>
+                <td>Khi thảo luận ý tưởng, thiết kế mô hình nghiên cứu.</td>
+              </tr>
+              <tr>
+                <td><strong><code>Bypass permissions</code></strong></td>
+                <td>Bỏ qua mọi bước xác nhận, AI chạy với quyền tự động hóa tối đa.</td>
+                <td>Dành cho chuyên gia chạy tác vụ tự động dài.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 09: MODEL AI & THANH TRƯỢT EFFORT TRONG NCKH
+         ==================================================================== -->
+    <section class="slide-page" data-slide="9" data-title="Model AI & Thanh Trượt Effort">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Cấu Hình Vận Hành</span>
+          <h2 class="slide-h2">Lựa Chọn Model AI & Thanh Trượt Tư Duy (Effort)</h2>
+          <p class="slide-lead">Cách chọn mô hình và độ sâu suy nghĩ phù hợp với độ phức tạp của bài toán khoa học</p>
+        </div>
+        <span class="slide-pill-meta">Model & Thinking Effort</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-2">
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="card-title">🤖 1. Lựa Chọn Model Claude Cho Luận Án</span>
+            </div>
+            <ul class="bullet-list" style="margin-top: 8px;">
+              <li>
+                <span class="bullet-dot">•</span>
+                <div>
+                  <strong><code>Haiku 4.5</code> (Nhanh & Tiết kiệm token):</strong><br>
+                  Trích xuất thông tin nhanh: tác giả, năm xuất bản, danh sách DOI, phân loại sơ bộ bài báo.
+                </div>
+              </li>
+              <li>
+                <span class="bullet-check">✓</span>
+                <div>
+                  <strong style="color: var(--brand-blue);"><code>Sonnet 5</code> ("Ngựa chiến" nghiên cứu chính):</strong><br>
+                  Cân bằng hoàn hảo: lập luận học thuật sắc bén, tổng hợp tài liệu xuất sắc, kiểm định thống kê chuẩn xác. <em>Khuyên dùng cho toàn bộ khóa học!</em>
+                </div>
+              </li>
+              <li>
+                <span class="bullet-dot">•</span>
+                <div>
+                  <strong><code>Opus 5</code> / <code>Fable 5.1</code> (Bộ não lý thuyết tối thượng):</strong><br>
+                  Xây dựng khung lý thuyết đa tầng, giải quyết mâu thuẫn học thuật phức tạp, phản biện cấp tiến sĩ.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="card-title">🧠 2. Thanh Trượt Nỗ Lực Tư Duy (Effort Slider)</span>
+            </div>
+            <p class="card-text">Điều chỉnh mức độ AI "suy nghĩ ngầm" trước khi đưa ra câu trả lời:</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
+              <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px;">
+                <div style="font-weight: bold; color: var(--brand-blue);">⚡ Faster (Low Effort)</div>
+                <div style="font-size: 0.95rem; color: var(--text-body); margin-top: 2px;">Trả lời tức thì, bỏ qua chuỗi tư duy. Phù hợp tra cứu thuật ngữ, dịch đoạn văn ngắn.</div>
+              </div>
+
+              <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: var(--radius-md); padding: 12px;">
+                <div style="font-weight: bold; color: var(--brand-gold);">🎯 Smarter (Medium / High Effort)</div>
+                <div style="font-size: 0.95rem; color: var(--text-body); margin-top: 2px;">AI tự kích hoạt chuỗi suy nghĩ (Thinking Process), tự rà soát lỗ hổng logic khoa học và trích dẫn trước khi xuất kết quả. Chất lượng vượt bậc!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 10: QUOTA, TOKEN & CONTEXT WINDOW
+         ==================================================================== -->
+    <section class="slide-page" data-slide="10" data-title="Quota, Token & Context Window">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Cơ Chế Bộ Nhớ</span>
+          <h2 class="slide-h2">Quota, Token & Cửa Sổ Ngữ Cảnh (Context Window)</h2>
+          <p class="slide-lead">Bí quyết giải quyết triệt để tình trạng đọc nhiều bài báo thì AI bắt đầu "bị lú" và quên dặn dò</p>
+        </div>
+        <span class="slide-pill-meta">Kiểm Soát Context</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-2">
+          <div class="bento-card compare-card-bad">
+            <div class="card-title-row">
+              <span class="card-title">⚠️ Tại Sao Đọc Nhiều Bài Báo Thì AI Bị "Quên"?</span>
+            </div>
+            <ul class="bullet-list">
+              <li><span class="bullet-cross">✕</span> <strong>Context Window là gì:</strong> Là dung lượng bộ nhớ ngắn hạn của 1 phiên làm việc (vòng tròn % ở góc dưới).</li>
+              <li><span class="bullet-cross">✕</span> <strong>Hiện tượng đầy bộ nhớ:</strong> Khi nạp cùng lúc hàng chục file PDF toàn văn hoặc bảng dữ liệu khảo sát lớn, vòng tròn chuyển sang màu vàng/đỏ.</li>
+              <li><span class="bullet-cross">✕</span> <strong>Hậu quả học thuật:</strong> AI bắt đầu quên quy tắc APA 7 trong <code>CLAUDE.md</code>, nhầm lẫn tên tác giả giữa các bài báo và dễ sinh ảo giác.</li>
+            </ul>
+          </div>
+
+          <div class="bento-card compare-card-good">
+            <div class="card-title-row">
+              <span class="card-title">💡 3 Kỷ Luật Giữ AI Luôn Tỉnh Táo & Chuẩn Xác</span>
+            </div>
+            <ul class="bullet-list">
+              <li><span class="bullet-check">✓</span> <strong>Mở phiên mới đúng lúc:</strong> Xong một khâu (ví dụ: xong ma trận tài liệu), gõ <code>/clear</code> hoặc bấm <strong>New Session</strong>.</li>
+              <li><span class="bullet-check">✓</span> <strong>Chỉ nạp đúng tài liệu cần phân tích:</strong> Tránh bắt AI đọc cả thư mục 100 file PDF một lúc; chia nhỏ theo nhóm chủ đề.</li>
+              <li><span class="bullet-check">✓</span> <strong>Yên tâm tuyệt đối:</strong> Vì bối cảnh NCS, đề tài và chuẩn APA 7 đã nằm trong <code>CLAUDE.md</code>, mở phiên mới AI vẫn nhớ bạn là ai 100%!</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout-banner">
+          🔄 <strong>Kinh nghiệm vàng:</strong> Mỗi nhiệm vụ nghiên cứu độc lập = 1 phiên làm việc mới (New Session) để đảm bảo độ chính xác học thuật cao nhất.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 11: PHÂN BIỆT 3 TẦNG KÝ ỨC TRONG NGHIÊN CỨU
+         ==================================================================== -->
+    <section class="slide-page" data-slide="11" data-title="Phân Biệt 3 Tầng Ký Ức">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Kiến Trúc Bộ Nhớ</span>
+          <h2 class="slide-h2">Phân Biệt 3 Tầng Ký Ức Khi Làm Nghiên Cứu</h2>
+          <p class="slide-lead">Hiểu rõ sự khác biệt giữa Chat Prompt, Claude Memory và File CLAUDE.md của luận án</p>
+        </div>
+        <span class="slide-pill-meta">3 Memory Levels</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-3">
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="icon-chip-num">1</span>
+              <span class="card-title">Chat Prompt</span>
+            </div>
+            <p style="font-size: 0.9rem; font-weight: bold; color: var(--brand-rose); text-transform: uppercase;">Ký ức tức thời (Tạm thời)</p>
+            <p class="card-text" style="margin-top: 8px;">Chỉ nhớ trong nội dung 1 câu chat hoặc phiên chat hiện tại. Đóng cửa sổ là bối cảnh đề tài tan biến hoàn toàn, lần sau phải giải thích lại từ đầu.</p>
+          </div>
+
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="icon-chip-num">2</span>
+              <span class="card-title">Claude Memory</span>
+            </div>
+            <p style="font-size: 0.9rem; font-weight: bold; color: var(--brand-gold); text-transform: uppercase;">Ký ức tài khoản đám mây</p>
+            <p class="card-text" style="margin-top: 8px;">Lưu trên tài khoản Claude cá nhân. Nhớ sở thích chung của bạn nhưng không thể chia sẻ cho nhóm nghiên cứu/GVHD và không gắn chặt vào cây thư mục máy tính.</p>
+          </div>
+
+          <div class="bento-card bento-card-featured">
+            <div class="card-title-row">
+              <span class="icon-chip-num">3</span>
+              <span class="card-title" style="color: var(--brand-blue);">File CLAUDE.md</span>
+            </div>
+            <p style="font-size: 0.9rem; font-weight: bold; color: var(--brand-blue); text-transform: uppercase;">Ký ức luận án vĩnh cửu</p>
+            <p class="card-text" style="margin-top: 8px;"><strong>Tiêu chuẩn vàng của nghiên cứu:</strong> Lưu thành file vật lý ngay tại thư mục gốc luận án trên ổ cứng. Bền vững suốt 4 năm, chuyển sang máy khác hay đưa lên GitHub đều chạy đúng!</p>
+          </div>
+        </div>
+
+        <div class="callout-banner callout-emerald" style="margin-top: 12px;">
+          ✨ <strong>Sức mạnh của <code>CLAUDE.md</code>:</strong> Bất cứ khi nào bạn mở thư mục luận án lên, Claude lập tức biết mình đang phục vụ ai, đề tài gì, tuân thủ APA 7 và không được bịa số liệu!
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 12: TRIẾT LÝ NỀN TẢNG: THIẾT LẬP CLAUDE.MD TRƯỚC HẾT
+         ==================================================================== -->
+    <section class="slide-page" data-slide="12" data-title="Triết Lý Nền Tảng CLAUDE.md">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Triết Lý Sư Phạm CES Global</span>
+          <h2 class="slide-h2">Triết Lý Nền Tảng: Thiết Lập CLAUDE.md TRƯỚC HẾT</h2>
+          <p class="slide-lead">Tại sao phải định danh bối cảnh nghiên cứu trước khi cho AI bắt tay vào hành động?</p>
+        </div>
+        <span class="slide-pill-meta">Quy Trình 2 Bước</span>
+      </div>
+
+      <div class="slide-body">
+        <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; padding: 18px 24px; border-radius: var(--radius-lg); margin-bottom: 12px; box-shadow: var(--shadow-card);">
+          <div style="font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.5px; color: #bae6fd; font-weight: bold;">NGUYÊN TẮC CỐT LÕI CỦA NGHIÊN CỨU:</div>
+          <div style="font-size: 1.35rem; font-weight: bold; line-height: 1.4; margin-top: 4px; color: #ffffff;">
+            "Muốn AI hỗ trợ nghiên cứu đúng, trước hết phải dạy AI hiểu: TÔI LÀ NCS NGÀNH GÌ, ĐỀ TÀI LÀ GÌ, CHUẨN TRÍCH DẪN NÀO, VÀ NGUYÊN TẮC LIÊM CHÍNH RA SAO."
+          </div>
+        </div>
+
+        <div class="bento-grid grid-2">
+          <div class="bento-card compare-card-bad">
+            <div class="card-title-row">
+              <span class="card-title">❌ Sai Lầm Phổ Biến Của Người Mới</span>
+            </div>
+            <p class="card-text">Vừa mở AI lên đã vội ra lệnh: <em>"Tạo cây thư mục nghiên cứu giúp tôi"</em>.</p>
+            <p class="card-text" style="margin-top: 6px;">➔ Hậu quả: AI không biết bạn là NCS Quản trị học, Kinh tế, Kỹ thuật hay Y sinh; không biết dùng định tính hay định lượng, nên tạo ra cây thư mục chung chung vô bổ, không dùng được.</p>
+          </div>
+
+          <div class="bento-card compare-card-good">
+            <div class="card-title-row">
+              <span class="card-title">✅ Quy Trình Chuẩn Của Nhà Nghiên Cứu</span>
+            </div>
+            <p class="card-text"><strong>Bước 1:</strong> Nạp file <code>CLAUDE.md</code> định danh vai trò NCS, đề tài (hoặc hướng quan tâm), chuẩn APA 7 và cam kết liêm chính học thuật trước tiên.</p>
+            <p class="card-text" style="margin-top: 6px;"><strong>Bước 2:</strong> Ra lệnh cho AI tự đọc <code>CLAUDE.md</code> để suy luận và kiến tạo cây thư mục luận án phù hợp hoàn hảo với đề tài của bạn!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 13: "HIẾN PHÁP" CLAUDE.MD CHUẨN NGHIÊN CỨU
+         ==================================================================== -->
+    <section class="slide-page" data-slide="13" data-title="Hiến Pháp CLAUDE.md Chuẩn">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Cấu Trúc Hồ Sơ Học Thuật</span>
+          <h2 class="slide-h2">"Hiến Pháp" CLAUDE.md Chuẩn Luận Án Gồm Những Gì?</h2>
+          <p class="slide-lead">8 trụ cột nguyên tắc biến AI thành trợ lý nghiên cứu kỷ luật thép, chuẩn mực quốc tế</p>
+        </div>
+        <span class="slide-pill-meta">8 Trụ Cột Học Thuật</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-4">
+          <div class="bento-card" style="padding: 14px 16px;">
+            <div class="card-title-row"><span class="icon-chip-num">1</span> <span class="card-title" style="font-size: 1.05rem;">Hồ Sơ NCS</span></div>
+            <p class="card-text" style="font-size: 0.95rem;">Họ tên, chuyên ngành (Quản trị/Kinh tế...), trường, GVHD, đề tài nghiên cứu.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 14px 16px;">
+            <div class="card-title-row"><span class="icon-chip-num">2</span> <span class="card-title" style="font-size: 1.05rem;">Times New Roman</span></div>
+            <p class="card-text" style="font-size: 0.95rem;">100% tài liệu Word, Excel, PDF, Báo cáo luận án bắt buộc dùng Times New Roman.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 14px 16px;">
+            <div class="card-title-row"><span class="icon-chip-num">3</span> <span class="card-title" style="font-size: 1.05rem;">Chuẩn APA 7</span></div>
+            <p class="card-text" style="font-size: 0.95rem;">Trích dẫn trong bài (Author, Year) và danh mục tài liệu tham khảo có DOI chuẩn quốc tế.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 14px 16px;">
+            <div class="card-title-row"><span class="icon-chip-num">4</span> <span class="card-title" style="font-size: 1.05rem;">Liêm Chính Học Thuật</span></div>
+            <p class="card-text" style="font-size: 0.95rem;">Tuyệt đối CẤM BỊA TRÍCH DẪN, CẤM BỊA SỐ LIỆU. Không chắc phải ghi rõ chưa xác minh.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 14px 16px;">
+            <div class="card-title-row"><span class="icon-chip-num">5</span> <span class="card-title" style="font-size: 1.05rem;">Bố Cục Excel Rộng</span></div>
+            <p class="card-text" style="font-size: 0.95rem;">Tách cột STT riêng, tự động tính chiều cao dòng, chống đè chữ khi lưu biến nghiên cứu.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 14px 16px;">
+            <div class="card-title-row"><span class="icon-chip-num">6</span> <span class="card-title" style="font-size: 1.05rem;">Bảo Toàn Dữ Liệu Gốc</span></div>
+            <p class="card-text" style="font-size: 0.95rem;">Cấm xóa folder; tách riêng <code>du-lieu/tho/</code> bất biến và <code>da-xu-ly/</code> để phân tích.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 14px 16px;">
+            <div class="card-title-row"><span class="icon-chip-num">7</span> <span class="card-title" style="font-size: 1.05rem;">Single File & _backup</span></div>
+            <p class="card-text" style="font-size: 0.95rem;">Bên ngoài chỉ giữ 1 bản thảo mới nhất, các bản cũ tự động lưu trữ vào thư mục <code>_backup/</code>.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 14px 16px;">
+            <div class="card-title-row"><span class="icon-chip-num">8</span> <span class="card-title" style="font-size: 1.05rem;">Phân Tầng Theo Khâu</span></div>
+            <p class="card-text" style="font-size: 0.95rem;">Cấu trúc thư mục tương ứng các giai đoạn: đề cương, tổng quan, phương pháp, các chương.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 14: DEMO GV BƯỚC 1: KHỞI TẠO CLAUDE.MD
+         ==================================================================== -->
+    <section class="slide-page" data-slide="14" data-title="Demo GV: Khởi Tạo CLAUDE.md">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Thực Chiến Luận Án</span>
+          <h2 class="slide-h2">Demo GV — Bước 1: Khởi Tạo File CLAUDE.md Bằng Tiếng Việt</h2>
+          <p class="slide-lead">Nạp danh tính nghiên cứu sinh và bối cảnh đề tài vào hệ thống</p>
+        </div>
+        <span class="slide-pill-meta" style="background: var(--brand-emerald); color: #fff; border:none;">Bước 1 / 4</span>
+      </div>
+
+      <div class="slide-body">
+        <div style="font-size: 1.05rem; color: var(--text-body); margin-bottom: 4px;">
+          🎤 <strong>Lời dẫn Giảng viên:</strong> <em>"Chúng ta mở tab Code trong Claude Desktop, dán câu lệnh tư vấn đầu tiên để Claude phỏng vấn ta và tạo file dặn dò CLAUDE.md."</em>
+        </div>
+
+        <div class="terminal-box">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+              <span class="terminal-tag" style="margin-left: 8px;">claude-desktop - tab &lt;/&gt; code</span>
+            </div>
+            <button class="btn-copy" onclick="copyPrompt('promptDemo1', this)">📋 Sao chép Prompt 1</button>
+          </div>
+          <pre class="terminal-code" id="promptDemo1">Tôi muốn bạn tạo cho tôi file claude.md trong thư mục này, tôi chưa biết file claude.md dùng để làm gì, bạn hãy tư vấn và hỏi tôi các câu hỏi cần thiết để tạo file cho tôi.</pre>
+        </div>
+
+        <div class="terminal-box" style="margin-top: 8px;">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+              <span class="terminal-tag" style="margin-left: 8px;">câu trả lời định danh bối cảnh ncs</span>
+            </div>
+            <button class="btn-copy" onclick="copyPrompt('promptDemo1b', this)">📋 Sao chép Prompt 2</button>
+          </div>
+          <pre class="terminal-code" id="promptDemo1b">Tôi là nghiên cứu sinh tiến sĩ chuyên ngành quản trị học (đổi ngành của bạn nếu khác). Tôi muốn dùng thư mục này để viết luận án tiến sĩ.
+Yêu cầu bắt buộc:
+- Luận án viết bằng Tiếng Việt học thuật, trích dẫn chuẩn APA 7th Edition (bắt buộc có DOI nếu có).
+- Liêm chính học thuật: Tuyệt đối KHÔNG được bịa tài liệu trích dẫn, KHÔNG được bịa số liệu thống kê.
+- Phông chữ mặc định: 100% Times New Roman.
+- Mục Đề tài: Tạm để [CHỜ ĐIỀN]. Hãy tạo file CLAUDE.md hoàn chỉnh cho tôi.</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 15: DEMO GV BƯỚC 2: AI TỰ SINH CÂY THƯ MỤC LUẬN ÁN
+         ==================================================================== -->
+    <section class="slide-page" data-slide="15" data-title="Demo GV: Sinh Cây Thư Mục">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Thực Chiến Luận Án</span>
+          <h2 class="slide-h2">Demo GV — Bước 2: AI Tự Động Dựng Cây Thư Mục Luận Án</h2>
+          <p class="slide-lead">Quy hoạch "tủ hồ sơ khoa học" ngăn nắp cho toàn bộ 3–4 năm nghiên cứu chỉ bằng 1 câu lệnh</p>
+        </div>
+        <span class="slide-pill-meta" style="background: var(--brand-emerald); color: #fff; border:none;">Bước 2 / 4</span>
+      </div>
+
+      <div class="slide-body">
+        <div style="font-size: 1.05rem; color: var(--text-body); margin-bottom: 4px;">
+          🎤 <strong>Lời dẫn Giảng viên:</strong> <em>"Bây giờ AI đã biết bạn là NCS rồi. Ra lệnh cho AI tự đọc CLAUDE.md và sinh toàn bộ cây thư mục chuyên ngành kèm README.md!"</em>
+        </div>
+
+        <div class="bento-grid grid-1-2">
+          <div class="tree-box">
+📁 THƯ MỤC GỐC LUẬN ÁN
+├── de-cuong/
+├── tong-quan-tai-lieu/
+├── phuong-phap-nghien-cuu/
+├── du-lieu/
+│   ├── tho/          (Dữ liệu gốc bất biến)
+│   └── da-xu-ly/     (Đã làm sạch)
+├── phan-tich/
+├── chuong/           (Chương 1 đến 5)
+├── tai-lieu-tham-khao/
+├── phu-luc/
+├── cong-bo/
+├── huong-dan-va-gop-y/
+├── ban-nhap/
+├── _backup/
+├── CLAUDE.md
+└── .claude/skills/
+          </div>
+
+          <div class="terminal-box" style="margin-top: 0;">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yellow"></div>
+                <div class="dot dot-green"></div>
+                <span class="terminal-tag" style="margin-left: 8px;">prompt sinh cây thư mục luận án</span>
+              </div>
+              <button class="btn-copy" onclick="copyPrompt('promptDemo2', this)">📋 Sao chép Prompt</button>
+            </div>
+            <pre class="terminal-code" id="promptDemo2">tôi chưa có đề tài nghiên cứu cụ thể nhưng tôi muốn bạn tạo ra cây thư mục cho dự án này bao gồm các thư mục cần thiết cho nghiên cứu sinh tiến sĩ, đồng thời có các thư mục chứa skill và agent để sau này claude sử dụng.
+Mỗi thư mục hãy tạo một file README.md giải thích ngắn gọn nó dùng để chứa tài liệu gì.</pre>
+            <div style="padding: 10px 16px; background: rgba(56,189,248,0.06); font-size: 0.95rem; color: var(--brand-blue);">
+              ⚡ Khi Claude xin phép chạy lệnh tạo thư mục, hãy bấm <strong>Allow</strong> (Đồng ý)!
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 16: DEMO GV BƯỚC 3: CÀI BỘ 8 SKILL TỪ GITHUB
+         ==================================================================== -->
+    <section class="slide-page" data-slide="16" data-title="Demo GV: Cài Bộ 8 Skill">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Thực Chiến Luận Án</span>
+          <h2 class="slide-h2">Demo GV — Bước 3: Cài Bộ 8 Skill Nghiên Cứu Từ GitHub</h2>
+          <p class="slide-lead">Trang bị "8 chuyên môn mẫu" của khóa K3 vào thư mục .claude/skills/ mà không cần lệnh Git</p>
+        </div>
+        <span class="slide-pill-meta" style="background: var(--brand-emerald); color: #fff; border:none;">Bước 3 / 4</span>
+      </div>
+
+      <div class="slide-body">
+        <div style="font-size: 1.05rem; color: var(--text-body); margin-bottom: 4px;">
+          🎤 <strong>Lời dẫn Giảng viên:</strong> <em>"Chúng ta gửi link repo GitHub của khóa học cho Claude. Claude sẽ tự động tải 8 thư mục skill về cất vào .claude/skills/."</em>
+        </div>
+
+        <div class="terminal-box">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+              <span class="terminal-tag" style="margin-left: 8px;">prompt kéo bộ 8 skill nghiên cứu</span>
+            </div>
+            <button class="btn-copy" onclick="copyPrompt('promptDemoSkill', this)">📋 Sao chép Prompt Cài Skill</button>
+          </div>
+          <pre class="terminal-code" id="promptDemoSkill">https://github.com/Peternguyen91/K2-AI-Agent-for-Research/tree/main
+
+đọc repo này, lấy bộ skill sau đó cài đặt skill vào thư mục hiện tại cho tôi.</pre>
+        </div>
+
+        <div class="grid-2" style="margin-top: 10px;">
+          <div class="bento-card" style="padding: 14px 18px;">
+            <div class="card-title-row" style="color: var(--brand-blue);"><span class="card-title" style="font-size: 1.1rem;">🌐 GitHub Đơn Giản Là Gì?</span></div>
+            <p class="card-text" style="font-size: 0.95rem;">Xem GitHub như <strong>"Google Drive học liệu khoa học"</strong> lưu sẵn toàn bộ bộ skill, tài liệu mẫu và dữ liệu thực hành của khóa.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 14px 18px;">
+            <div class="card-title-row" style="color: var(--brand-gold);"><span class="card-title" style="font-size: 1.1rem;">⏱️ Thời Gian Chờ</span></div>
+            <p class="card-text" style="font-size: 0.95rem;">Quá trình tải mất 20–45 giây. Khi Claude hiện hộp thoại xin phép tạo các thư mục skill, hãy tiếp tục bấm <strong>Allow</strong>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 17: DEMO GV BƯỚC 4: KIỂM TRA ĐỒNG BỘ TRÍ NHỚ & SKILL
+         ==================================================================== -->
+    <section class="slide-page" data-slide="17" data-title="Demo GV: Kiểm Tra Trí Nhớ & Skill">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Thực Chiến Luận Án</span>
+          <h2 class="slide-h2">Demo GV — Bước 4: Mở Phiên Mới Kiểm Tra Sự Đồng Bộ</h2>
+          <p class="slide-lead">Chứng minh sức mạnh của CLAUDE.md & Bộ Skill: New Session mà không hề mất trí nhớ</p>
+        </div>
+        <span class="slide-pill-meta" style="background: var(--brand-emerald); color: #fff; border:none;">Bước 4 / 4</span>
+      </div>
+
+      <div class="slide-body">
+        <div style="font-size: 1.05rem; color: var(--text-body); margin-bottom: 4px;">
+          🎤 <strong>Lời dẫn Giảng viên:</strong> <em>"Bây giờ tôi bấm New Session hoặc gõ /clear. Tôi không nhắc lại tôi là ai, để xem AI có tự nhận diện bối cảnh và bộ 8 skill không!"</em>
+        </div>
+
+        <div class="terminal-box">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+              <span class="terminal-tag" style="margin-left: 8px;">prompt kiểm tra phiên mới</span>
+            </div>
+            <button class="btn-copy" onclick="copyPrompt('promptDemo3', this)">📋 Sao chép Prompt</button>
+          </div>
+          <pre class="terminal-code" id="promptDemo3">Hãy liệt kê các skill bạn đang có và mô tả ngắn mỗi skill làm gì. Đồng thời cho tôi biết sau này bảng dữ liệu khảo sát gốc của tôi sẽ được lưu vào thư mục nào?</pre>
+        </div>
+
+        <div class="bento-grid grid-3" style="margin-top: 12px;">
+          <div class="bento-card" style="padding: 14px 18px;">
+            <div class="card-title-row" style="font-size: 1.1rem; color: var(--brand-emerald);">✓ Nhận Diện Đủ 8 Skill</div>
+            <p class="card-text" style="font-size: 0.95rem;">Liệt kê đầy đủ từ <code>literature-review</code> đến <code>defense-prep</code> kèm chức năng.</p>
+          </div>
+
+          <div class="bento-card" style="padding: 14px 18px;">
+            <div class="card-title-row" style="font-size: 1.1rem; color: var(--brand-emerald);">✓ Định Vị Thư Mục Chuẩn</div>
+            <p class="card-text" style="font-size: 0.95rem;">Trả lời chính xác: Dữ liệu khảo sát gốc phải lưu vào <strong><code>du-lieu/tho/</code></strong> để bảo toàn!</p>
+          </div>
+
+          <div class="bento-card" style="padding: 14px 18px;">
+            <div class="card-title-row" style="font-size: 1.1rem; color: var(--brand-emerald);">✓ Nhớ Kỷ Luật APA 7</div>
+            <p class="card-text" style="font-size: 0.95rem;">Tự nhắc nhở tuân thủ trích dẫn APA 7 và cam kết không bịa đặt nguồn khoa học.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 18: THỰC HÀNH TẠI LỚP (25 PHÚT) CÓ ĐỒNG HỒ ĐẾM NGƯỢC
+         ==================================================================== -->
+    <section class="slide-page" data-slide="18" data-title="Thực Hành Dành Cho Học Viên">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category" style="background: rgba(245,158,11,0.15); color: var(--brand-gold); border-color: rgba(245,158,11,0.35);">Thực Hành Trực Tiếp</span>
+          <h2 class="slide-h2">Thực Hành Dành Cho Học Viên Tại Lớp (25 Phút)</h2>
+          <p class="slide-lead">Tự tay thiết lập "Văn phòng nghiên cứu AI" cá nhân hóa cho chính đề tài của bạn</p>
+        </div>
+        <span class="slide-pill-meta" style="background: var(--brand-gold); color:#070b14; border:none; font-weight:bold;">25:00 Phút</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-2-1">
+          <div class="bento-card" style="padding: 20px 24px;">
+            <div class="card-title-row" style="color: var(--brand-blue);">
+              <span class="card-title">📋 4 Bước Học Viên Cần Hoàn Thành Tại Chỗ:</span>
+            </div>
+            <ol style="margin-left: 20px; margin-top: 10px; display: flex; flex-direction: column; gap: 10px; font-size: 1.05rem; color: var(--text-body);">
+              <li><strong>Bước 1 (Bảo mật đề tài):</strong> Vào Settings > Privacy trong Claude Desktop, gạt công tắc Help improve models sang <strong>OFF</strong>.</li>
+              <li><strong>Bước 2 (Hiến pháp cá nhân):</strong> Nhờ Claude tạo file <code>CLAUDE.md</code> ghi đúng thông tin NCS, ngành học, đề tài (hoặc hướng quan tâm) và cam kết APA 7 + liêm chính.</li>
+              <li><strong>Bước 3 (Dựng cây thư mục & Cài skill):</strong> Ra lệnh cho Claude tự tạo cây thư mục luận án phân tầng và kéo bộ 8 skill nghiên cứu về máy.</li>
+              <li><strong>Bước 4 (Tự kiểm tra trí nhớ):</strong> Bấm <strong>New Session</strong> (<code>/clear</code>), gõ kiểm tra danh sách 8 skill và xác nhận AI đã thuộc bối cảnh nghiên cứu của bạn!</li>
+            </ol>
+          </div>
+
+          <div class="timer-card-panel">
+            <div style="font-size: 0.88rem; font-weight: bold; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Đồng Hồ Thực Hành</div>
+            <div class="timer-digits-text" id="timerDisplay">25:00</div>
+            <div class="timer-buttons">
+              <button class="btn-keynote btn-keynote-primary" id="btnTimerStart" onclick="toggleTimer()">Bắt đầu</button>
+              <button class="btn-keynote" onclick="resetTimer()">Đặt lại</button>
+            </div>
+            <div style="font-size: 0.88rem; color: var(--text-dim); margin-top: 12px;">Giảng viên & Trợ giảng hỗ trợ trực tiếp tại chỗ</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 19: KHỞI TẠO ORCHESTRATOR AGENT CHO LUẬN ÁN
+         ==================================================================== -->
+    <section class="slide-page" data-slide="19" data-title="Khởi Tạo Orchestrator Agent">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Kích Hoạt Agent Luận Án</span>
+          <h2 class="slide-h2">Khởi Tạo Agent Số 1 — Trợ Lý Điều Phối Luận Án (Orchestrator)</h2>
+          <p class="slide-lead">Bàn giao quyền điều phối không gian nghiên cứu cho vị "tổng quản" AI đầu tiên</p>
+        </div>
+        <span class="slide-pill-meta" style="background: var(--brand-blue-deep); color:#fff; border:none;">Agent Điều Phối</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-2-1">
+          <div class="terminal-box" style="margin-top: 0;">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yellow"></div>
+                <div class="dot dot-green"></div>
+                <span class="terminal-tag" style="margin-left: 8px;">prompt kích hoạt orchestrator luận án</span>
+              </div>
+              <button class="btn-copy" onclick="copyPrompt('promptOrchestrator', this)">📋 Sao chép Prompt</button>
+            </div>
+            <pre class="terminal-code" id="promptOrchestrator">Dựa trên file CLAUDE.md và cây thư mục dự án vừa tạo, bạn hãy đóng vai Trợ lý Điều phối Luận án (Orchestrator Agent) của tôi.
+Hãy quét toàn bộ workspace hiện tại, kiểm tra xem các thư mục đã có đầy đủ chưa, rà soát bối cảnh đề tài và đề xuất kế hoạch 3 bước để tôi chuẩn bị tài liệu cho giai đoạn Tổng quan tài liệu (Literature Review).</pre>
+          </div>
+
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="card-title">🎯 Vai Trò Của Orchestrator</span>
+            </div>
+            <p class="card-text">Trợ lý Điều phối là hạt nhân chỉ huy:</p>
+            <ul class="bullet-list" style="margin-top: 8px;">
+              <li><span class="bullet-check">✓</span> Hiểu toàn cục cấu trúc luận án và đề tài.</li>
+              <li><span class="bullet-check">✓</span> Điều phối việc gọi skill <code>literature-review</code> ở Buổi 2 và <code>data-analysis</code> ở Buổi 3.</li>
+              <li><span class="bullet-check">✓</span> Báo cáo tiến độ luận án chuẩn xác cho bạn.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 20: QUY TẮC 5 DÒNG CHUẨN NGHIÊN CỨU KHOA HỌC
+         ==================================================================== -->
+    <section class="slide-page" data-slide="20" data-title="Quy Tắc 5 Dòng Nghiên Cứu">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Kỹ Thuật Ra Lệnh Khoa Học</span>
+          <h2 class="slide-h2">Quy Tắc 5 Dòng — Bí Quyết Ra Lệnh Chuẩn Nghiên Cứu</h2>
+          <p class="slide-lead">Đừng bao giờ hỏi chung chung: "Làm luận án giúp tôi" — Hãy dùng công thức chuyên gia</p>
+        </div>
+        <span class="slide-pill-meta">Prompting Engineering</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-2">
+          <div class="bento-card compare-card-good">
+            <div class="card-title-row">
+              <span class="card-title">📜 Công Thức 5 Dòng Bắt Buộc</span>
+            </div>
+            <ul class="bullet-list">
+              <li><span class="bullet-dot">•</span> <strong>1. Giai đoạn nghiên cứu:</strong> Bạn đang ở khâu nào? (Đề cương, Tổng quan tài liệu, Thiết kế phương pháp, hay Phân tích số liệu).</li>
+              <li><span class="bullet-dot">•</span> <strong>2. Chủ đề / Đề tài:</strong> Tên đề tài hoặc các biến nghiên cứu trọng tâm.</li>
+              <li><span class="bullet-dot">•</span> <strong>3. Dữ liệu hiện có:</strong> Đang có bao nhiêu file PDF bài báo, DOI hay file số liệu nào trong thư mục?</li>
+              <li><span class="bullet-dot">•</span> <strong>4. Kết quả mong muốn:</strong> Định dạng đầu ra rõ ràng (Ma trận tài liệu, Bảng tổng hợp Research Gap, Báo cáo Word...).</li>
+              <li><span class="bullet-dot">•</span> <strong>5. Ràng buộc học thuật:</strong> Tiếng Việt học thuật, chuẩn trích dẫn APA 7, tuyệt đối không bịa nguồn.</li>
+            </ul>
+          </div>
+
+          <div class="bento-card">
+            <div class="card-title-row">
+              <span class="card-title" style="color: var(--brand-blue);">💬 Ví Dụ Mẫu Áp Dụng Thực Tế</span>
+            </div>
+            <div style="background: var(--terminal-bg); padding: 14px; border-radius: 6px; font-size: 0.98rem; line-height: 1.55; color: #7dd3fc; border: 1px solid var(--border-subtle);">
+              1. Giai đoạn: Tổng quan tài liệu.<br>
+              2. Chủ đề: Chuyển đổi số trong doanh nghiệp nhỏ và vừa (SME) Việt Nam.<br>
+              3. Dữ liệu hiện có: 12 bài báo PDF trong thư mục tai-lieu-tham-khao/.<br>
+              4. Kết quả mong muốn: Bảng ma trận tổng hợp tài liệu và 5 research gaps rõ ràng.<br>
+              5. Yêu cầu: Tiếng Việt học thuật, trích dẫn chuẩn APA 7, tuyệt đối không bịa nguồn.
+            </div>
+            <div style="font-size: 0.92rem; color: var(--brand-emerald); margin-top: 10px; font-weight: bold;">
+              ✓ Cung cấp đủ 5 dòng này, AI sẽ phản hồi cực kỳ chuyên sâu và chuẩn xác!
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 21: BẢNG TRA NHANH 4 CÂU PROMPT CỐT LÕI
+         ==================================================================== -->
+    <section class="slide-page" data-slide="21" data-title="Bảng Tra Nhanh 4 Prompt Cốt Lõi">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Cẩm Nang Bỏ Túi</span>
+          <h2 class="slide-h2">Bảng Tra Nhanh 4 Câu Prompt Cốt Lõi Buổi 01</h2>
+          <p class="slide-lead">Bộ lệnh chuẩn hóa để bạn tự tin ứng dụng ngay vào không gian nghiên cứu của mình</p>
+        </div>
+        <span class="slide-pill-meta">Cheat Sheet</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="table-container">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th style="width: 5%; text-align: center;">#</th>
+                <th style="width: 20%;">Nhiệm vụ</th>
+                <th style="width: 63%;">Câu lệnh Prompt chính xác</th>
+                <th style="width: 12%; text-align: center;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; font-weight: bold;">1</td>
+                <td><strong>Tạo CLAUDE.md</strong></td>
+                <td style="font-size: 0.98rem;" id="promptCheat1">Tôi là nghiên cứu sinh tiến sĩ chuyên ngành [Ngành]. Hãy tạo file CLAUDE.md cho luận án của tôi: Tiếng Việt học thuật, trích dẫn APA 7, 100% Times New Roman, liêm chính học thuật (không bịa nguồn/số liệu), mục Đề tài tạm để [CHỜ ĐIỀN].</td>
+                <td style="text-align: center;">
+                  <button class="btn-copy" style="padding: 4px 10px;" onclick="copyPrompt('promptCheat1', this)">📋 Chép</button>
+                </td>
+              </tr>
+              <tr>
+                <td style="text-align: center; font-weight: bold;">2</td>
+                <td><strong>Dựng cây thư mục</strong></td>
+                <td style="font-size: 0.98rem;" id="promptCheat2">Đọc file CLAUDE.md vừa tạo. Hãy tạo cây thư mục luận án phân tầng đầy đủ cho NCS tiến sĩ (de-cuong, tong-quan, phuong-phap, du-lieu thô/làm sạch, chuong, tai-lieu-tham-khao...), thư mục _backup/ và kèm README.md giải thích mỗi mục.</td>
+                <td style="text-align: center;">
+                  <button class="btn-copy" style="padding: 4px 10px;" onclick="copyPrompt('promptCheat2', this)">📋 Chép</button>
+                </td>
+              </tr>
+              <tr>
+                <td style="text-align: center; font-weight: bold;">3</td>
+                <td><strong>Cài đặt 8 Skill</strong></td>
+                <td style="font-size: 0.98rem;" id="promptCheat3">https://github.com/Peternguyen91/K2-AI-Agent-for-Research/tree/main - đọc repo này, lấy bộ 8 skill nghiên cứu sau đó cài đặt vào thư mục .claude/skills/ cho tôi.</td>
+                <td style="text-align: center;">
+                  <button class="btn-copy" style="padding: 4px 10px;" onclick="copyPrompt('promptCheat3', this)">📋 Chép</button>
+                </td>
+              </tr>
+              <tr>
+                <td style="text-align: center; font-weight: bold;">4</td>
+                <td><strong>Kiểm tra & Kích hoạt</strong></td>
+                <td style="font-size: 0.98rem;" id="promptCheat4">Hãy liệt kê các skill bạn đang có và mô tả ngắn mỗi skill làm gì. Đồng thời đóng vai Trợ lý Điều phối Luận án rà soát lại toàn bộ workspace giúp tôi.</td>
+                <td style="text-align: center;">
+                  <button class="btn-copy" style="padding: 4px 10px;" onclick="copyPrompt('promptCheat4', this)">📋 Chép</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 22: TỔNG KẾT & XEM TRƯỚC BUỔI 02
+         ==================================================================== -->
+    <section class="slide-page" data-slide="22" data-title="Tổng Kết & Xem Trước Buổi 02">
+      <div class="slide-header">
+        <div class="header-text-group">
+          <span class="slide-badge-category">Tổng Kết Buổi 01</span>
+          <h2 class="slide-h2">Tổng Kết Buổi 01 & Sẵn Sàng Cho Buổi 02</h2>
+          <p class="slide-lead">Nền móng luận án đã sẵn sàng — Giờ là lúc biến tài liệu thành công trình khoa học!</p>
+        </div>
+        <span class="slide-pill-meta" style="background: var(--brand-emerald); color:#fff; border:none;">Hoàn Thành Buổi 01</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid grid-2">
+          <div class="bento-card compare-card-good">
+            <div class="card-title-row">
+              <span class="card-title">🏆 4 Thành Tựu Bạn Đang Sở Hữu Trên Máy:</span>
+            </div>
+            <ul class="bullet-list">
+              <li><span class="bullet-check">✓</span> Ứng dụng Claude Desktop kích hoạt tab <code>&lt;/&gt; Code</code>, bảo mật an toàn 100%.</li>
+              <li><span class="bullet-check">✓</span> File <code>CLAUDE.md</code> ghi rõ bối cảnh NCS, ngành học, chuẩn APA 7, liêm chính học thuật.</li>
+              <li><span class="bullet-check">✓</span> Cây thư mục luận án phân tầng chuẩn hóa cho hành trình 3–4 năm.</li>
+              <li><span class="bullet-check">✓</span> Bộ 8 skill nghiên cứu chuyên sâu đã nằm sẵn trong <code>.claude/skills/</code>.</li>
+            </ul>
+
+            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
+              <strong>📝 3 Bài tập về nhà (30–60 phút):</strong>
+              <div style="font-size: 0.95rem; color: var(--text-body); margin-top: 4px;">
+                1. <strong>Điền đề tài:</strong> Mở <code>CLAUDE.md</code> cập nhật tên đề tài (hoặc ghi 2-3 hướng quan tâm).<br>
+                2. <strong>Khám phá skill:</strong> Hỏi sâu về skill <code>literature-review</code> để chuẩn bị cho Buổi 2.<br>
+                3. <strong>Tự kiểm tra:</strong> Ra lệnh cho Claude rà soát xác nhận đủ 3 phần: CLAUDE.md, thư mục, 8 skill.
+              </div>
+            </div>
+          </div>
+
+          <div class="bento-card bento-card-dark">
+            <div class="card-title-row">
+              <span class="card-title" style="color: var(--brand-blue) !important;">🚀 BẬT MÍ BUỔI 02 TIẾP THEO:</span>
+            </div>
+            <div style="font-size: 1.35rem; font-weight: bold; color: #ffffff; margin-top: 4px; line-height: 1.35;">
+              TỔNG QUAN TÀI LIỆU & RESEARCH GAP: BỘ ĐÔI HOÀN HẢO CLAUDE x NOTEBOOKLM
+            </div>
+            <ul class="bullet-list" style="margin-top: 14px;">
+              <li><span class="bullet-check" style="color: #6ee7b7;">✓</span> Gom hàng chục bài báo PDF khoa học mà không sợ AI bị ảo giác.</li>
+              <li><span class="bullet-check" style="color: #6ee7b7;">✓</span> Lập bảng ma trận tổng quan tài liệu tự động, trích dẫn APA 7 chính xác.</li>
+              <li><span class="bullet-check" style="color: #6ee7b7;">✓</span> Quét và định vị <strong>Khoảng trống nghiên cứu (Research Gap)</strong> đắt giá.</li>
+              <li><span class="bullet-check" style="color: #6ee7b7;">✓</span> Tự tạo một <strong>Skill riêng</strong> mang tên chính đề tài của bạn!</li>
+            </ul>
+            <div style="margin-top: 16px; background: rgba(255,255,255,0.1); padding: 12px 18px; border-radius: var(--radius-md); font-size: 1.05rem; text-align: center; color:#fff;">
+              💡 <em>Lưu ý: Giữ nguyên thư mục dự án này để tiếp tục học Buổi 2!</em>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       MODAL OVERVIEW ('O')
+       ======================================================================== -->
+  <div class="overview-modal" id="overviewModal" onclick="if(event.target===this) toggleOverview()">
+    <div class="overview-dialog">
+      <div class="overview-header">
+        <h3>📋 Danh Sách Toàn Bộ 22 Slide — Buổi 01 Nghiên Cứu</h3>
+        <button class="btn-keynote" onclick="toggleOverview()">✕ Đóng (O)</button>
+      </div>
+      <div class="overview-grid" id="overviewGrid">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       SPEAKER NOTES DRAWER ('N')
+       ======================================================================== -->
+  <div class="speaker-drawer" id="speakerDrawer">
+    <div class="speaker-header-row">
+      <span class="speaker-badge-chip">🎙️ LỜI THOẠI GỢI Ý CHO GIẢNG VIÊN (Nhấn N để ẩn/hiện)</span>
+      <button class="btn-keynote" style="padding: 2px 8px; font-size: 0.85rem;" onclick="toggleNotes()">✕ Đóng</button>
+    </div>
+    <div class="speaker-body-text" id="speakerNoteContent">
+      Chào mừng các anh chị học viên cao học và nghiên cứu sinh! Giới thiệu mục tiêu buổi 1: xóa bỏ rào cản kỹ thuật, không cần biết lập trình, 100% tiếng Việt tự nhiên.
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-box" id="toastMsg">✓ Đã sao chép prompt vào Clipboard!</div>
+
+  <!-- ========================================================================
+       INTERACTIVE JAVASCRIPT CONTROLLER
+       ======================================================================== -->
+  <script>
+    /* Slide Metadata & Instructor Notes */
+    const slideNotes = {
+      1: "Chào mừng các anh chị học viên cao học và nghiên cứu sinh đến với Khóa học K3 AI for Research! Trấn an học viên: Không cần biết code, không cần biết tiếng Anh kỹ thuật, mọi việc đều gõ bằng tiếng Việt tự nhiên trên Claude Desktop.",
+      2: "Điểm qua 6 chuẩn đầu ra cụ thể: Sau 90 phút, máy tính của mỗi anh chị sẽ có sẵn một không gian nghiên cứu chuẩn hóa quốc tế gồm CLAUDE.md, cây thư mục 4 năm và bộ 8 skill nghiên cứu.",
+      3: "Nhấn mạnh nỗi đau của người làm nghiên cứu khi dùng Chatbot thông thường: hay quên bối cảnh, bịa bài báo, bịa số liệu, mất file. Từ đó làm bật lên giá trị của AI Research Workspace.",
+      4: "Giải thích mô hình 4 tầng. Nhấn mạnh Tầng 4 (CLAUDE.md & Cây thư mục) là cái móng nhà của luận án 4 năm. Móng không vững thì không thể phân tích số liệu hay tổng quan tài liệu được.",
+      5: "Giới thiệu tổng quan lộ trình 4 buổi và 8 skill nghiên cứu. Nhắc học viên 8 skill này đi theo đúng trình tự làm một luận án tiến sĩ từ đầu đến khi bảo vệ trước hội đồng.",
+      6: "Hướng dẫn học viên mở Claude Desktop và bấm vào tab </> Code. Giải thích sự khác biệt giữa chat thông thường và môi trường làm việc trực tiếp với file. Nhấn mạnh chúng ta hoàn toàn không cần dùng bất kỳ phần mềm lập trình hay công cụ dev phức tạp nào!",
+      7: "BẮT BUỘC: Yêu cầu cả lớp cùng vào Settings > Privacy và tắt ngay mục 'Help improve our AI models' để bảo vệ tuyệt đối đề tài nghiên cứu, số liệu khảo sát và bài báo chưa công bố.",
+      8: "Giải thích 5 chế độ Mode. Khuyên học viên dùng chế độ Auto trong lớp học. Khi làm việc với dữ liệu khảo sát gốc nhạy cảm thì chuyển sang Manual.",
+      9: "Phân tích Haiku (nhanh rẻ), Sonnet (chuẩn nhất cho viết luận án & nghiên cứu), Opus (nghiên cứu lý thuyết sâu). Giới thiệu thanh trượt Effort và chuỗi tư duy Thinking Process.",
+      10: "Chỉ cho học viên vòng tròn Context Window. Giải thích tại sao đọc nhiều bài báo AI bắt đầu 'lú' và cách dùng New Session (/clear) giải quyết triệt để.",
+      11: "So sánh Chat Prompt vs Claude Memory vs File CLAUDE.md. Nhấn mạnh CLAUDE.md là file vật lý lưu trên ổ cứng, bất biến, mang đi đâu cũng chạy đúng bối cảnh luận án.",
+      12: "Nhấn mạnh triết lý sư phạm: Phải nạp CLAUDE.md trước để AI hiểu mình là NCS ngành gì rồi mới cho AI sinh cây thư mục, không làm ngược lại.",
+      13: "Điểm qua 8 trụ cột của CLAUDE.md: Hồ sơ NCS, phông Times New Roman 100%, chuẩn APA 7, liêm chính học thuật (chống bịa nguồn), an toàn dữ liệu, phân tầng theo khâu.",
+      14: "DEMO BƯỚC 1: Giảng viên copy prompt mẫu, dán vào Claude Code để tạo file CLAUDE.md mang thông tin NCS mẫu ngành Quản trị học.",
+      15: "DEMO BƯỚC 2: Giảng viên ra lệnh cho AI đọc CLAUDE.md vừa tạo và tự động sinh toàn bộ cây thư mục luận án phân tầng kèm README.md trong từng mục.",
+      16: "DEMO BƯỚC 3: Giảng viên dán link repo GitHub của khóa học để Claude tự động kéo bộ 8 skill nghiên cứu về lưu vào .claude/skills/.",
+      17: "DEMO BƯỚC 4: Giảng viên mở New Session (/clear), hỏi thử 1 câu để chứng minh AI vẫn nhớ danh tính NCS, nhớ 8 skill và chỉ đúng thư mục du-lieu/tho/.",
+      18: "HỌC VIÊN THỰC HÀNH 25 PHÚT: Bật đồng hồ đếm ngược. Giảng viên và trợ giảng đi vòng quanh lớp hoặc vào breakout rooms hỗ trợ từng học viên áp dụng cho đề tài của mình.",
+      19: "Khởi tạo Orchestrator Agent: Giao quyền cho trợ lý tổng quản rà soát workspace luận án và đề xuất kế hoạch chuẩn bị cho khâu Tổng quan tài liệu.",
+      20: "Quy tắc 5 dòng vàng trong nghiên cứu: Giai đoạn, Chủ đề, Dữ liệu hiện có, Kết quả mong muốn, Ràng buộc học thuật (APA 7, không bịa nguồn).",
+      21: "Trình chiếu bảng tra nhanh 4 câu prompt cốt lõi để học viên lưu lại làm cẩm nang thực hành hàng ngày.",
+      22: "Tổng kết 4 thành tựu, dặn dò 3 bài tập về nhà và hé lộ nội dung cực kỳ hấp dẫn của Buổi 02 (Tổng quan tài liệu & Research Gap với Claude x NotebookLM)."
+    };
+
+    let currentSlide = 1;
+    const totalSlides = 22;
+    const slides = document.querySelectorAll('.slide-page');
+    const slideIndicator = document.getElementById('slideIndicator');
+    const progressBar = document.getElementById('progressBar');
+    const speakerNoteContent = document.getElementById('speakerNoteContent');
+    const overviewModal = document.getElementById('overviewModal');
+    const overviewGrid = document.getElementById('overviewGrid');
+    const speakerDrawer = document.getElementById('speakerDrawer');
+
+    /* Build Overview Grid */
+    function buildOverview() {
+      overviewGrid.innerHTML = '';
+      slides.forEach((slide, index) => {
+        const num = index + 1;
+        const title = slide.getAttribute('data-title') || `Slide ${num}`;
+        const thumb = document.createElement('div');
+        thumb.className = `overview-thumb ${num === currentSlide ? 'active' : ''}`;
+        thumb.innerHTML = `
+          <div class="num">Slide ${num < 10 ? '0' + num : num}</div>
+          <div class="ttl">${title}</div>
+        `;
+        thumb.onclick = () => {
+          goToSlide(num);
+          toggleOverview();
+        };
+        overviewGrid.appendChild(thumb);
+      });
+    }
+
+    /* Jump to Slide */
+    function goToSlide(num) {
+      if (num < 1 || num > totalSlides) return;
+
+      slides.forEach(s => s.classList.remove('active'));
+      const target = document.querySelector(`.slide-page[data-slide="${num}"]`);
+      if (target) {
+        target.classList.add('active');
+        target.scrollTop = 0;
+      }
+
+      currentSlide = num;
+      slideIndicator.textContent = `Slide ${currentSlide < 10 ? '0' + currentSlide : currentSlide} / ${totalSlides}`;
+      progressBar.style.width = `${(currentSlide / totalSlides) * 100}%`;
+
+      // Update speaker note
+      speakerNoteContent.textContent = slideNotes[currentSlide] || "Không có ghi chú thêm.";
+
+      // Update active card in modal
+      document.querySelectorAll('.overview-thumb').forEach((thumb, idx) => {
+        thumb.classList.toggle('active', idx + 1 === currentSlide);
+      });
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) goToSlide(currentSlide - 1);
+    }
+
+    function toggleOverview() {
+      overviewModal.classList.toggle('active');
+      if (overviewModal.classList.contains('active')) {
+        buildOverview();
+      }
+    }
+
+    function toggleNotes() {
+      speakerDrawer.classList.toggle('active');
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+      const btn = document.getElementById('btnTheme');
+      if (document.body.classList.contains('light-theme')) {
+        btn.textContent = '🌙 Nền tối';
+      } else {
+        btn.textContent = '☀️ Nền sáng';
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    /* 1-Click Copy with Feedback */
+    function copyPrompt(elementId, btn) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        if (btn) {
+          const original = btn.innerHTML;
+          btn.innerHTML = '✓ Đã chép!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerHTML = original;
+            btn.classList.remove('copied');
+          }, 2000);
+        }
+        showToast("✓ Đã sao chép prompt vào Clipboard!");
+      }).catch(() => {
+        showToast("Vui lòng chọn văn bản và sao chép thủ công.");
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastMsg');
+      toast.textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2500);
+    }
+
+    /* Practice Timer (Slide 18) */
+    let timerSec = 25 * 60;
+    let timerRef = null;
+    const timerDisplay = document.getElementById('timerDisplay');
+    const btnTimerStart = document.getElementById('btnTimerStart');
+
+    function updateTimer() {
+      const m = Math.floor(timerSec / 60);
+      const s = timerSec % 60;
+      timerDisplay.textContent = `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+    }
+
+    function toggleTimer() {
+      if (timerRef) {
+        clearInterval(timerRef);
+        timerRef = null;
+        btnTimerStart.textContent = 'Tiếp tục';
+        btnTimerStart.classList.remove('btn-keynote-primary');
+      } else {
+        btnTimerStart.textContent = 'Tạm dừng';
+        btnTimerStart.classList.add('btn-keynote-primary');
+        timerRef = setInterval(() => {
+          if (timerSec > 0) {
+            timerSec--;
+            updateTimer();
+          } else {
+            clearInterval(timerRef);
+            timerRef = null;
+            btnTimerStart.textContent = 'Hoàn thành';
+            showToast("⏰ Đã hết 25 phút thực hành!");
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      if (timerRef) {
+        clearInterval(timerRef);
+        timerRef = null;
+      }
+      timerSec = 25 * 60;
+      updateTimer();
+      btnTimerStart.textContent = 'Bắt đầu';
+      btnTimerStart.classList.add('btn-keynote-primary');
+    }
+
+    /* Keyboard Navigation Shortcuts */
+    document.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        toggleOverview();
+      } else if (e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        toggleTheme();
+      } else if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        goToSlide(1);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        goToSlide(totalSlides);
+      } else if (e.key === 'Escape') {
+        if (overviewModal.classList.contains('active')) toggleOverview();
+        if (speakerDrawer.classList.contains('active')) toggleNotes();
+      }
+    });
+
+    /* Button Click Listeners */
+    document.getElementById('btnNext').addEventListener('click', nextSlide);
+    document.getElementById('btnPrev').addEventListener('click', prevSlide);
+    document.getElementById('btnOverview').addEventListener('click', toggleOverview);
+    document.getElementById('btnNotes').addEventListener('click', toggleNotes);
+    document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+    document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+
+    // Initialize first slide
+    goToSlide(1);
+  </script>
+</body>
+</html>
