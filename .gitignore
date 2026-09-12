@@ -12,3 +12,6 @@ Thumbs.db
 # Temp
 *.tmp
 .temp/
+
+# Claude Code local install (skills cai tu bo-skill/, khong commit ban sao)
+.claude/
