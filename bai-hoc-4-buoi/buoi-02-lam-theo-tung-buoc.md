@@ -1,479 +1,448 @@
-# Buổi 2: Dựng tổng quan tài liệu và báo cáo có trích dẫn từ tài liệu thật
+# Buổi 2: Làm Chủ Skill, Chống Bịa Số Liệu & Dựng Tổng Quan Tài Liệu Nghiên Cứu
 
-> Cách dùng file này: mỗi phần có hai khúc. Khúc **Lý thuyết** đọc để hiểu mình sắp làm gì và vì sao, có ví von cho dễ nhớ. Khúc **Thao tác** là các bước có sẵn prompt, cứ copy dán vào Claude.
+> **Cách dùng file này:** Mỗi phần gồm hai khúc: Khúc **Lý thuyết** dùng để hiểu bản chất và nguyên lý (có ví von trực quan, dễ nhớ); Khúc **Thao tác** là các bước thực hành có sẵn prompt chính xác để copy – dán vào Claude Code.
 >
-> Làm lần lượt, không nhảy cóc. Bước sau dùng kết quả bước trước.
+> **Làm lần lượt, không nhảy cóc.** Bước sau kế thừa trực tiếp kết quả của bước trước.
 >
-> Trước khi bắt đầu: mở VS Code, mở đúng thư mục dự án luận án đã dựng ở buổi 1 (ví dụ `k3-research`), rồi mở panel Claude Code (biểu tượng tia sáng). Có sẵn một tab trình duyệt đăng nhập tài khoản Google.
->
-> Sáu phần, đi từ dễ tới khó:
-> - Phần A: đặt đề tài thật làm trục cho cả buổi
-> - Phần B: cho AI đọc cả kho tài liệu của bạn
-> - Phần C: tìm khoảng trống nghiên cứu có bằng chứng
-> - Phần D: tổng hợp tài liệu theo chủ đề
-> - Phần E: viết báo cáo tổng quan có trích dẫn APA 7
-> - Phần F: đóng gói cách xuất báo cáo docx thành một skill riêng
->
-> Cuối bài có một Phần mở rộng tùy chọn (Studio NotebookLM) để giảng viên demo hoặc bạn tự làm ở nhà.
-
-## Nhịp buổi
-
-| Phần | Nội dung | Phút | Dạng | Bước |
-|---|---|---|---|---|
-| A | Đặt đề tài làm trục | 8' | LT 3' + HV 5' | 1-2 |
-| B | Cho AI đọc kho tài liệu | 28' | LT 6' + HV 22' | 3-7 |
-| C | Tìm khoảng trống có bằng chứng | 20' | LT 6' + HV 14' | 8-10 |
-| D | Tổng hợp theo chủ đề | 14' | LT 4' + HV 10' | 11-12 |
-| E | Viết báo cáo có trích dẫn | 24' | LT 6' + HV 18' | 13-15 |
-| F | Đóng gói thành skill riêng | 12' | LT 4' + HV 8' | 16-17 |
-| Chốt | Rà lại sản phẩm | 4' | HV 4' | 18 |
-| Mở rộng | Studio NotebookLM (tùy chọn) | - | DEMO / về nhà | 19-23 |
-
-LT = giảng viên nói. HV = học viên tự làm. DEMO = giảng viên làm, học viên xem. Tổng 110 phút phần lõi, còn khoảng 10 phút dự phòng cho buổi 2 tiếng. Phần mở rộng nằm ngoài 120 phút.
+> **Chuẩn bị trước khi bắt đầu:** Mở VS Code, mở đúng thư mục dự án luận án đã dựng ở Buổi 1 (ví dụ `k3-research`), mở panel Claude Code. Chuẩn bị sẵn 3–5 file tài liệu/bài báo thật (PDF hoặc text) hoặc dùng bộ abstract mẫu trong thư mục `du-lieu-mau/`.
 
 ---
 
-## PHẦN A. Đặt đề tài thật làm trục cho cả buổi
+## ⏱️ Nhịp Buổi Học (120 Phút)
+
+```mermaid
+flowchart LR
+    S1["1. Bản chất Skill<br/>& Chống bịa (25')"] --> S2["2. Đề tài trục &<br/>Nạp tài liệu (10')"]
+    S2 --> S3["3. Research Gap &<br/>Kiểm chứng nguồn (20')"]
+    S3 --> S4["4. Ma trận tài liệu<br/>& Dàn ý Thematic (20')"]
+    S4 --> S5["5. Viết báo cáo APA 7<br/>& Xuất Word chuẩn (25')"]
+    S5 --> S6["6. Tự đóng gói<br/>Custom Skill (15')"]
+    S6 --> S7["7. Tổng kết (5')"]
+```
+
+| Phần | Nội dung trọng tâm | Thời lượng | Hình thức | Sản phẩm đạt được |
+|---|---|:---:|:---:|---|
+| **Khối 1** | **Bản chất Skill & Kỷ luật chống bịa số liệu**<br>• Skill là gì (SOP cho AI)<br>• Cấu trúc, vị trí lưu trữ, dòng `description`<br>• AI tìm & tự nạp skill ra sao, cách kích hoạt<br>• Kỷ luật chống bịa: "Tài liệu không đề cập" | **25 phút** | Giảng viên 15'<br>Học viên 10' | Nắm vững cơ chế vận hành của Skill & tư duy chống bịa |
+| **Khối 2** | **Đặt đề tài làm trục & Chuẩn bị tài liệu**<br>• Cập nhật đề tài vào `CLAUDE.md`<br>• Đưa 3–5 tài liệu/abstract vào `du-lieu/` | **10 phút** | Giảng viên 3'<br>Học viên 7' | `CLAUDE.md` có đề tài;<br>Kho dữ liệu sẵn sàng |
+| **Khối 3** | **Phát hiện Khoảng trống nghiên cứu (Research Gap)**<br>• Bóc tách: Đã có bằng chứng vs. Còn bỏ ngỏ<br>• Rút ra 3–4 theme + 3 research gap<br>• Kiểm chứng nguồn bằng DOI & Google Scholar | **20 phút** | Giảng viên 6'<br>Học viên 14' | File `tong-quan-tai-lieu/research-gap.md` có căn cứ thật |
+| **Khối 4** | **Tổng hợp tài liệu theo chủ đề (Thematic Synthesis)**<br>• Tư duy gom nhóm chủ đề (không tóm tắt từng bài)<br>• Lập Ma trận trích xuất tài liệu<br>• Xây dựng Dàn ý tổng quan theo chủ đề | **20 phút** | Giảng viên 5'<br>Học viên 15' | • `tong-quan-tai-lieu/ma-tran-tai-lieu.md`<br>• `tong-quan-tai-lieu/dan-y-tong-quan.md` |
+| **Khối 5** | **Viết báo cáo chuẩn APA 7 & Xuất Word**<br>• Viết văn bản học thuật ~1.200 từ chuẩn APA 7<br>• Rà soát trích dẫn chéo bằng `citation-manager`<br>• Xuất file Word (`.docx`) chuẩn thể thức luận văn | **25 phút** | Giảng viên 7'<br>Học viên 18' | • `bao-cao-tong-quan-tai-lieu.md`<br>• File Word `.docx` hoàn chỉnh |
+| **Khối 6** | **Tự đóng gói thành một Custom Skill riêng**<br>• Đóng gói quy trình xuất Word / tổng quan đề tài<br>• Tạo file `SKILL.md` trong `.claude/skills/`<br>• Khởi động lại & gọi thử nghiệm skill | **15 phút** | Giảng viên 5'<br>Học viên 10' | Thư mục `.claude/skills/<ten-skill>/` chạy thành công |
+| **Tổng kết** | **Rà soát sản phẩm & Hỏi đáp**<br>• Chạy lệnh kiểm kê toàn bộ file đã tạo<br>• Giải đáp thắc mắc của học viên | **5 phút** | Cả lớp | Đủ bộ 5 file sản phẩm nghiên cứu |
+
+---
+
+# MỤC LỤC CHI TIẾT
+
+- [PHẦN 1: BẢN CHẤT CỐT LÕI CỦA SKILL & KỶ LUẬT CHỐNG BỊA](#phần-1-bản-chất-cốt-lõi-của-skill--kỷ-luật-chống-bịa)
+  - [1.1. Skill là gì đơn giản dễ hiểu?](#11-skill-là-gì-đơn-giản-dễ-hiểu)
+  - [1.2. Nỗi đau Chat thông thường vs. Sức mạnh đóng gói Skill](#12-nỗi-đau-chat-thông-thường-vs-sức-mạnh-đóng-gói-skill)
+  - [1.3. Bản chất cốt lõi: Skill sinh ra từ đâu?](#13-bản-chất-cốt-lõi-skill-sinh-ra-từ-đâu)
+  - [1.4. Vị trí lưu trữ & Cấu trúc vật lý của Skill](#14-vị-trí-lưu-trữ--cấu-trúc-vật-lý-của-skill)
+  - [1.5. Trái tim của Skill: Dòng description & Cơ chế Tự nạp (Auto-load)](#15-trái-tim-của-skill-dòng-description--cơ-chế-tự-nạp-auto-load)
+  - [1.6. Cách kích hoạt Skill trong thực tế](#16-cách-kích-hoạt-skill-trong-thực-tế)
+  - [1.7. Cách quản lý & nâng cấp Skill](#17-cách-quản-lý--nâng-cấp-skill)
+  - [1.8. Kỷ luật "Sắt đá" Chống bịa số liệu & Chống bịa nguồn](#18-kỷ-luật-sắt-đá-chống-bịa-số-liệu--chống-bịa-nguồn)
+- [PHẦN 2: THỰC HÀNH NGHIÊN CỨU THỰC CHIẾN](#phần-2-thực-hành-nghiên-cứu-thực-chiến)
+  - [Phần A. Đặt đề tài thật làm trục & Chuẩn bị tài liệu](#phần-a-đặt-đề-tài-thật-làm-trục--chuẩn-bị-tài-liệu)
+  - [Phần B. Bóc tách tài liệu, Tìm Research Gap & Kiểm chứng nguồn](#phần-b-bóc-tách-tài-liệu-tìm-research-gap--kiểm-chứng-nguồn)
+  - [Phần C. Lập Ma trận trích xuất & Dựng dàn ý theo chủ đề](#phần-c-lập-ma-trận-trích-xuất--dựng-dàn-ý-theo-chủ-đề)
+  - [Phần D. Viết báo cáo tổng quan chuẩn APA 7 & Xuất Word](#phần-d-viết-báo-cáo-tổng-quan-chuẩn-apa-7--xuất-word)
+  - [Phần E. Tự tay đóng gói một Custom Skill riêng](#phần-e-tự-tay-đóng-gói-một-custom-skill-riêng)
+  - [Phần F. Chốt buổi & Kiểm kê sản phẩm](#phần-f-chốt-buổi--kiểm-kê-sản-phẩm)
+
+---
+
+# PHẦN 1: BẢN CHẤT CỐT LÕI CỦA SKILL & KỶ LUẬT CHỐNG BỊA
+
+### 1.1. Skill là gì đơn giản dễ hiểu?
+
+> *"Hình dung Skill giống như một tờ quy trình chuẩn (SOP - Standard Operating Procedure) dán ngay trên bàn làm việc. Bất kỳ nhân viên nào bước vào làm việc đó, chỉ cần nhìn vào tờ SOP là làm đúng từng bước, cho ra kết quả đồng đều. Skill chính là tờ quy trình SOP đó, nhưng được viết riêng cho AI."*
+
+Ở Buổi 1, bạn đã tạo ra tờ hiến pháp `CLAUDE.md` để AI nhớ bối cảnh dự án (ai đang làm, đề tài gì, quy tắc chung). Nhưng `CLAUDE.md` chỉ là bức tranh tổng thể. 
+
+Khi bước vào từng nghiệp vụ cụ thể (như: *tổng quan tài liệu, bóc tách số liệu, lập bảng ma trận, kiểm tra trích dẫn, xuất văn bản chuẩn thể thức*), bạn không thể nhồi nhét tất cả vào `CLAUDE.md` vì sẽ làm AI bị quá tải thông tin. Thay vào đó, mỗi nghiệp vụ chuyên sâu sẽ được đóng gói thành một **Skill**.
+
+---
+
+### 1.2. Nỗi đau Chat thông thường vs. Sức mạnh đóng gói Skill
+
+| Tiêu chí | Chatbot thông thường (Nghĩ gì gõ nấy) | Hệ thống Skill trong Claude Code |
+|---|---|---|
+| **Thao tác** | Mỗi lần cần làm việc lại phải gõ lại một tràng prompt dài lê thê; tuần nào cũng lặp lại. | **Viết 1 lần, dùng mãi mãi.** Chỉ cần gọi 1 câu lệnh ngắn gọn. |
+| **Số lượt trao đổi** | Phải hỏi 4–5 lượt mới ra đủ ý: lượt 1 ra chung chung, lượt 2 bắt chia phần, lượt 3 đòi số liệu, lượt 4 mới lọc rủi ro. | **1 câu lệnh xuất ra trọn vẹn kết quả** đúng chuẩn bố cục mong muốn ngay từ lần đầu tiên. |
+| **Tính ổn định** | Kết quả "hên xui", phụ thuộc tâm trạng người gõ; hôm nay ra một kiểu, mai ra kiểu khác; đồng nghiệp hỏi ra kiểu khác. | **Chuẩn hóa 100%:** Bất kỳ ai trong nhóm nghiên cứu/doanh nghiệp gọi skill đều nhận kết quả đồng nhất. |
+| **Độ tin cậy** | **Dễ ảo giác & tự bịa:** AI hay tự điền số liệu, tự bịa tên tác giả, năm xuất bản khi văn bản không đề cập. | **Kỷ luật Chống bịa:** Bắt buộc tuân thủ nguyên tắc chỉ dùng dữ liệu có thật, thiếu thì ghi *"Tài liệu không đề cập"*. |
+
+---
+
+### 1.3. Bản chất cốt lõi: Skill sinh ra từ đâu?
+
+> ⚠️ **LƯU Ý QUAN TRỌNG:** Skill **KHÔNG PHẢI** là một file mẫu tải vu vơ trên mạng về chép vào máy!
+
+Một Skill thực chiến luôn sinh ra từ **Vòng lặp 3 bước**:
+
+```mermaid
+flowchart TD
+    A["1. Làm bằng tay (Manual Iterations)<br/>Chat 3–5 lượt với AI để nắn kết quả theo đúng ý"] --> B["2. Nhận diện sự lặp lại (Pattern Recognition)<br/>Phát hiện những chỉ dẫn nào mình liên tục phải nhắc lại"]
+    B --> C["3. Đóng gói quy trình (Packaging)<br/>Gom toàn bộ các yêu cầu đó vào 1 file SKILL.md"]
+    C --> D["4. Sử dụng mãi mãi (Automation)<br/>Lần sau chỉ gõ 1 câu lệnh là AI tự chạy đúng quy trình"]
+```
+
+Ví dụ, khi bạn tóm tắt một bài báo nghiên cứu:
+* *Lượt 1:* Bạn bảo AI tóm tắt ➔ AI trả lời chung chung 3 dòng.
+* *Lượt 2:* Bạn bảo *"Chưa đủ, hãy chia theo các phần: Bối cảnh, Phương pháp, Cỡ mẫu, Kết quả"* ➔ Sau này thành mục **Ý CHÍNH CHI TIẾT**.
+* *Lượt 3:* Bạn bảo *"Bóc tách riêng các con số thống kê, hệ số p-value, độ tin cậy"* ➔ Sau này thành mục **SỐ LIỆU & CHỈ SỐ**.
+* *Lượt 4:* Bạn bảo *"Chỉ ra những hạn chế nghiên cứu và điểm mâu thuẫn"* ➔ Sau này thành mục **KHOẢNG TRỐNG & HẠN CHẾ**.
+* *Lượt 5:* Bạn bảo *"Chỗ nào bài báo không nói thì ghi rõ là bài báo không nói, cấm bịa"* ➔ Sau này thành mục **QUY TẮC CHỐNG BỊA**.
+
+Sau khi thấy kết quả lượt 5 đã hoàn hảo, bạn **đóng gói 5 lượt này vào một file `SKILL.md`**. Từ lần sau trở đi, bạn chỉ cần đưa bài báo vào và nói *"Tóm tắt bài này"* là AI tự động làm trọn vẹn cả 5 bước!
+
+---
+
+### 1.4. Vị trí lưu trữ & Cấu trúc vật lý của Skill
+
+Một Skill về bản chất cực kỳ đơn giản: **Chỉ là 1 thư mục chứa 1 file văn bản duy nhất**, không cần cài đặt phần mềm phức tạp.
+
+```
+my-research-workspace/
+├── CLAUDE.md                                    # Hiến pháp bối cảnh chung của dự án
+├── .claude/
+│   └── skills/                                  # Thư mục chứa toàn bộ Skill
+│       ├── literature-review/                   # Thư mục mang tên Skill 1
+│       │   └── SKILL.md                         # File quy trình
+│       ├── academic-writing/                    # Thư mục mang tên Skill 2
+│       │   └── SKILL.md                         # File quy trình
+│       └── xuat-word-chuan/                     # Skill do bạn tự tạo
+│           └── SKILL.md                         # File quy trình
+```
+
+#### 3 Quy tắc bất biến khi tạo Skill:
+1. **Nơi lưu:** Phải nằm trong thư mục `.claude/skills/<ten-skill>/` (hoặc `bo-skill/<ten-skill>/` nếu dự án cấu hình đường dẫn riêng).
+2. **Tên file:** BẮT BUỘC viết hoa chính xác là: `SKILL.md`.
+3. **Tên thư mục:** Dùng chữ thường, không dấu, nối bằng gạch ngang (ví dụ: `xuat-word-chuan`, `tong-quan-tai-lieu`). Tuyệt đối không có dấu cách hoặc ký tự đặc biệt.
+
+---
+
+### 1.5. Trái tim của Skill: Dòng `description` & Cơ chế Tự nạp (Auto-load)
+
+Mỗi file `SKILL.md` luôn có 2 phần:
+* **Phần Frontmatter (Khai báo):** Nằm ở đầu file, kẹp giữa hai dòng ba dấu gạch ngang `---`.
+* **Phần Thân (Hướng dẫn):** Nội dung chi tiết các bước thực hiện bên dưới.
+
+```yaml
+---
+name: phan-tich-bai-bao
+description: Dùng khi cần đọc, tóm tắt và bóc tách bài báo nghiên cứu khoa học, luận án hoặc tài liệu học thuật. Tự động trích xuất bối cảnh, phương pháp, cỡ mẫu, phát hiện chính và tuân thủ nghiêm ngặt kỷ luật chống bịa số liệu.
+---
+
+# Tên Skill: Phân Tích Bài Báo Khoa Học
+
+## Khi nào dùng
+...
+## Các bước thực hiện
+...
+## Tiêu chuẩn kết quả đầu ra
+...
+## Quy tắc chống bịa số liệu
+...
+```
+
+#### AI tìm và đọc Skill ra sao?
+1. **Quét danh mục:** Khi khởi động hoặc khi nhận câu lệnh, Claude Code sẽ quét qua toàn bộ các thư mục con trong `.claude/skills/`.
+2. **Đọc lướt tấm biển hiệu (`description`):** AI **không** đọc toàn bộ nội dung dài của tất cả các file `SKILL.md` ngay từ đầu (để tiết kiệm bộ nhớ). Nó chỉ đọc dòng `description` của từng skill.
+3. **So khớp thông minh (Auto-discovery):** Khi bạn đưa ra một yêu cầu (ví dụ: *"Bóc tách phương pháp và cỡ mẫu của file nghiên cứu này"*), AI so sánh ý định của bạn với dòng `description` của các skill. Nếu thấy trùng khớp, AI sẽ **tự động nạp toàn bộ file `SKILL.md` đó vào bộ nhớ** và làm theo đúng hướng dẫn.
+
+> 💡 **Bí quyết vàng:** Dòng `description` viết càng nêu rõ **"Dùng khi nào"** và chứa các từ khóa nghiệp vụ đặc trưng thì AI càng tự nạp chính xác. Nếu `description` viết chung chung như *"Skill phân tích"*, AI sẽ không biết khi nào nên lôi ra dùng!
+
+---
+
+### 1.6. Cách kích hoạt Skill trong thực tế
+
+Có **2 cách** để kích hoạt một Skill trong Claude Code:
+
+* **Cách 1: Kích hoạt tự động theo ngữ cảnh (Intent-based / Auto-load)**
+  * Bạn chỉ cần ra lệnh bằng ngôn ngữ tự nhiên:
+    ```text
+    Hãy phân tích giúp tôi bài báo trong du-lieu/bai-bao-01.pdf
+    ```
+  * Claude đọc dòng `description`, nhận diện việc này thuộc chuyên môn của skill `phan-tich-bai-bao`, và sẽ tự động hiển thị dòng chữ: `Using skill: phan-tich-bai-bao` rồi thực thi.
+
+* **Cách 2: Kích hoạt chỉ định đích danh (Explicit Call)**
+  * Dùng khi bạn muốn ép buộc AI phải chạy đúng skill đó mà không cần suy đoán:
+    ```text
+    Dùng skill phan-tich-bai-bao để xử lý file du-lieu/bai-bao-01.pdf
+    ```
+    hoặc dùng cú pháp lệnh gạch chéo (nếu hệ thống hỗ trợ):
+    ```text
+    /phan-tich-bai-bao du-lieu/bai-bao-01.pdf
+    ```
+
+---
+
+### 1.7. Cách quản lý & nâng cấp Skill
+
+Một ưu điểm vượt trội của Skill là **dễ bảo trì và nâng cấp liên tục**:
+1. **Kiểm tra danh sách skill:** Chỉ cần gõ vào Claude: `Hãy liệt kê các skill bạn đang có` để kiểm tra AI đã nhận diện đủ chưa.
+2. **Sửa đổi quy trình:** Khi muốn bổ sung một bước mới (ví dụ: muốn thêm mục *Ý kiến đóng góp cho thực tiễn*), bạn chỉ việc mở file `SKILL.md` đó ra, thêm 1 gạch đầu dòng vào mục hướng dẫn và lưu lại. Lần sau gọi skill, AI sẽ tự động áp dụng bước mới.
+3. **Tái sử dụng cho dự án khác:** Bạn chỉ cần copy thư mục skill từ dự án này sang dự án khác là dự án mới lập tức có kỹ năng đó.
+
+---
+
+### 1.8. Kỷ luật "Sắt đá" Chống bịa số liệu & Chống bịa nguồn
+
+Trong đời thường, AI viết văn sai một chút có thể bỏ qua. Nhưng trong **nghiên cứu khoa học, tài chính và pháp lý**, một con số hay một trích dẫn bịa đặt sẽ phá hỏng toàn bộ uy tín của công trình nghiên cứu!
+
+```
+                    ┌──────────────────────────────────────────────┐
+                    │     3 NGUYÊN TẮC THÉP CHỐNG BỊA (ANTI-SLOP)  │
+                    └──────────────────────────────────────────────┘
+                                           │
+         ┌─────────────────────────────────┼─────────────────────────────────┐
+         ▼                                 ▼                                 ▼
+   [1. CHỈ DÙNG DỮ LIỆU CÓ THẬT]    [2. KỶ LUẬT "KHÔNG ĐỀ CẬP"]      [3. DẪN CHỨNG NGUYÊN VĂN]
+   100% kết luận, số liệu, tên tác   Chỗ nào tài liệu không nhắc tới  Các câu nhận định quan trọng,
+   giả phải lấy trực tiếp từ văn     ➔ Ghi rõ: "Tài liệu không        hạn chế, số liệu phải đặt
+   bản do người dùng cung cấp.       đề cập" / [CẦN NGUỒN]. CẤM ĐOÁN! trong ngoặc kép "...".
+```
+
+1. **Nguyên tắc 1: 100% dữ liệu có thật:** Chỉ trích xuất từ văn bản được cung cấp. Tuyệt đối không lấy dữ liệu trôi nổi ngoài internet để đắp vào bài khi chưa kiểm chứng.
+2. **Nguyên tắc 2: Kỷ luật *"Tài liệu không đề cập"* & nhãn `[CẦN NGUỒN]`:** Nếu văn bản không nêu cỡ mẫu, không nêu giả thuyết, AI **BẮT BUỘC PHẢI GHI**: *"Tài liệu không đề cập"*. Thà để trống còn hơn để AI suy đoán! Trong viết học thuật, nếu chưa tra được nguồn gốc tác giả thì đánh dấu `[CẦN NGUỒN]`.
+3. **Nguyên tắc 3: Bằng chứng trong ngoặc kép:** Các phát hiện cốt lõi, định nghĩa khái niệm phải trích dẫn nguyên văn bằng chứng đặt trong dấu ngoặc kép `"..."`.
+
+---
+
+# PHẦN 2: THỰC HÀNH NGHIÊN CỨU THỰC CHIẾN
+
+Sau khi đã làm chủ bản chất của Skill và Kỷ luật chống bịa, chúng ta sẽ áp dụng trực tiếp vào công việc nghiên cứu thật: Đi từ kho bài báo khoa học ➔ tìm Research Gap ➔ lập Ma trận ➔ viết Báo cáo APA 7 ➔ tự đóng gói Custom Skill.
+
+---
+
+## PHẦN A. Đặt đề tài thật làm trục & Chuẩn bị tài liệu
 
 ### Lý thuyết
+Ở Buổi 1, bạn đã có một văn phòng làm việc. Hôm nay là ngày bạn treo "tấm biển tên" lên cửa: **Căn phòng này nghiên cứu về đề tài gì.** Khi ghi đề tài vào `CLAUDE.md`, mọi câu lệnh tiếp theo của bạn đều tự động xoay quanh đề tài này mà không cần lặp lại ngữ cảnh.
 
-Buổi trước bạn đã xây xong một văn phòng nghiên cứu: có tờ dặn dò `CLAUDE.md`, có các phòng (thư mục) theo giai đoạn, có sẵn bộ tám skill. Nhưng văn phòng đó đang trống. Hôm nay là ngày dọn vào làm việc thật.
-
-Việc đầu tiên khi dọn vào là treo một tấm biển tên ở cửa: **căn phòng này nghiên cứu về cái gì.** Tấm biển đó chính là **đề tài**, và bạn ghi nó vào `CLAUDE.md`. Ghi rồi thì mọi việc sau đó, mọi câu bạn nhờ Claude, đều xoay quanh đúng đề tài này, không lạc sang chuyện khác.
-
-Vì sao đáng làm ngay: khi `CLAUDE.md` đã có đề tài, bạn không phải nhắc lại chủ đề ở từng câu lệnh nữa. Claude đọc tờ dặn dò trước mỗi phiên, nên nó luôn bám đúng hướng của bạn.
-
-Một hiểu lầm hay gặp: nhiều người nghĩ phải có đề tài thật chuẩn, thật chính xác rồi mới bắt đầu được. Không phải. Chỉ cần một **hướng đủ hẹp** là làm được, và nó sẽ sắc lại dần khi bạn đọc tài liệu. Chưa có hướng thì Bước 2 có sẵn cách nhờ Claude gợi ý để bạn chọn.
+Đồng thời, chúng ta chuẩn bị sẵn các file bài báo khoa học/abstract thực tế trong thư mục `du-lieu/` để làm nguồn dữ liệu "sạch", loại bỏ hoàn toàn các rủi ro kỹ thuật phức tạp.
 
 ### Thao tác
 
-**Bước 1. Kiểm tra văn phòng buổi 1 còn nguyên**
-
-Để làm gì: chắc chắn workspace và bộ skill vẫn sẵn sàng trước khi làm việc thật.
-
-Gõ vào Claude:
+**Bước 1. Kiểm tra văn phòng và bộ skill**
+Gõ vào Claude Code:
+```text
+Hãy liệt kê các skill bạn đang có và xác nhận dự án này đã có CLAUDE.md, cây thư mục và bộ skill nghiên cứu.
 ```
-Hãy liệt kê các skill bạn đang có và xác nhận dự án này đã có CLAUDE.md, cây thư mục và 8 skill.
-```
-
-Bạn sẽ thấy: Claude liệt kê tám skill (trong đó có `literature-review`) và xác nhận cây thư mục còn đủ.
-
-Nếu thiếu skill: đóng và mở lại VS Code rồi hỏi lại. Vẫn thiếu thì làm lại bước cài skill ở buổi 1.
+*Bạn sẽ thấy:* Claude liệt kê các skill học thuật (như `literature-review`, `academic-writing`, `citation-manager`) và xác nhận cây thư mục.
 
 ---
 
 **Bước 2. Ghi đề tài vào CLAUDE.md**
-
-Để làm gì: treo tấm biển tên cho căn phòng, để cả buổi bám đúng một đề tài.
-
-Đã có đề tài rồi thì gõ vào Claude:
+Nếu bạn đã có đề tài, gõ vào Claude Code:
+```text
+Đề tài nghiên cứu của tôi: [nghiên cứu các yếu tố ảnh hưởng đến ý định ứng dụng trí tuệ nhân tạo (AI) trong doanh nghiệp nhỏ và vừa tại Việt Nam]. Hãy cập nhật đề tài này vào mục Đề tài trong CLAUDE.md.
 ```
-Đề tài của tôi: [nghiên cứu ảnh hưởng của chuyển đổi số đến kết quả hoạt động của doanh nghiệp nhỏ và vừa (DNNVV) tại Việt Nam]. Cập nhật mục Đề tài trong CLAUDE.md.
+Nếu chưa có đề tài cụ thể, nhờ Claude gợi ý:
+```text
+Tôi quan tâm đến lĩnh vực [chuyển đổi số và ứng dụng AI trong doanh nghiệp]. Gợi ý cho tôi 3 hướng đề tài nghiên cứu khả thi, mỗi hướng kèm 1 câu hỏi nghiên cứu cụ thể để tôi chọn 1 đề tài làm trục cho hôm nay.
 ```
-
-Chưa có đề tài thì nhờ Claude gợi ý để chọn:
-```
-Tôi quan tâm lĩnh vực [quản trị doanh nghiệp và chuyển đổi số trong DNNVV]. Gợi ý 3 đề tài khả thi, mỗi đề tài kèm 1 câu hỏi nghiên cứu, để tôi chọn 1 dùng cho hôm nay. Đừng bịa số liệu, chỉ gợi ý hướng.
-```
-
-Bạn sẽ thấy: Claude ghi đề tài vào mục Đề tài trong `CLAUDE.md` (hoặc đưa ra 3 hướng để bạn chọn một).
 
 ---
 
-## PHẦN B. Cho AI đọc cả kho tài liệu của bạn
+**Bước 3. Chuẩn bị tài liệu thực tế**
+* Sao chép 3–5 file PDF/Word bài báo thật của bạn vào thư mục `du-lieu/` (hoặc dùng ngay bài báo nghiên cứu mẫu chuẩn do giảng viên chuẩn bị sẵn tại: `du-lieu-mau/demo/bai-bao-nghien-cuu-demo-chuyen-doi-so-ai-2026.docx`).
+* Gõ vào Claude Code để kiểm tra:
+```text
+Liệt kê các tài liệu nghiên cứu hiện có trong thư mục du-lieu/ hoặc du-lieu-mau/demo/ để tôi kiểm tra danh sách nguồn đầu vào.
+```
+
+---
+
+## PHẦN B. Bóc tách tài liệu, Tìm Research Gap & Kiểm chứng nguồn
 
 ### Lý thuyết
-
-Hình dung bạn có một xấp ba chục bài báo cần đọc. Cách cũ là tự đọc từng bài, tự nhớ bài nào nói gì. Vừa lâu, vừa dễ sót.
-
-Có một trợ lý làm việc này hộ, tên là **NotebookLM, tức một thủ thư chỉ trả lời dựa trên đúng những tài liệu bạn đưa cho nó.** Bạn đưa bài nào, nó đọc bài đó, và khi bạn hỏi thì nó trả lời kèm chỉ rõ câu đó lấy từ nguồn nào. Vì nó chỉ bám tài liệu bạn đưa, nó **ít bịa hơn nhiều** so với hỏi AI chay.
-
-Bình thường bạn phải mở trang web NotebookLM rồi bê từng tài liệu vào bằng tay. Hôm nay ta gắn thêm một cầu nối tên **notebooklm-py, tức một công cụ để Claude Code tự điều khiển NotebookLM bằng lời** thay vì bạn bấm tay. Nhờ nó, bạn chỉ nói một câu là Claude bê cả chồng tài liệu vào và hỏi hộ.
-
-Hai điều cần nhớ:
-
-- **Bạn không cần biết code để cài.** Cứ nhờ Claude cài hộ, y như buổi 1 bạn nhờ nó cài git và python. Nó tự chạy các lệnh cần thiết.
-- **Cài xong phải đăng nhập Google một lần** trên trình duyệt. Chỗ này Claude không bấm hộ được, bạn tự đăng nhập.
-
-Nói thẳng một giới hạn: notebooklm-py là công cụ **không chính thức**, chạy nhờ lách vào NotebookLM, nên đôi khi có thể kẹt hoặc bị giới hạn. Kẹt thì đừng mất thời gian, quay lại dùng **NotebookLM bản web** ở `notebooklm.google.com`, mọi bước sau vẫn làm được.
+Khoảng trống nghiên cứu (Research Gap) không phải là "những gì tôi cảm thấy còn thiếu", mà là **những gì tài liệu thực tế cho thấy còn chưa được giải quyết**. Chúng ta yêu cầu AI đọc kho tài liệu có sẵn để chỉ ra: *Cái gì đã có bằng chứng xác đáng? Cái gì còn bỏ ngỏ?* và bắt buộc thực hiện bước **Kiểm chứng nguồn** để triệt tiêu hoàn toàn nguy cơ AI bịa trích dẫn.
 
 ### Thao tác
 
-**Bước 3. Nhờ Claude cài notebooklm-py**
+**Bước 4. Đọc tài liệu: Bóc tách cái đã biết và cái còn bỏ ngỏ**
+Gõ vào Claude Code:
+```text
+Dựa trên tài liệu bài báo trong du-lieu-mau/demo/bai-bao-nghien-cuu-demo-chuyen-doi-so-ai-2026.docx (hoặc thư mục du-lieu/ của tôi), hãy phân tích và cho tôi biết:
+1. Những vấn đề nào ĐÃ CÓ BẰNG CHỨNG rõ ràng từ tài liệu?
+2. Những điểm nào CÒN BỎ NGỎ hoặc chưa có sự đồng thuận giữa các tác giả?
 
-Để làm gì: gắn cầu nối để Claude điều khiển được NotebookLM.
-
-Gõ vào Claude:
+Áp dụng kỷ luật chống bịa: Chỉ trích xuất từ tài liệu được cung cấp, chỗ nào tài liệu không nhắc tới thì ghi rõ "Tài liệu không đề cập". Mỗi nhận định phải chỉ rõ lấy từ tác giả/bài báo nào.
 ```
-https://github.com/teng-lin/notebooklm-py
-
-Đọc repo này và cài đặt notebooklm-py cho project này cho tôi, đọc kỹ các hướng dẫn rồi cài đặt MCP server cho tôi luôn. Cần cài đặt hoặc chạy các lệnh gì thì bạn làm luôn cho tôi. Khi xong thì báo tôi kết quả và giải thích ngắn gọn.
-```
-
-Bạn sẽ thấy: Claude chạy vài lệnh cài đặt, rồi báo đã cài xong và gắn MCP server (cầu nối) cho Claude Code.
-
-Nếu báo lỗi thiếu Python: gõ `Máy tôi chưa có Python 3.10 trở lên, cài giúp tôi trước rồi cài lại notebooklm-py.` Vẫn kẹt thì bỏ qua phần tự động, dùng NotebookLM web cho các bước sau.
 
 ---
 
-**Bước 4. Đăng nhập Google cho NotebookLM**
-
-Để làm gì: cho công cụ quyền dùng tài khoản NotebookLM của bạn.
-
-Gõ vào Claude:
+**Bước 5. Phát biểu Khoảng trống nghiên cứu (Research Gap)**
+Gõ vào Claude Code:
+```text
+Dùng skill literature-review. Từ các điểm còn bỏ ngỏ ở trên, hãy tổng hợp thành 3–4 theme lớn và phát biểu 3 Research Gap (khoảng trống nghiên cứu) cụ thể, mỗi gap kèm theo 1 câu hỏi nghiên cứu tương ứng. Chỉ dùng bằng chứng từ tài liệu thật, lưu kết quả vào file tong-quan-tai-lieu/research-gap.md.
 ```
-Chạy giúp tôi lệnh đăng nhập NotebookLM để tôi đăng nhập Google trên trình duyệt. Xong thì kiểm tra kết nối và báo kết quả cho tôi.
-```
-
-Bạn sẽ thấy: một cửa sổ trình duyệt mở ra cho bạn đăng nhập Google. Đăng nhập xong, Claude báo kết nối thành công.
-
-Nếu trình duyệt không mở hoặc báo lỗi đăng nhập: đăng nhập Google trên trình duyệt trước, rồi gõ `Thử kiểm tra lại kết nối NotebookLM.` Vẫn kẹt thì chuyển sang NotebookLM web.
+*Bạn sẽ thấy:* Claude tạo file `tong-quan-tai-lieu/research-gap.md` phân tích sắc bén 3 khoảng trống kèm câu hỏi nghiên cứu có căn cứ.
 
 ---
 
-**Bước 5. Tìm nguồn thật cho đề tài**
-
-Để làm gì: gom một danh sách bài báo thật để nạp vào, thay vì tài liệu bịa.
-
-Gõ vào Perplexity:
+**Bước 6. Kỷ luật kiểm chứng nguồn (BẮT BUỘC)**
+Gõ vào Claude Code:
+```text
+Hãy rà soát lại toàn bộ các nguồn, tên tác giả, năm và DOI vừa dùng trong file tong-quan-tai-lieu/research-gap.md. 
+Chỉ ra nguồn nào bạn chưa chắc chắn 100% hoặc có dấu hiệu thiếu dữ liệu để tôi tự đối chiếu lại trên Google Scholar/DOI.
 ```
-Tìm 10 nghiên cứu thực nghiệm (2020-2025) về [chuyển đổi số trong DNNVV Việt Nam], ưu tiên bài bình duyệt, kèm link và năm. Trả về dạng danh sách link.
-```
-
-Bạn sẽ thấy: một danh sách khoảng 10 bài kèm link và năm. Bấm thử vài link xem có mở ra bài thật không, bỏ link nào chết.
-
-Mẹo: nếu bạn đã có sẵn vài file PDF của mình, để chúng vào thư mục `du-lieu/tho` để bước sau nạp thêm.
+*Thực hành học viên:* Mở Google Scholar, dán tên bài báo hoặc DOI vào để xác minh tác giả và năm xuất bản thật.
 
 ---
 
-**Bước 6. Tạo notebook và nạp cả loạt nguồn**
-
-Để làm gì: đưa toàn bộ tài liệu vào cho thủ thư đọc, chỉ bằng một câu.
-
-Gõ vào Claude:
-```
-Tạo giúp tôi một notebook tên [Chuyển đổi số DNNVV] và nạp các nguồn sau vào đó: [dán danh sách link từ Perplexity]. Nếu thư mục du-lieu/tho có PDF của tôi thì nạp thêm. Xong báo kết quả cho tôi.
-```
-
-Bạn sẽ thấy: Claude tạo notebook và báo đã nạp các nguồn vào.
-
-Nếu một nguồn không nạp được (link chặn tải): bỏ nguồn đó, hoặc tải PDF về `du-lieu/tho` rồi gõ `Nạp thêm các PDF trong thư mục du-lieu/tho vào notebook.`
-
----
-
-**Bước 7. Xử lý link bị chặn và kiểm tra**
-
-Để làm gì: lấy nốt các bài mà link bị chặn không tải được, rồi rà đủ nguồn.
-
-Gõ vào Claude:
-```
-Trong các nguồn vừa nạp, link nào bị chặn không tải được thì bạn tự mở bằng browser tích hợp sẵn, lấy nội dung bài, lưu thành file .md trong du-lieu/tho, rồi thêm file đó vào notebook cho tôi. Xong liệt kê lại toàn bộ nguồn trong notebook để tôi kiểm tra.
-```
-
-Bạn sẽ thấy: Claude mở các link bị chặn bằng trình duyệt, lưu nội dung thành file trong `du-lieu/tho`, thêm vào notebook, rồi liệt kê lại toàn bộ nguồn. Đối chiếu thiếu thì nạp bù.
-
----
-
-## PHẦN C. Tìm khoảng trống nghiên cứu có bằng chứng
+## PHẦN C. Lập Ma trận trích xuất & Dựng dàn ý theo chủ đề
 
 ### Lý thuyết
+Tổng quan tài liệu học thuật **không phải là bản danh sách tóm tắt tuần tự** (kiểu *Bài 1 nói về cái này, Bài 2 nói về cái kia*). Tổng quan thực sự là **tổng hợp theo chủ đề (Thematic Synthesis)**: Gom các nghiên cứu cùng nói về một khía cạnh lại với nhau để so sánh xem họ đồng thuận ở điểm nào và mâu thuẫn ở điểm nào. 
 
-Hình dung một kệ sách trong thư viện. Đọc lướt qua cả kệ, bạn mới nhận ra có một mảng đề tài chưa ai viết, hoặc mọi người viết rồi nhưng còn bỏ ngỏ một góc. Cái chỗ trống đó chính là **khoảng trống nghiên cứu, tức một câu hỏi mà tài liệu hiện có chưa trả lời trọn.** Tiếng chuyên ngành gọi là research gap.
-
-Điểm mấu chốt: khoảng trống phải **tựa trên bằng chứng thật**, không phải cảm giác của bạn. Bạn tìm ra nó bằng cách hỏi thủ thư NotebookLM: trên đống tài liệu này, cái gì đã có bằng chứng, cái gì còn để ngỏ. Vì thủ thư chỉ trả lời trên nguồn thật và chỉ rõ trích dẫn, khoảng trống bạn rút ra sẽ có chỗ dựa.
-
-Một hiểu lầm hay gặp: tưởng khoảng trống là "cái tôi thấy còn thiếu". Sai. Nó là "cái tài liệu cho thấy còn thiếu". Và một cảnh báo không được bỏ: AI, kể cả khi trả lời, vẫn có thể **bịa tên bài, tác giả, DOI** nghe rất thật. Chưa tự kiểm được nguồn thì chưa đưa vào bài.
+Để làm được việc đó, trước tiên ta phải lập **Ma trận tài liệu (Synthesis Matrix)** — một bảng dữ liệu mà mỗi dòng là một nghiên cứu, mỗi cột là một khía cạnh học thuật.
 
 ### Thao tác
 
-**Bước 8. Hỏi thủ thư: cái gì đã có, cái gì còn bỏ ngỏ**
+**Bước 7. Lập Ma trận trích xuất tài liệu**
+Gõ vào Claude Code:
+```text
+Dùng skill literature-review. Hãy đọc các bài nghiên cứu đã có và lập một Ma trận trích xuất tài liệu dạng bảng Markdown.
+Các cột bắt buộc:
+1. Mã tài liệu & Tác giả (Năm)
+2. Bối cảnh nghiên cứu / Quốc gia
+3. Cơ sở lý thuyết nền tảng
+4. Thiết kế nghiên cứu & Phương pháp phân tích
+5. Quy mô mẫu (Cỡ mẫu N)
+6. Phát hiện chính
+7. Hạn chế nghiên cứu
 
-Để làm gì: lấy bức tranh có bằng chứng, tách rõ phần đã biết và phần còn trống.
-
-Gõ vào Claude:
+Tuân thủ nghiêm ngặt: Chỉ điền thông tin có thật trong bài, chỗ nào tài liệu không nêu cỡ mẫu hay phương pháp thì ghi rõ "Tài liệu không đề cập", tuyệt đối không tự suy đoán. Lưu vào file tong-quan-tai-lieu/ma-tran-tai-lieu.md.
 ```
-Trên các nguồn trong notebook, cho biết cái gì đã có bằng chứng và cái gì còn bỏ ngỏ về [chuyển đổi số trong DNNVV Việt Nam]. Mỗi ý kèm trích dẫn nguồn. Chỉ dựa trên tài liệu trong notebook, không tự bịa.
-```
-
-Bạn sẽ thấy: câu trả lời tách hai phần rõ ràng, phần "đã có bằng chứng" và phần "còn bỏ ngỏ", mỗi ý chỉ về đúng nguồn. Ghi lại các điểm còn bỏ ngỏ.
 
 ---
 
-**Bước 9. Tổng hợp theme và phát biểu khoảng trống**
-
-Để làm gì: biến các điểm còn bỏ ngỏ thành một khoảng trống nghiên cứu viết được thành câu hỏi.
-
-Gõ vào Claude:
+**Bước 8. Xây dựng Dàn ý tổng quan theo chủ đề (Thematic Outline)**
+Gõ vào Claude Code:
+```text
+Từ bảng ma-tran-tai-lieu.md vừa lập, hãy chuyển đổi và xây dựng thành một Dàn ý tổng quan tài liệu theo chủ đề (Thematic Outline) cho đề tài của tôi:
+- Chia thành 3–4 chủ đề lớn (Themes)
+- Mỗi chủ đề ghi rõ luận điểm chính, các tác giả đồng thuận, các tác giả có quan điểm trái chiều
+- Phác thảo vị trí làm nổi bật Research Gap đã xác định ở Bước 5
+Lưu kết quả vào file tong-quan-tai-lieu/dan-y-tong-quan.md.
 ```
-Dùng skill literature-review. Từ kết quả trên, tổng hợp 3-4 theme và phát biểu 3 research gap kèm câu hỏi nghiên cứu cho mỗi gap. Chỉ dùng bằng chứng từ tài liệu đã đọc, không bịa nguồn. Lưu vào tong-quan-tai-lieu/research-gap.md.
-```
-
-Bạn sẽ thấy: Claude lưu file `tong-quan-tai-lieu/research-gap.md` gồm 3-4 theme và 3 khoảng trống, mỗi khoảng trống kèm một câu hỏi nghiên cứu.
 
 ---
 
-**Bước 10. Kiểm chứng nguồn (bước không được bỏ)**
-
-Để làm gì: chặn nguồn bịa trước khi nó lọt vào bài của bạn.
-
-Gõ vào Claude:
-```
-Rà lại các nguồn tôi đã dùng ở phần research gap. Chỉ ra nguồn nào đáng nghi bịa (DOI sai định dạng, tạp chí không có thật, tác giả không khớp) và nhắc tôi phải tự kiểm chứng cái nào bằng Google Scholar hoặc DOI.
-```
-
-Bạn sẽ thấy: Claude chỉ ra các nguồn cần bạn tự kiểm. Mở Google Scholar, chép tên bài vào tra, đối chiếu tác giả, năm, DOI có khớp không.
-
-Nhớ: đây là kỹ năng sống còn của người nghiên cứu. Cùng lắm để trống một nguồn còn hơn đưa vào một nguồn giả.
-
----
-
-## PHẦN D. Tổng hợp tài liệu theo chủ đề
+## PHẦN D. Viết báo cáo tổng quan chuẩn APA 7 & Xuất Word
 
 ### Lý thuyết
+Báo cáo tổng quan học thuật đòi hỏi văn phong khách quan, trung tính, không dùng từ cảm thán và đặc biệt là **kỷ luật trích dẫn nguồn chuẩn APA 7** dạng `(Tác giả, năm)` trong bài kèm danh mục tài liệu tham khảo hoàn chỉnh ở cuối bài. Mọi khẳng định đều phải có trích dẫn bảo chứng.
 
-Dọn tủ quần áo, không ai kể lể "cái áo này mua ở đâu, cái quần kia ai tặng". Người ta xếp theo loại: áo một ngăn, quần một ngăn. Nhìn vào là thấy mình có gì, thiếu gì.
-
-Tổng quan tài liệu cũng vậy. **Tổng hợp theo chủ đề, tức gom các nghiên cứu cùng hướng lại một nhóm** rồi nói nhóm đó phát hiện chung gì, chỗ nào đồng thuận, chỗ nào mâu thuẫn. Trước khi gom, ta lập một bảng gọi là **ma trận tài liệu, tức bảng mỗi dòng một nghiên cứu**, để nhìn cả kho trong một trang.
-
-Vì sao đáng làm: khi xếp theo chủ đề, khoảng trống tự lộ ra, vì bạn thấy ngay chủ đề nào ai cũng làm rồi và chủ đề nào còn mỏng.
-
-Một hiểu lầm hay gặp: tổng quan không phải là tóm tắt lần lượt từng bài, kiểu "bài 1 nói..., bài 2 nói...". Đó chỉ là danh sách. Tổng quan thật là gom theo chủ đề và so sánh giữa các bài.
+Sau khi có bài viết chuẩn, ta xuất ra file Microsoft Word (`.docx`) đáp ứng đúng chuẩn thể thức văn bản học thuật/hành chính Việt Nam (Font chữ Times New Roman, dãn dòng 1.5, lề chuẩn 2-2-3-2 cm).
 
 ### Thao tác
 
-**Bước 11. Lập ma trận tài liệu**
-
-Để làm gì: nhìn cả kho tài liệu trong một bảng, mỗi dòng một nghiên cứu.
-
-Gõ vào Claude:
+**Bước 9. Viết phần Tổng quan tài liệu học thuật**
+Gõ vào Claude Code:
+```text
+Dùng skill academic-writing. Hãy viết phần "Tổng quan tài liệu" khoảng 1.200 từ dựa trên dàn ý trong file tong-quan-tai-lieu/dan-y-tong-quan.md:
+- Văn phong học thuật tiếng Việt chuẩn mực, khách quan, lập luận chặt chẽ.
+- Viết theo chủ đề (Thematic), đối thoại giữa các nghiên cứu, không liệt kê từng bài.
+- Trích dẫn trong bài theo chuẩn APA 7 dạng (Tác giả, năm) hoặc Tác giả (năm).
+- Nguồn nào chưa được xác minh 100% thì đánh dấu [CẦN NGUỒN], tuyệt đối cấm bịa trích dẫn.
+- Cuối bài có mục "Tài liệu tham khảo" theo chuẩn APA 7.
+Lưu bài viết vào file tong-quan-tai-lieu/bao-cao-tong-quan-tai-lieu.md.
 ```
-Dùng skill literature-review. Lập ma trận các nguồn đã chọn, mỗi dòng một nghiên cứu, các cột: tác giả/năm, bối cảnh, thiết kế, cỡ mẫu, phương pháp, phát hiện chính, hạn chế. Chỉ điền từ tài liệu thật, chỗ nào không rõ thì để trống, không bịa. Lưu vào tong-quan-tai-lieu/ma-tran-tai-lieu.md.
-```
-
-Bạn sẽ thấy: file `ma-tran-tai-lieu.md` là một bảng, mỗi nghiên cứu một dòng, các ô đã điền theo tài liệu.
 
 ---
 
-**Bước 12. Dựng dàn ý tổng quan theo chủ đề**
-
-Để làm gì: biến ma trận thành một dàn ý xếp theo chủ đề, sẵn để viết.
-
-Gõ vào Claude:
+**Bước 10. Rà soát đối chiếu trích dẫn 2 chiều**
+Gõ vào Claude Code:
+```text
+Dùng skill citation-manager. Hãy rà soát lại file tong-quan-tai-lieu/bao-cao-tong-quan-tai-lieu.md:
+1. Đối soát hai chiều: Mọi nguồn được trích trong bài có đầy đủ trong mục Tài liệu tham khảo không? Và ngược lại?
+2. Kiểm tra định dạng APA 7 của từng tài liệu tham khảo.
+3. Liệt kê danh sách các vị trí còn đánh dấu [CẦN NGUỒN] để tôi xử lý.
 ```
-Từ ma trận, lập dàn ý tổng quan tài liệu theo chủ đề, mỗi mục ghi ý chính và các nguồn sẽ trích cho mục đó. Lưu vào tong-quan-tai-lieu/dan-y-tong-quan.md.
-```
-
-Bạn sẽ thấy: file `dan-y-tong-quan.md` chia theo vài chủ đề lớn, mỗi chủ đề ghi ý chính và các nguồn thuộc chủ đề đó.
 
 ---
 
-## PHẦN E. Viết báo cáo tổng quan có trích dẫn APA 7
+**Bước 11. Xuất báo cáo ra file Word (.docx) chuẩn thể thức Việt Nam**
+Gõ vào Claude Code:
+```text
+Hãy xuất file tong-quan-tai-lieu/bao-cao-tong-quan-tai-lieu.md thành file Word (.docx) với tên tong-quan-tai-lieu/Bao-cao-tong-quan-luan-an.docx theo đúng thể thức báo cáo học thuật chuẩn Việt Nam:
+- Phông chữ: 100% bắt buộc dùng Times New Roman.
+- Tiêu đề chính: Cỡ 16, in đậm, căn giữa.
+- Tiêu đề mục (Heading 1, 2): Cỡ 14, in đậm.
+- Thân bài (Body text): Cỡ 13, căn đều hai bên (Justified), thụt đầu dòng 1.27cm, giãn dòng 1.5 lines, giãn đoạn Before 3pt, After 3pt.
+- Căn lề trang A4 chuẩn: Lề trên 2cm, lề dưới 2cm, lề trái 3cm, lề phải 2cm.
+- Bảng biểu (nếu có): Đóng khung rõ ràng, tiêu đề bảng in đậm phía trên.
+Tự động cài đặt thư viện cần thiết (như python-docx) nếu máy chưa có và báo đường dẫn file hoàn thành.
+```
+*Bạn sẽ thấy:* Claude Code tự tạo file `.docx` và gửi đường dẫn. Bạn có thể mở trực tiếp bằng Microsoft Word để tận mắt kiểm tra độ chuẩn mực của văn bản.
+
+---
+
+## PHẦN E. Tự tay đóng gói một Custom Skill riêng
 
 ### Lý thuyết
+Ở Bước 11, bạn vừa thực hiện một quy trình xuất Word rất chỉn chu và chuẩn mực. Nhưng trong cả quá trình làm luận án hay nghiên cứu, bạn sẽ còn viết thêm Chương 2, Chương 3, Chương 4... Mỗi lần xuất file lại phải gõ lại một tràng yêu cầu font chữ, cỡ chữ, căn lề thì vô cùng tốn công và dễ thiếu sót!
 
-Viết báo cáo học thuật giống khai thuế: mỗi con số, mỗi khẳng định đều phải có hóa đơn kèm. Hóa đơn ở đây là **trích dẫn, tức chỉ rõ khẳng định này lấy từ tác giả nào, năm nào.** Chuẩn phổ biến ở Việt Nam là **APA phiên bản 7**, viết trong bài dạng `(Tác giả, năm)` và liệt kê đầy đủ ở mục Tài liệu tham khảo cuối bài.
-
-Vì sao đáng làm đúng ngay từ đầu: một báo cáo có trích dẫn khớp và kiểm chứng được thì gửi giảng viên hướng dẫn hay nộp hội đồng đều đứng vững. Trích dẫn lộn xộn thì mất điểm tin cậy ngay.
-
-Một hiểu lầm hay gặp, và là chỗ nguy hiểm nhất: AI viết trích dẫn nghe **rất thật** nhưng có thể hoàn toàn bịa. Vì vậy quy tắc trong dự án này là nguồn nào chưa tự kiểm chứng được thì đánh dấu `[CẦN NGUỒN]`, để trống chờ bạn kiểm, tuyệt đối không để AI tự điền một nguồn nghe hợp lý.
+Đây chính là lúc ta **đóng gói quy trình này thành một Custom Skill riêng**. Sau khi đóng gói, lần sau bạn chỉ cần gõ đúng 1 câu: *"Xuất file này ra Word chuẩn"* là AI tự động làm đúng 100% thể thức mà bạn không cần dặn lại bất kỳ quy tắc nào!
 
 ### Thao tác
 
-**Bước 13. Viết phần tổng quan tài liệu**
-
-Để làm gì: có một bản báo cáo tổng quan viết theo văn phong học thuật, đúng đề tài.
-
-Gõ vào Claude:
+**Bước 12. Yêu cầu Claude Code đóng gói Skill**
+Gõ vào Claude Code:
+```text
+Tôi vừa thấy cách bạn xuất file Word chuẩn thể thức luận văn Việt Nam rất tốt. Bây giờ hãy đóng gói toàn bộ quy trình và quy chuẩn định dạng đó thành một Skill riêng đặt tên là "xuat-word-luan-van":
+1. Tạo thư mục mới tại .claude/skills/xuat-word-luan-van/
+2. Tạo file SKILL.md có đầy đủ frontmatter:
+   - name: xuat-word-luan-van
+   - description: Dùng khi người dùng muốn xuất văn bản, báo cáo nghiên cứu hoặc chương luận án từ Markdown (.md) sang Microsoft Word (.docx) đúng chuẩn thể thức Việt Nam (Times New Roman 13, giãn dòng 1.5, lề 2-2-3-2).
+3. Phần thân hướng dẫn chi tiết các bước cài đặt python-docx, đọc file md, áp dụng chuẩn định dạng (font, cỡ chữ, dãn dòng, lề, bảng biểu) và lưu file docx.
+Khi tạo xong, giải thích ngắn gọn cho tôi.
 ```
-Dùng skill academic-writing. Viết phần "Tổng quan tài liệu" khoảng 1200 từ theo dàn ý trong tong-quan-tai-lieu/dan-y-tong-quan.md, văn phong học thuật tiếng Việt, tổng hợp theo chủ đề (không liệt kê từng bài). Trích dẫn trong bài theo APA 7 dạng (Tác giả, năm). Nguồn nào chưa kiểm chứng thì đánh dấu [CẦN NGUỒN], không tự bịa nguồn. Cuối bài có mục Tài liệu tham khảo theo APA 7. Lưu thành file tong-quan-tai-lieu/bao-cao-tong-quan-tai-lieu.md.
-```
-
-Bạn sẽ thấy: file `tong-quan-tai-lieu/bao-cao-tong-quan-tai-lieu.md` gồm phần tổng quan viết liền mạch theo chủ đề, có trích dẫn trong bài và danh mục tài liệu tham khảo ở cuối, các chỗ chưa chắc để `[CẦN NGUỒN]`.
 
 ---
 
-**Bước 14. Rà lại trích dẫn cho khớp**
-
-Để làm gì: chắc chắn mọi trích dẫn trong bài đều có trong danh mục và ngược lại.
-
-Gõ vào Claude:
-```
-Dùng skill citation-manager. Rà phần vừa viết: mọi trích dẫn trong bài phải có trong danh mục tài liệu tham khảo và ngược lại, đúng định dạng APA 7. Liệt kê các chỗ chưa khớp và các chỗ còn [CẦN NGUỒN].
-```
-
-Bạn sẽ thấy: một danh sách các chỗ chưa khớp hoặc còn thiếu nguồn để bạn sửa. Tự kiểm các nguồn còn `[CẦN NGUỒN]` bằng Google Scholar trước khi coi là xong.
-
----
-
-**Bước 15. Xuất ra Word đúng format chuẩn**
-
-Để làm gì: có một file Word đúng format báo cáo nghiên cứu để gửi giảng viên hướng dẫn. Chọn 1 trong 2 hướng.
-
-Hướng 1 - chưa có file mẫu, tự áp format chuẩn Việt Nam. Gõ vào Claude:
-```
-Xuất bản báo cáo bao-cao-tong-quan-tai-lieu.md thành file Word (.docx) để tôi gửi giảng viên hướng dẫn, trình bày đúng format báo cáo nghiên cứu chuẩn Việt Nam. Bạn tự research format chuẩn; tối thiểu phải đạt: A4, Times New Roman cỡ 13, giãn dòng 1.5, lề trên 2cm dưới 2cm trái 3cm phải 2cm, căn đều hai bên, đánh số trang, Tài liệu tham khảo APA 7. Cần cài công cụ gì thì cài giúp tôi, xong báo tôi đường dẫn file.
-```
-
-Hướng 2 - đã có file mẫu chuẩn của trường (.docx hoặc .pdf). Gõ vào Claude:
-```
-Tôi có một file báo cáo mẫu đúng chuẩn định dạng của trường tôi ở [phu-luc/mau-bao-cao-truong.docx]. Hãy xuất file bao-cao-tong-quan-tai-lieu.md ra Word (.docx) sao cho định dạng (font, cỡ chữ, giãn dòng, lề, kiểu tiêu đề, cách đánh số) giống file mẫu đó. Nếu file mẫu là PDF thì đọc và mô phỏng lại định dạng của nó. Cần cài công cụ gì thì cài giúp tôi, xong báo tôi đường dẫn file kết quả.
-```
-
-Bạn sẽ thấy: Claude tạo file `.docx` đúng format và báo đường dẫn. Mở file kiểm lại font, lề, bảng biểu.
-
-Mẹo: format thân bài (cỡ 13 hay 14, lề) khác nhau tùy trường. Có file mẫu của trường thì dùng Hướng 2 cho chính xác.
+**Bước 13. Khởi động lại và kiểm thử Custom Skill vừa tạo**
+1. Đóng Claude Code hoặc mở lại VS Code để nạp skill mới.
+2. Kiểm tra xem Claude đã nhận skill chưa:
+   ```text
+   Hãy liệt kê các skill của bạn xem đã có skill xuat-word-luan-van chưa?
+   ```
+3. Chạy thử nghiệm bằng **1 câu lệnh duy nhất** (không nhắc lại quy tắc font hay lề):
+   ```text
+   Dùng skill xuat-word-luan-van để xuất lại file tong-quan-tai-lieu/research-gap.md ra file Word (.docx) cho tôi.
+   ```
+*Bạn sẽ thấy:* Claude tự động báo `Using skill: xuat-word-luan-van` và tạo ra ngay một file Word chuẩn xác từng milimet! Bạn đã chính thức bước sang cấp độ: **Người huấn luyện AI Agent**.
 
 ---
 
-## PHẦN F. Đóng gói việc lặp thành một skill riêng
+## PHẦN F. Chốt buổi & Kiểm kê sản phẩm
 
-### Lý thuyết
-
-Xuất báo cáo ra Word đúng format chuẩn không phải làm một lần. Suốt luận án, chương nào viết xong bạn cũng phải xuất lại đúng font, đúng lề, đúng cách trích dẫn. Mỗi lần dặn Claude lại từ đầu thì mất công, mà kết quả không đều tay.
-
-**Skill là một công thức nấu ăn viết sẵn:** đóng gói cách làm một việc một lần, lần sau gọi tên là nó làm đúng chuẩn của bạn, không phải nghĩ lại. Ta sẽ đóng gói chính cách xuất docx vừa làm ở Phần E thành một skill. Bạn để skill ở `.claude/skills/<tên>/SKILL.md` ngay trong thư mục dự án, nằm cạnh tám skill có sẵn.
-
-Vì sao đáng làm: lần sau chỉ cần nói "tạo file docx chuẩn báo cáo nghiên cứu" là Claude làm đúng format bạn đã chốt, không phải dặn lại cả bộ font, lề, trích dẫn.
-
-Hai điều cần nhớ để khỏi kẹt:
-
-- **Tên skill chỉ dùng chữ thường và gạch nối,** không chứa từ "claude" hay "anthropic".
-- **Tạo xong phải đóng và mở lại VS Code** thì Claude mới nạp skill mới.
-
-### Thao tác
-
-**Bước 16. Nhờ Claude đóng gói cách xuất docx thành skill**
-
-Để làm gì: lần sau chỉ nói một câu là Claude xuất docx đúng format, không phải dặn lại.
-
-Gõ vào Claude:
-```
-Tôi vừa xuất một file docx chuẩn báo cáo nghiên cứu. Hãy đóng gói cách làm đó thành một skill, để sau này tôi chỉ cần nói "tạo giúp tôi file docx chuẩn báo cáo nghiên cứu" là bạn làm đúng và có file word đúng format như vầy.
+**Bước 14. Kiểm tra danh mục sản phẩm hoàn thành trong Buổi 2**
+Gõ vào Claude Code:
+```text
+Hãy liệt kê tất cả các file sản phẩm mới đã được tạo ra trong buổi hôm nay trong thư mục tong-quan-tai-lieu/ và thư mục .claude/skills/.
 ```
 
-Bạn sẽ thấy: Claude báo đã tạo file `SKILL.md` trong `.claude/skills/` và giải thích skill làm gì, khi nào gọi.
+### ✅ Bảng Checklist sản phẩm đầu ra của học viên:
+
+- [ ] **File `CLAUDE.md`** đã được cập nhật đề tài nghiên cứu chính thức của học viên.
+- [ ] **Thư mục `du-lieu/`** chứa các bài báo thật (hoặc abstract nghiên cứu chuẩn).
+- [ ] **File `tong-quan-tai-lieu/research-gap.md`** chứa 3–4 theme và 3 khoảng trống nghiên cứu có bằng chứng.
+- [ ] **File `tong-quan-tai-lieu/ma-tran-tai-lieu.md`** chứa ma trận trích xuất học thuật dạng bảng.
+- [ ] **File `tong-quan-tai-lieu/dan-y-tong-quan.md`** chứa dàn ý tổng quan theo chủ đề (Thematic).
+- [ ] **File `tong-quan-tai-lieu/bao-cao-tong-quan-tai-lieu.md`** bài viết học thuật ~1.200 từ chuẩn APA 7.
+- [ ] **File `tong-quan-tai-lieu/Bao-cao-tong-quan-luan-an.docx`** định dạng chuẩn mực thể thức Việt Nam (Times New Roman, lề 2-2-3-2).
+- [ ] **Thư mục Skill riêng `.claude/skills/xuat-word-luan-van/SKILL.md`** do chính học viên đóng gói và chạy thành công.
 
 ---
 
-**Bước 17. Chạy thử skill**
-
-Để làm gì: chắc chắn skill hoạt động khi bạn gọi tên.
-
-Đóng và mở lại VS Code trước, rồi gõ vào Claude (gọi đúng tên skill Claude vừa đặt):
-```
-Dùng skill /... để xuất file ... ra Word đúng format chuẩn cho tôi.
-```
-
-Bạn sẽ thấy: Claude gọi đúng skill và tạo lại file `.docx` đúng format.
-
-Nếu báo không tìm thấy skill: kiểm tra thư mục nằm trong `.claude/skills/`, file có đủ hai dòng ba dấu gạch bao quanh phần khai báo, rồi đóng mở lại VS Code và thử lại.
-
----
-
-## Chốt buổi
-
-**Bước 18. Rà lại các sản phẩm hôm nay**
-
-Để làm gì: gom danh sách sản phẩm hôm nay để bạn kiểm cho đủ.
-
-Gõ vào Claude:
-```
-Liệt kê các file sản phẩm tôi đã tạo hôm nay trong dự án và vị trí của chúng.
-```
-
-Bạn sẽ thấy: danh sách các file trong `tong-quan-tai-lieu/`, bản `.docx`, và skill mới trong `.claude/skills/`.
-
----
-
-## PHẦN MỞ RỘNG (tùy chọn) - Khai thác Studio của NotebookLM
-
-> Phần này ngoài 120 phút lõi. Giảng viên demo, hoặc bạn tự làm ở nhà. Còn giờ thì làm ngay ở lớp.
-
-### Lý thuyết
-
-Cùng một kho tài liệu trong notebook, NotebookLM có một "xưởng chế biến" tên **Studio** biến nó thành nhiều sản phẩm khác nhau: mind map, slide, bảng dữ liệu, báo cáo, bản tóm tắt dạng podcast. Qua notebooklm-py, bạn nhờ Claude gọi các món này rồi làm tiếp ngay trong workspace.
-
-Nói thẳng giới hạn: các món này chạy qua công cụ không chính thức nên có thể chậm hoặc kẹt; audio mất vài phút. Kẹt thì bấm tay ngay trong Studio của NotebookLM web.
-
-### Thao tác
-
-**Bước 19. Mind map rồi bung thành dàn ý**
-
-Để làm gì: có một bản đồ chủ đề trực quan, rồi biến nó thành dàn ý.
-
-Gõ vào Claude:
-```
-Trên notebook hiện tại, tạo giúp tôi một mind map tổng hợp các chủ đề chính, rồi từ mind map đó bung thành một dàn ý chi tiết cho phần tổng quan.
-```
-
-Bạn sẽ thấy: Claude tạo mind map trong Studio và trả về một dàn ý chi tiết theo các nhánh của mind map.
-
----
-
-**Bước 20. Slide deck để trình bày**
-
-Để làm gì: có sẵn bộ slide để báo cáo với giảng viên.
-
-Gõ vào Claude:
-```
-Tạo một slide deck tóm tắt tổng quan tài liệu và các research gap từ notebook này. Tải file slide (.pptx) về lưu vào tong-quan-tai-lieu/slide-tong-quan.pptx để tôi trình bày với giảng viên.
-```
-
-Bạn sẽ thấy: Claude tạo slide trong Studio và tải file `.pptx` về `tong-quan-tai-lieu/`.
-
----
-
-**Bước 21. Data Table rồi đối chiếu với ma trận**
-
-Để làm gì: lấy bảng trích xuất của NotebookLM để kiểm chéo ma trận của bạn.
-
-Gõ vào Claude:
-```
-Dùng tính năng Data Table của notebook để trích xuất từ các nguồn thành bảng: tác giả, năm, phương pháp, cỡ mẫu, phát hiện chính. Rồi đối chiếu với file ma-tran-tai-lieu.md của tôi và chỉ ra chỗ nào khác nhau.
-```
-
-Bạn sẽ thấy: một bảng trích xuất và danh sách các chỗ khác nhau so với ma trận bạn tự lập.
-
----
-
-**Bước 22. Report của NotebookLM làm bản đối chiếu**
-
-Để làm gì: có một báo cáo grounded để soi lại báo cáo bạn tự viết.
-
-Gõ vào Claude:
-```
-Tạo một Tailored Report từ notebook này về [chuyển đổi số trong DNNVV Việt Nam], rồi đối chiếu với báo cáo tôi tự viết và chỉ ra điểm khác biệt.
-```
-
-Bạn sẽ thấy: một báo cáo do NotebookLM dựng và danh sách các điểm khác so với bản của bạn.
-
----
-
-**Bước 23. Audio Overview để nghe lại**
-
-Để làm gì: có bản tóm tắt dạng podcast để nghe khi di chuyển.
-
-Gõ vào Claude:
-```
-Tạo một Audio Overview (bản tóm tắt dạng podcast) cho notebook này.
-```
-
-Bạn sẽ thấy: Claude tạo một bản audio tóm tắt trong Studio (mất vài phút).
-
----
-
-## Xong buổi 2, kiểm lại bạn đã có
-
-Tự tay làm được:
-- [ ] Đề tài thật ghi trong `CLAUDE.md`
-- [ ] Một notebook đã nạp nhiều nguồn thật (qua notebooklm-py hoặc NotebookLM web)
-- [ ] File `tong-quan-tai-lieu/research-gap.md` đã kiểm chứng nguồn
-- [ ] File `ma-tran-tai-lieu.md` và `dan-y-tong-quan.md`, tổng hợp theo chủ đề
-- [ ] File `bao-cao-tong-quan-tai-lieu.md` và bản `.docx`, trích dẫn APA 7
-- [ ] Một skill riêng xuất docx chuẩn trong `.claude/skills/`, đã chạy thử được
-
-Hiểu để dùng sau:
-- [ ] Vì sao hỏi trên tài liệu thật (có nguồn) thì ít bịa hơn hỏi AI chay
-- [ ] notebooklm-py là công cụ không chính thức, kẹt thì quay lại NotebookLM web; và kiểm chứng nguồn vẫn luôn là việc của bạn
-
-Thiếu mục nào thì làm lại đúng bước đó. Buổi sau ta đổ dữ liệu khảo sát thật vào thư mục `du-lieu` và học cách phân tích rồi viết báo cáo kết quả có khai báo dùng AI.
+### 💡 Bài tập thực hành về nhà (Rèn luyện phản xạ):
+1. **Bài tập 1:** Bổ sung thêm 2 bài báo nghiên cứu mới vào thư mục `du-lieu/`, yêu cầu AI cập nhật thêm vào file `ma-tran-tai-lieu.md` mà không làm thay đổi các dòng cũ.
+2. **Bài tập 2:** Thử nghiệm tự tạo thêm một Custom Skill thứ hai mang tên `tom-tat-nhanh-bai-bao` chuyên dùng để đọc 1 file PDF bài báo bất kỳ và xuất ra 5 gạch đầu dòng quan trọng nhất tuân thủ kỷ luật chống bịa số liệu.
+3. **Chuẩn bị cho Buổi 3:** Buổi 3 chúng ta sẽ bước vào **Phân tích dữ liệu định lượng và báo cáo kết quả** (làm sạch dữ liệu khảo sát CSV, chạy Cronbach's Alpha, hồi quy, vẽ biểu đồ và viết báo cáo học thuật có khai báo sử dụng AI).
