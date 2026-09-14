@@ -1,0 +1,130 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Báo cáo phân tích khảo sát</title>
+<style>
+@page{size:A4;margin:16mm 15mm}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;line-height:1.55;font-size:12.5px}
+h1{font-size:22px;margin:0 0 4px} h2{font-size:16px;margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;color:#1e293b}
+h3{font-size:13px;margin:0 0 8px}
+.sub{color:#64748b;margin:0 0 4px}
+.cover{border-left:5px solid #2563eb;padding:14px 18px;background:#f8fafc;border-radius:8px;margin-bottom:16px}
+.meta{width:100%;border-collapse:collapse;margin-top:8px} .meta td{padding:3px 6px;font-size:12px} .meta td:first-child{color:#64748b;width:150px}
+section{margin:18px 0;page-break-inside:avoid}
+p{margin:6px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{border:1px solid #e2e8f0;border-radius:10px;padding:12px}
+.bl{font-size:11px;fill:#0f172a} .bv{font-size:10.5px;fill:#64748b}
+.minis{display:flex;gap:10px} .mini{flex:1;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center}
+.mt{color:#64748b;font-size:11px} .mv{font-size:24px;font-weight:700;color:#0d9488;margin:4px 0} .ms{color:#16a34a;font-size:10.5px}
+table.d{width:100%;border-collapse:collapse;margin:6px 0} table.d th,table.d td{border:1px solid #e2e8f0;padding:6px 8px;font-size:11.5px;text-align:left}
+table.d th{background:#f1f5f9;color:#475569}
+td.bad{color:#dc2626;font-weight:700}
+.pill{background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+.note{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 12px;font-size:11.5px;color:#713f12;margin-top:8px}
+.med{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin:8px 0}
+.node{border:2px solid #2563eb;background:#eff6ff;border-radius:10px;padding:8px 12px;text-align:center;min-width:120px}
+.node.m{border-color:#0d9488;background:#f0fdfa}.node.y{border-color:#d97706;background:#fff7ed}
+.node b{display:block;font-size:12px}.node span{font-size:10px;color:#64748b}
+.arw{color:#64748b;font-size:11px;font-weight:700}
+.kpis{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.kpi{flex:1;min-width:90px;border:1px solid #e2e8f0;border-radius:9px;padding:8px;text-align:center}
+.kpi .v{font-size:20px;font-weight:700;color:#2563eb}.kpi .l{font-size:10px;color:#64748b}
+footer{margin-top:18px;border-top:1px solid #e2e8f0;padding-top:8px;color:#94a3b8;font-size:10.5px}
+</style></head><body>
+
+<div class="cover">
+<h1>Báo Cáo Phân Tích Dữ Liệu Khảo Sát</h1>
+<p class="sub">Ảnh hưởng của Lãnh đạo số đến Hiệu quả đổi mới trong DNNVV: vai trò trung gian của Chia sẻ tri thức</p>
+<table class="meta">
+<tr><td>Cỡ mẫu phân tích</td><td>302 quan sát (sau làm sạch từ 320)</td></tr>
+<tr><td>Mô hình</td><td>Lãnh đạo số (DL) → Chia sẻ tri thức (KS) → Hiệu quả đổi mới (IP)</td></tr>
+<tr><td>Công cụ</td><td>Claude Code + skill data-analysis, academic-writing</td></tr>
+<tr><td>Ngày phân tích</td><td>25/08/2026</td></tr>
+</table>
+</div>
+
+<div class="kpis">
+<div class="kpi"><div class="v">320</div><div class="l">Ban đầu</div></div>
+<div class="kpi"><div class="v">302</div><div class="l">Sau làm sạch</div></div>
+<div class="kpi"><div class="v">0.50</div><div class="l">β (DL→IP)</div></div>
+<div class="kpi"><div class="v">25%</div><div class="l">R²</div></div>
+<div class="kpi"><div class="v">0.147</div><div class="l">Gián tiếp a×b</div></div>
+<div class="kpi"><div class="v">28.5%</div><div class="l">Tỉ lệ trung gian</div></div>
+</div>
+
+<section>
+<h2>1. Giới thiệu mẫu và dữ liệu</h2>
+<p>Nghiên cứu khảo sát nhân sự tại các doanh nghiệp nhỏ và vừa (DNNVV), đo ba khái niệm bằng thang Likert 5 mức: <b>Lãnh đạo số</b> (biến độc lập, 4 item), <b>Chia sẻ tri thức</b> (biến trung gian, 4 item), <b>Hiệu quả đổi mới</b> (biến phụ thuộc, 4 item). Câu hỏi nghiên cứu: Lãnh đạo số có liên hệ với Hiệu quả đổi mới không, và Chia sẻ tri thức có đóng vai trò cầu nối không? Dữ liệu là <b>giả lập phục vụ dạy học</b>, không dùng để trích dẫn.</p>
+</section>
+
+<section>
+<h2>2. Làm sạch dữ liệu</h2>
+<p>Kiểm tra chất lượng phát hiện <b>14 ô trống</b> và <b>4 giá trị ngoài thang 1-5</b>. Các giá trị ngoài thang được coi là lỗi nhập liệu. Xử lý theo <b>listwise</b> (loại cả dòng có ô hỏng), giúp quy trình minh bạch và tái lập được. Không có nhãn phân loại lệch chuẩn, không có dòng trùng lặp.</p>
+<table class="d"><thead><tr><th>Loại lỗi</th><th>Số lượng</th><th>Cách xử lý</th></tr></thead><tbody>
+<tr><td>Giá trị thiếu (missing)</td><td>14 ô (14 dòng)</td><td>Loại dòng (listwise)</td></tr>
+<tr><td>Ngoại lai ngoài thang 1-5</td><td>4 giá trị (4 dòng)</td><td>Chuyển thành khuyết rồi loại dòng</td></tr>
+<tr><td>Nhãn không nhất quán</td><td>0</td><td>Không cần xử lý</td></tr>
+<tr><td>Dòng trùng lặp</td><td>0</td><td>Không cần xử lý</td></tr>
+</tbody></table>
+<h3 style="margin-top:10px">Chi tiết giá trị ngoài thang</h3>
+<table class="d"><thead><tr><th>Mã phiếu</th><th>Cột</th><th>Giá trị sai</th><th>Hợp lệ</th></tr></thead><tbody><tr><td>R045</td><td>DL3</td><td class='bad'>0</td><td>1-5</td></tr><tr><td>R110</td><td>KS1</td><td class='bad'>0</td><td>1-5</td></tr><tr><td>R077</td><td>IP2</td><td class='bad'>7</td><td>1-5</td></tr><tr><td>R203</td><td>IP4</td><td class='bad'>9</td><td>1-5</td></tr></tbody></table>
+<div class="note"><b>Kết quả:</b> loại 18 dòng (14 + 4, không chồng lấn) → còn <b>302 quan sát</b> để phân tích.</div>
+</section>
+
+<section>
+<h2>3. Đặc điểm mẫu (N = 302)</h2>
+<p>Mẫu tương đối cân bằng giới tính (nữ 51.7%), tập trung ở nhóm tuổi 30-39 (35.4%) và người có dưới 5 năm kinh nghiệm; phần lớn thuộc doanh nghiệp Nhỏ (44.7%), ngành Thương mại-Dịch vụ (39.1%).</p>
+<div class="grid"><div class="card"><h3>Giới tính</h3><svg viewBox="0 0 520 79" width="100%"><text x="132" y="26.0" text-anchor="end" class="bl">Nam</text><rect x="140" y="9" width="280.8" height="26" rx="4" fill="#2563eb"/><text x="427.76923076923083" y="26.0" class="bv">146 (48.3%)</text><text x="132" y="61.0" text-anchor="end" class="bl">Nữ</text><rect x="140" y="44" width="300.0" height="26" rx="4" fill="#2563eb"/><text x="447.0" y="61.0" class="bv">156 (51.7%)</text></svg></div><div class="card"><h3>Nhóm tuổi</h3><svg viewBox="0 0 520 149" width="100%"><text x="132" y="26.0" text-anchor="end" class="bl">Dưới 30</text><rect x="140" y="9" width="215.9" height="26" rx="4" fill="#0d9488"/><text x="362.8878504672898" y="26.0" class="bv">77 (25.5%)</text><text x="132" y="61.0" text-anchor="end" class="bl">30-39</text><rect x="140" y="44" width="300.0" height="26" rx="4" fill="#0d9488"/><text x="447.0" y="61.0" class="bv">107 (35.4%)</text><text x="132" y="96.0" text-anchor="end" class="bl">40-49</text><rect x="140" y="79" width="193.5" height="26" rx="4" fill="#0d9488"/><text x="340.4579439252337" y="96.0" class="bv">69 (22.8%)</text><text x="132" y="131.0" text-anchor="end" class="bl">50 trở lên</text><rect x="140" y="114" width="137.4" height="26" rx="4" fill="#0d9488"/><text x="284.3831775700935" y="131.0" class="bv">49 (16.2%)</text></svg></div><div class="card"><h3>Kinh nghiệm</h3><svg viewBox="0 0 520 149" width="100%"><text x="132" y="26.0" text-anchor="end" class="bl">Dưới 3 năm</text><rect x="140" y="9" width="255.8" height="26" rx="4" fill="#d97706"/><text x="402.7894736842105" y="26.0" class="bv">81 (26.8%)</text><text x="132" y="61.0" text-anchor="end" class="bl">3-5 năm</text><rect x="140" y="44" width="300.0" height="26" rx="4" fill="#d97706"/><text x="447.0" y="61.0" class="bv">95 (31.5%)</text><text x="132" y="96.0" text-anchor="end" class="bl">6-10 năm</text><rect x="140" y="79" width="205.3" height="26" rx="4" fill="#d97706"/><text x="352.2631578947368" y="96.0" class="bv">65 (21.5%)</text><text x="132" y="131.0" text-anchor="end" class="bl">Trên 10 năm</text><rect x="140" y="114" width="192.6" height="26" rx="4" fill="#d97706"/><text x="339.63157894736844" y="131.0" class="bv">61 (20.2%)</text></svg></div><div class="card"><h3>Quy mô DN</h3><svg viewBox="0 0 520 114" width="100%"><text x="132" y="26.0" text-anchor="end" class="bl">Siêu nhỏ</text><rect x="140" y="9" width="177.8" height="26" rx="4" fill="#7c3aed"/><text x="324.77777777777777" y="26.0" class="bv">80 (26.5%)</text><text x="132" y="61.0" text-anchor="end" class="bl">Nhỏ</text><rect x="140" y="44" width="300.0" height="26" rx="4" fill="#7c3aed"/><text x="447.0" y="61.0" class="bv">135 (44.7%)</text><text x="132" y="96.0" text-anchor="end" class="bl">Vừa</text><rect x="140" y="79" width="193.3" height="26" rx="4" fill="#7c3aed"/><text x="340.3333333333333" y="96.0" class="bv">87 (28.8%)</text></svg></div><div class="card"><h3>Ngành</h3><svg viewBox="0 0 520 184" width="100%"><text x="132" y="26.0" text-anchor="end" class="bl">Thương mại-Dịch vụ</text><rect x="140" y="9" width="300.0" height="26" rx="4" fill="#db2777"/><text x="447.0" y="26.0" class="bv">118 (39.1%)</text><text x="132" y="61.0" text-anchor="end" class="bl">Sản xuất</text><rect x="140" y="44" width="208.5" height="26" rx="4" fill="#db2777"/><text x="355.4745762711865" y="61.0" class="bv">82 (27.2%)</text><text x="132" y="96.0" text-anchor="end" class="bl">Công nghệ thông tin</text><rect x="140" y="79" width="147.5" height="26" rx="4" fill="#db2777"/><text x="294.4576271186441" y="96.0" class="bv">58 (19.2%)</text><text x="132" y="131.0" text-anchor="end" class="bl">Xây dựng</text><rect x="140" y="114" width="66.1" height="26" rx="4" fill="#db2777"/><text x="213.10169491525426" y="131.0" class="bv">26 (8.6%)</text><text x="132" y="166.0" text-anchor="end" class="bl">Khác</text><rect x="140" y="149" width="45.8" height="26" rx="4" fill="#db2777"/><text x="192.76271186440678" y="166.0" class="bv">18 (6.0%)</text></svg></div></div>
+</section>
+
+<section>
+<h2>4. Thống kê mô tả thang đo</h2>
+<p>Ba thang đều có điểm trung bình quanh <b>3.4/5</b> (mức trên trung bình), độ phân tán vừa phải (SD thang ~0.77-0.80). Biểu đồ dưới cho điểm trung bình mỗi thang và từng item.</p>
+<div class="grid">
+<div class="card"><h3>Điểm trung bình 3 thang (1-5)</h3><svg viewBox="0 0 560 138" width="100%"><text x="142" y="31.0" text-anchor="end" class="bl">Lãnh đạo số</text><rect x="150" y="12" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="12" width="190.9" height="30" rx="5" fill="#2563eb"/><text x="347.8609271523179" y="31.0" class="bv">TB 3.39 · SD 0.77</text><text x="142" y="73.0" text-anchor="end" class="bl">Chia sẻ tri thức</text><rect x="150" y="54" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="54" width="191.2" height="30" rx="5" fill="#0d9488"/><text x="348.1920529801324" y="73.0" class="bv">TB 3.39 · SD 0.77</text><text x="142" y="115.0" text-anchor="end" class="bl">Hiệu quả đổi mới</text><rect x="150" y="96" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="96" width="194.1" height="30" rx="5" fill="#d97706"/><text x="351.10596026490066" y="115.0" class="bv">TB 3.43 · SD 0.80</text></svg></div>
+<div class="card"><h3>Điểm trung bình 12 item</h3><svg viewBox="0 0 560 516" width="100%"><text x="142" y="31.0" text-anchor="end" class="bl">DL1</text><rect x="150" y="12" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="12" width="191.8" height="30" rx="5" fill="#2563eb"/><text x="348.7880794701987" y="31.0" class="bv">TB 3.40 · SD 0.93</text><text x="142" y="73.0" text-anchor="end" class="bl">DL2</text><rect x="150" y="54" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="54" width="189.1" height="30" rx="5" fill="#2563eb"/><text x="346.1390728476821" y="73.0" class="bv">TB 3.36 · SD 0.93</text><text x="142" y="115.0" text-anchor="end" class="bl">DL3</text><rect x="150" y="96" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="96" width="189.4" height="30" rx="5" fill="#2563eb"/><text x="346.4039735099338" y="115.0" class="bv">TB 3.37 · SD 0.96</text><text x="142" y="157.0" text-anchor="end" class="bl">DL4</text><rect x="150" y="138" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="138" width="193.1" height="30" rx="5" fill="#2563eb"/><text x="350.1125827814569" y="157.0" class="bv">TB 3.41 · SD 1.00</text><text x="142" y="199.0" text-anchor="end" class="bl">KS1</text><rect x="150" y="180" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="180" width="189.9" height="30" rx="5" fill="#0d9488"/><text x="346.9337748344371" y="199.0" class="bv">TB 3.37 · SD 0.99</text><text x="142" y="241.0" text-anchor="end" class="bl">KS2</text><rect x="150" y="222" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="222" width="187.8" height="30" rx="5" fill="#0d9488"/><text x="344.81456953642385" y="241.0" class="bv">TB 3.35 · SD 0.96</text><text x="142" y="283.0" text-anchor="end" class="bl">KS3</text><rect x="150" y="264" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="264" width="192.8" height="30" rx="5" fill="#0d9488"/><text x="349.8476821192053" y="283.0" class="bv">TB 3.41 · SD 0.96</text><text x="142" y="325.0" text-anchor="end" class="bl">KS4</text><rect x="150" y="306" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="306" width="194.2" height="30" rx="5" fill="#0d9488"/><text x="351.17218543046357" y="325.0" class="bv">TB 3.43 · SD 0.97</text><text x="142" y="367.0" text-anchor="end" class="bl">IP1</text><rect x="150" y="348" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="348" width="195.5" height="30" rx="5" fill="#d97706"/><text x="352.49668874172187" y="367.0" class="bv">TB 3.44 · SD 0.96</text><text x="142" y="409.0" text-anchor="end" class="bl">IP2</text><rect x="150" y="390" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="390" width="193.6" height="30" rx="5" fill="#d97706"/><text x="350.6423841059603" y="409.0" class="bv">TB 3.42 · SD 0.98</text><text x="142" y="451.0" text-anchor="end" class="bl">IP3</text><rect x="150" y="432" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="432" width="193.1" height="30" rx="5" fill="#d97706"/><text x="350.1125827814569" y="451.0" class="bv">TB 3.41 · SD 0.96</text><text x="142" y="493.0" text-anchor="end" class="bl">IP4</text><rect x="150" y="474" width="320" height="30" rx="5" fill="#eef2f7"/><rect x="150" y="474" width="194.2" height="30" rx="5" fill="#d97706"/><text x="351.17218543046357" y="493.0" class="bv">TB 3.43 · SD 0.99</text></svg></div>
+</div>
+</section>
+
+<section>
+<h2>5. Độ tin cậy thang đo (Cronbach's alpha)</h2>
+<p>Cả ba thang đạt độ tin cậy nội tại tốt (α 0.81-0.84, đều ≥ 0.70). Với cả ba thang, loại bất kỳ item nào cũng làm alpha giảm, nên giữ nguyên đủ 4 item mỗi thang.</p>
+<div class="minis"><div class="mini"><div class="mt">Lãnh đạo số (DL)</div><div class="mv">0.815</div><div class="ms">đạt ≥ 0.70</div></div><div class="mini"><div class="mt">Chia sẻ tri thức (KS)</div><div class="mv">0.805</div><div class="ms">đạt ≥ 0.70</div></div><div class="mini"><div class="mt">Hiệu quả đổi mới (IP)</div><div class="mv">0.835</div><div class="ms">đạt ≥ 0.70</div></div></div>
+</section>
+
+<section>
+<h2>6. Hồi quy và tương quan</h2>
+<p>Hồi quy tuyến tính đơn <b>IP ~ DL</b>: khi Lãnh đạo số tăng 1 điểm, Hiệu quả đổi mới tăng trung bình <b>0.52 điểm</b> (B = 0.517). Hệ số chuẩn hóa β = 0.498 (liên hệ mạnh vừa), có ý nghĩa thống kê (t = 9.94, p &lt; .001). Mô hình giải thích khoảng <b>25%</b> phương sai của Hiệu quả đổi mới (R² = 0.248).</p>
+<table class="d"><thead><tr><th>Mô hình</th><th>B</th><th>β</th><th>SE</th><th>t</th><th>p</th><th>R²</th></tr></thead>
+<tbody><tr><td>IP ~ DL</td><td>0.517</td><td>0.498</td><td>0.052</td><td>9.94</td><td>&lt; .001</td><td>0.248</td></tr></tbody></table>
+</section>
+
+<section>
+<h2>7. Kiểm định vai trò trung gian</h2>
+<p>Kiểm định bằng khoảng tin cậy bootstrap 95% (Preacher-Hayes, 5000 lần lấy mẫu lại).</p>
+<div class="med">
+<div class="node"><b>Lãnh đạo số</b><span>X</span></div><div class="arw">a = 0.47 →</div>
+<div class="node m"><b>Chia sẻ tri thức</b><span>M</span></div><div class="arw">b = 0.32 →</div>
+<div class="node y"><b>Hiệu quả đổi mới</b><span>Y</span></div>
+</div>
+<p>Hiệu ứng gián tiếp a×b = <b>0.147</b> (95% CI [0.094; 0.210], không chứa 0). Đường trực tiếp c' = 0.370 vẫn có ý nghĩa (p &lt; .001), tổng tác động c = 0.517.</p>
+<div class="note"><b>Kết luận:</b> trung gian một phần. Chia sẻ tri thức gánh khoảng 28.5% liên hệ giữa Lãnh đạo số và Hiệu quả đổi mới; phần còn lại là liên hệ trực tiếp.</div>
+</section>
+
+<section>
+<h2>8. Tổng hợp kiểm định giả thuyết</h2>
+<table class="d"><thead><tr><th>GT</th><th>Nội dung</th><th>Kết quả thống kê</th><th>Kết luận</th></tr></thead><tbody><tr><td><b>H1</b></td><td>Lãnh đạo số có liên hệ thuận với Hiệu quả đổi mới</td><td>B = 0.517, p &lt; .001</td><td><span class="pill">Ủng hộ</span></td></tr><tr><td><b>H2</b></td><td>Lãnh đạo số có liên hệ thuận với Chia sẻ tri thức</td><td>B = 0.466, p &lt; .001</td><td><span class="pill">Ủng hộ</span></td></tr><tr><td><b>H3</b></td><td>Chia sẻ tri thức có liên hệ thuận với Hiệu quả đổi mới</td><td>B = 0.315, p &lt; .001</td><td><span class="pill">Ủng hộ</span></td></tr><tr><td><b>H4</b></td><td>Chia sẻ tri thức trung gian quan hệ DL → IP</td><td>a×b = 0.147, 95% CI [0.094; 0.210]</td><td><span class="pill">Ủng hộ</span></td></tr></tbody></table>
+</section>
+
+<section>
+<h2>9. Diễn giải và hạn chế</h2>
+<p>Trong mẫu 302 nhân sự DNNVV, Lãnh đạo số <b>có liên hệ thuận</b> và có ý nghĩa thống kê với Hiệu quả đổi mới (β = 0.50, p &lt; .001). Một phần liên hệ này <b>diễn ra gián tiếp qua</b> Chia sẻ tri thức (trung gian một phần), phần còn lại là liên hệ trực tiếp.</p>
+<p><b>Hạn chế:</b> (1) <b>Dữ liệu cắt ngang</b> nên chỉ phản ánh tương quan, chưa cho phép kết luận nhân quả hay chiều tác động. (2) <b>Mẫu không đại diện</b> (DNNVV, giả lập) nên con số chỉ có giá trị trong mẫu này. (3) <b>Đo bằng tự báo cáo</b> nên độ lớn liên hệ có thể bị thổi phồng do thiên lệch phương pháp chung; nên đọc như ước lượng cận trên.</p>
+</section>
+
+<section>
+<h2>10. Khai báo dùng AI</h2>
+<p>Trong quá trình phân tích dữ liệu và viết báo cáo này, tác giả có sử dụng công cụ trí tuệ nhân tạo (Claude Code) để hỗ trợ làm sạch dữ liệu, chạy kiểm định thống kê và chỉnh văn phong. Toàn bộ số liệu, kết quả, lập luận và kết luận đã được tác giả kiểm tra, hiệu chỉnh và chịu trách nhiệm hoàn toàn. Công cụ AI không được liệt kê là tác giả.</p>
+</section>
+
+<footer>Báo cáo tạo từ khao-sat-doi-moi-dnnvv-sach.csv · Dữ liệu giả lập, không dùng để trích dẫn · Dữ liệu cắt ngang phản ánh liên hệ, không kết luận nhân quả.</footer>
+</body></html>

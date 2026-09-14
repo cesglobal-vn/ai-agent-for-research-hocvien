@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khóa Học AI Cho Nghiên Cứu (K3) - Buổi 02: Làm Chủ Skill, Chống Bịa & Dựng Tổng Quan Tài Liệu | CES Global</title>
+  
+  <style>
+    /* ==========================================================================
+       FONT MANDATE: 100% Times New Roman theo quy chuẩn toàn cục bắt buộc
+       Monospace chỉ áp dụng cho khối Code, Terminal, Prompt và Timer.
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Times New Roman', Times, serif !important;
+    }
+
+    code, pre, .font-mono, .terminal-code, .timer-digits-text {
+      font-family: Consolas, 'Courier New', 'JetBrains Mono', monospace !important;
+    }
+
+    :root {
+      /* Theme Canvas (Mặc định: Executive Academic Dark) */
+      --canvas-bg: #070b14;
+      --surface-base: #0d1527;
+      --surface-card: rgba(18, 29, 53, 0.88);
+      --surface-card-hover: rgba(26, 42, 77, 0.98);
+      --surface-glass: rgba(15, 23, 42, 0.85);
+      --terminal-bg: #050811;
+
+      /* Borders & Shadows */
+      --border-subtle: #1e2c4f;
+      --border-medium: #314878;
+      --border-highlight: #38bdf8;
+      --shadow-elevation: 0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 24px rgba(56, 189, 248, 0.08);
+      --shadow-card: 0 6px 20px -2px rgba(0, 0, 0, 0.4);
+
+      /* Typography Colors */
+      --text-main: #f8fafc;
+      --text-body: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --text-white: #ffffff;
+
+      /* Vibrant Academic Accent Colors */
+      --brand-blue: #38bdf8;
+      --brand-blue-glow: rgba(56, 189, 248, 0.25);
+      --brand-blue-deep: #0284c7;
+      --brand-gold: #f59e0b;
+      --brand-gold-glow: rgba(245, 158, 11, 0.25);
+      --brand-emerald: #10b981;
+      --brand-rose: #f43f5e;
+      --brand-purple: #c084fc;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Light Theme */
+    body.light-theme {
+      --canvas-bg: #f8fafc;
+      --surface-base: #ffffff;
+      --surface-card: rgba(255, 255, 255, 0.94);
+      --surface-card-hover: #ffffff;
+      --surface-glass: rgba(255, 255, 255, 0.9);
+      --terminal-bg: #0f172a;
+
+      --border-subtle: #e2e8f0;
+      --border-medium: #cbd5e1;
+      --border-highlight: #0284c7;
+      --shadow-elevation: 0 16px 36px -8px rgba(15, 23, 42, 0.12);
+      --shadow-card: 0 4px 14px -2px rgba(15, 23, 42, 0.06);
+
+      --text-main: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --text-white: #ffffff;
+
+      --brand-blue: #0284c7;
+      --brand-blue-glow: rgba(2, 132, 199, 0.15);
+      --brand-blue-deep: #0369a1;
+      --brand-gold: #d97706;
+      --brand-gold-glow: rgba(217, 119, 6, 0.15);
+      --brand-emerald: #059669;
+      --brand-rose: #e11d48;
+      --brand-purple: #7c3aed;
+    }
+
+    body {
+      background-color: var(--canvas-bg);
+      color: var(--text-main);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    /* Ambient Dynamic Mesh Canvas */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 85% 20%, rgba(192, 132, 252, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.06) 0%, transparent 55%),
+        linear-gradient(180deg, rgba(7, 11, 20, 0.95) 0%, var(--canvas-bg) 100%);
+      transition: background 0.4s ease;
+    }
+
+    body.light-theme .ambient-canvas {
+      background: 
+        radial-gradient(circle at 15% 15%, rgba(2, 132, 199, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 85% 20%, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 50% 85%, rgba(217, 119, 6, 0.04) 0%, transparent 55%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    /* TOP FLOATING NAVIGATION BAR */
+    .top-navbar {
+      position: relative;
+      z-index: 50;
+      height: 56px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ces-logo-badge {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 1px;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .course-breadcrumb {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .session-chip {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--brand-blue);
+      font-size: 0.85rem;
+      font-weight: bold;
+      padding: 2px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slide-badge {
+      background: var(--surface-base);
+      border: 1px solid var(--border-medium);
+      color: var(--text-main);
+      font-weight: bold;
+      font-size: 0.9rem;
+      padding: 4px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-buttons-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-keynote {
+      background: var(--surface-card);
+      border: 1px solid var(--border-medium);
+      color: var(--text-body);
+      font-size: 0.88rem;
+      font-weight: bold;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn-keynote:hover {
+      background: var(--surface-card-hover);
+      border-color: var(--brand-blue);
+      color: var(--brand-blue);
+      transform: translateY(-1px);
+    }
+
+    .btn-keynote-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border-color: #38bdf8;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .btn-keynote-primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #0c4a6e 100%);
+      color: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.45);
+    }
+
+    /* Top Progress Fill */
+    .top-progress-track {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    body.light-theme .top-progress-track {
+      background: #e2e8f0;
+    }
+
+    .top-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--brand-blue) 0%, var(--brand-gold) 100%);
+      width: 4.54%;
+      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* FULL-VIEWPORT SLIDE CANVAS */
+    .slide-canvas {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      width: 100vw;
+      height: calc(100vh - 56px);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .slide-page {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 24px 56px 32px;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+      animation: keynoteSlideFade 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .slide-page.active {
+      display: flex;
+    }
+
+    @keyframes keynoteSlideFade {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.995);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* HEADER OF SLIDE */
+    .slide-header {
+      margin-bottom: 16px;
+    }
+
+    .slide-tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      font-weight: bold;
+      color: var(--brand-gold);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 4px;
+    }
+
+    .slide-title {
+      font-size: 2.1rem;
+      font-weight: bold;
+      color: var(--text-main);
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+    }
+
+    .slide-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    /* BODY OF SLIDE */
+    .slide-content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      margin: 8px 0;
+    }
+
+    /* FOOTER OF SLIDE */
+    .slide-footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 12px;
+      margin-top: 8px;
+    }
+
+    .footer-quote {
+      font-size: 0.92rem;
+      font-style: italic;
+      color: var(--text-muted);
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* COMPONENT CARDS & LAYOUTS */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .card-academic {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .card-academic:hover {
+      border-color: var(--border-highlight);
+      background: var(--surface-card-hover);
+      transform: translateY(-2px);
+    }
+
+    .card-badge {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      align-self: flex-start;
+    }
+
+    .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--brand-blue); border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-gold { background: rgba(245, 158, 11, 0.15); color: var(--brand-gold); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-emerald { background: rgba(16, 185, 129, 0.15); color: var(--brand-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-rose { background: rgba(244, 63, 94, 0.15); color: var(--brand-rose); border: 1px solid rgba(244, 63, 94, 0.3); }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .card-text {
+      font-size: 0.98rem;
+      color: var(--text-body);
+      line-height: 1.5;
+    }
+
+    /* CODE TERMINAL BLOCK WITH 1-CLICK COPY */
+    .terminal-container {
+      background: var(--terminal-bg);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .terminal-header {
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .terminal-tag {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: Consolas, monospace !important;
+    }
+
+    .btn-copy {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--brand-blue);
+      font-size: 0.78rem;
+      font-weight: bold;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: var(--transition);
+      font-family: 'Times New Roman', serif !important;
+    }
+
+    .btn-copy:hover {
+      background: var(--brand-blue);
+      color: #070b14;
+    }
+
+    .terminal-body {
+      padding: 14px 18px;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .terminal-prompt-sym {
+      color: var(--brand-emerald);
+      font-weight: bold;
+    }
+
+    /* COMPARE BOX (BEFORE / AFTER) */
+    .compare-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .compare-box {
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .compare-pain {
+      background: rgba(244, 63, 94, 0.06);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .compare-gain {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .compare-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .compare-pain .compare-title { color: var(--brand-rose); }
+    .compare-gain .compare-title { color: var(--brand-emerald); }
+
+    .compare-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.96rem;
+      color: var(--text-body);
+    }
+
+    .compare-list li {
+      position: relative;
+      padding-left: 24px;
+      line-height: 1.45;
+    }
+
+    .compare-pain li::before {
+      content: '✕';
+      position: absolute;
+      left: 0;
+      color: var(--brand-rose);
+      font-weight: bold;
+    }
+
+    .compare-gain li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--brand-emerald);
+      font-weight: bold;
+    }
+
+    /* STEP FLOW HORIZONTAL */
+    .flow-steps-bar {
+      display: flex;
+      align-items: stretch;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .step-node {
+      flex: 1;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--brand-blue);
+      color: #070b14;
+      font-weight: bold;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .step-title {
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .step-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* PRACTICE COUNTDOWN TIMER */
+    .timer-banner-box {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(18, 29, 53, 0.9) 100%);
+      border: 1px solid var(--border-highlight);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .timer-clock-display {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .timer-digits-text {
+      font-size: 2.8rem;
+      font-weight: bold;
+      color: var(--brand-gold);
+      letter-spacing: 2px;
+    }
+
+    .timer-info-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    .timer-info-sub {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    /* OVERVIEW MODAL GRID */
+    .overview-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 11, 20, 0.92);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      padding: 36px 64px;
+      overflow-y: auto;
+    }
+
+    .overview-overlay.active {
+      display: flex;
+    }
+
+    .overview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .overview-title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    .overview-thumb {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .overview-thumb:hover, .overview-thumb.active {
+      border-color: var(--brand-blue);
+      background: var(--surface-card-hover);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .thumb-num {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--brand-blue);
+    }
+
+    .thumb-title {
+      font-size: 0.98rem;
+      font-weight: bold;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    /* SPEAKER NOTES DRAWER */
+    .speaker-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface-base);
+      border-top: 2px solid var(--brand-blue);
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.5);
+      z-index: 80;
+      padding: 20px 48px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .speaker-drawer.active {
+      transform: translateY(0);
+    }
+
+    .speaker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .speaker-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--brand-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .speaker-content {
+      font-size: 1rem;
+      color: var(--text-body);
+      line-height: 1.55;
+    }
+
+    /* TOAST NOTIFICATION */
+    .toast-box {
+      position: fixed;
+      bottom: 24px;
+      right: 32px;
+      background: var(--brand-emerald);
+      color: #070b14;
+      font-weight: bold;
+      font-size: 0.95rem;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      z-index: 120;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      animation: toastFade 0.25s ease-out;
+    }
+
+    @keyframes toastFade {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-canvas"></div>
+
+  <!-- TOP NAVBAR -->
+  <header class="top-navbar">
+    <div class="brand-section">
+      <span class="ces-logo-badge">CES GLOBAL</span>
+      <div class="course-breadcrumb">
+        <span>Khóa Học AI Cho Nghiên Cứu (K3)</span>
+        <span class="session-chip">Buổi 02 / 04</span>
+      </div>
+    </div>
+
+    <div class="nav-status">
+      <span class="slide-badge" id="slideIndicator">Slide 01 / 22</span>
+      <div class="nav-buttons-group">
+        <button class="btn-keynote" id="btnPrev">◀ Trước</button>
+        <button class="btn-keynote btn-keynote-primary" id="btnNext">Sau ▶</button>
+        <button class="btn-keynote" id="btnOverview">⊞ Tổng quan [O]</button>
+        <button class="btn-keynote" id="btnNotes">📝 Ghi chú [N]</button>
+        <button class="btn-keynote" id="btnTheme">☀️ Nền sáng [T]</button>
+        <button class="btn-keynote" id="btnFullscreen">⛶ Toàn màn hình [F]</button>
+      </div>
+    </div>
+
+    <div class="top-progress-track">
+      <div class="top-progress-fill" id="topProgressFill"></div>
+    </div>
+  </header>
+
+  <!-- SLIDE CANVAS CONTAINER -->
+  <main class="slide-canvas">
+
+    <!-- SLIDE 01: TITLE -->
+    <section class="slide-page active" data-slide="1" data-title="Tiêu đề: Làm Chủ Skill & Chống Bịa">
+      <div class="slide-header">
+        <span class="slide-tagline">🎓 Khóa K3 · AI Agent Cho Nghiên Cứu Khoa Học</span>
+        <h1 class="slide-title">BUỔI 02: LÀM CHỦ SKILL, KỶ LUẬT CHỐNG BỊA<br>& DỰNG TỔNG QUAN TÀI LIỆU LUẬN ÁN</h1>
+        <p class="slide-subtitle">Từ chat thông thường 5 lượt sang đóng gói 1 Skill dùng mãi mãi · Dựng ma trận & Báo cáo chuẩn APA 7</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-3">
+          <div class="card-academic">
+            <span class="card-badge badge-blue">Tư Duy Cốt Lõi</span>
+            <h3 class="card-title">Skill là tờ SOP cho AI</h3>
+            <p class="card-text">Không cần lập trình, Skill là gói quy trình chuẩn viết 1 lần dùng mãi mãi. Claude tự đọc dòng <code>description</code> để tự nạp đúng lúc.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-gold">Kỷ Luật Sắt Đá</span>
+            <h3 class="card-title">Chống bịa 100% (Anti-Hallucination)</h3>
+            <p class="card-text">Nghiên cứu học thuật không có chỗ cho suy đoán. Tài liệu không nhắc tới thì ghi rõ <em>"Tài liệu không đề cập"</em> hoặc đánh dấu <code>[CẦN NGUỒN]</code>.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-emerald">Sản Phẩm Cầm Về</span>
+            <h3 class="card-title">Ma trận & Word Luận Án</h3>
+            <p class="card-text">Tự bóc tách Research Gap, lập Ma trận tổng hợp theo chủ đề, viết báo cáo APA 7 và xuất file Word đúng chuẩn thể thức Việt Nam.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Khoa học đòi hỏi bằng chứng xác thực — AI chỉ là trợ lý đắc lực khi được đặt trong khuôn khổ kỷ luật."</span>
+        <div class="footer-actions">
+          <span class="card-badge badge-blue">Thời lượng: 120 Phút</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 02: MỤC TIÊU & 6 CHUẨN ĐẦU RA -->
+    <section class="slide-page" data-slide="2" data-title="Mục Tiêu & 6 Chuẩn Đầu Ra">
+      <div class="slide-header">
+        <span class="slide-tagline">🎯 Cam Kết Chất Lượng Đào Tạo</span>
+        <h2 class="slide-title">Mục Tiêu & 6 Chuẩn Đầu Ra Buổi 02</h2>
+        <p class="slide-subtitle">Sau 120 phút thực hành, mỗi học viên đều hoàn thành trọn vẹn các năng lực sau:</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-3">
+          <div class="card-academic">
+            <span class="card-badge badge-blue">01 · Bản Chất Skill</span>
+            <h3 class="card-title">Hiểu rõ Skill là SOP</h3>
+            <p class="card-text">Biết phân biệt giữa chat nghĩ gì gõ nấy và sức mạnh đóng gói quy trình chuẩn hóa doanh nghiệp/viện nghiên cứu.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-gold">02 · Nguồn Gốc Skill</span>
+            <h3 class="card-title">Sinh ra từ làm tay</h3>
+            <p class="card-text">Làm tay 3–5 lượt chat thực tế ➔ nhận diện điểm lặp ➔ gói lại thành <code>SKILL.md</code>. Không phải file mẫu chép trên mạng.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-purple">03 · Cơ Chế Tự Nạp</span>
+            <h3 class="card-title">Dòng Description thần thánh</h3>
+            <p class="card-text">Nắm rõ cách Claude quét thư mục <code>.claude/skills/</code> và tự động lôi skill ra dùng khi người dùng ra lệnh tự nhiên.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-rose">04 · Kỷ Luật Chống Bịa</span>
+            <h3 class="card-title">"Tài liệu không đề cập"</h3>
+            <p class="card-text">Thiết lập rào chắn dữ liệu, triệt tiêu ảo giác bịa tên tác giả, bịa năm và bịa số liệu nghiên cứu.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-blue">05 · Nghiên Cứu Thực Chiến</span>
+            <h3 class="card-title">Gap, Ma trận & APA 7</h3>
+            <p class="card-text">Bóc tách bài báo thật trong thư mục, tìm Research Gap có căn cứ, lập ma trận trích xuất và viết báo cáo chuẩn APA 7.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-emerald">06 · Đóng Gói Custom Skill</span>
+            <h3 class="card-title">Custom Skill xuất Word</h3>
+            <p class="card-text">Tự tay tạo và chạy thử skill <code>xuat-word-luan-van</code> trên máy của mình. Bước chuyển thành người huấn luyện AI.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">Mỗi học viên mang về ít nhất 1 Custom Skill chạy được và 1 file Word báo cáo luận văn chuẩn mực.</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 03: NỖI ĐAU CHAT THƯỜNG VS SỨC MẠNH SKILL -->
+    <section class="slide-page" data-slide="3" data-title="Nỗi Đau Chat Thường vs Sức Mạnh Skill">
+      <div class="slide-header">
+        <span class="slide-tagline">⚖️ So Sánh Hiệu Quả</span>
+        <h2 class="slide-title">Chatbot Thông Thường vs Hệ Thống Skill Claude Code</h2>
+        <p class="slide-subtitle">Vì sao người làm nghiên cứu chuyên nghiệp không bao giờ chat theo kiểu "nghĩ gì gõ nấy"?</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="compare-container">
+          <div class="compare-box compare-pain">
+            <h3 class="compare-title">❌ Chatbot Thông Thường (Nghĩ Gì Gõ Nấy)</h3>
+            <ul class="compare-list">
+              <li><strong>Gõ lại mệt mỏi:</strong> Mỗi lần đọc bài báo lại phải gõ lại một tràng prompt dài dặn dò cấu trúc.</li>
+              <li><strong>Hỏi 5 câu mới ra đủ ý:</strong> Lượt 1 ra chung chung, lượt 2 đòi chia phần, lượt 3 đòi số liệu, lượt 4 mới lọc rủi ro.</li>
+              <li><strong>Kết quả hên xui:</strong> Hôm nay ra kiểu này, mai ra kiểu khác; đồng nghiệp hỏi ra kết quả lệch nhau.</li>
+              <li><strong>Ảo giác & Bịa đặt:</strong> Khi thiếu tin, AI tự điền số liệu hoặc bịa trích dẫn tác giả nghe rất êm tai nhưng hoàn toàn giả mạo!</li>
+            </ul>
+          </div>
+
+          <div class="compare-box compare-gain">
+            <h3 class="compare-title">✅ Hệ Thống Skill Trong Claude Code</h3>
+            <ul class="compare-list">
+              <li><strong>Viết 1 lần, dùng mãi mãi:</strong> Đóng gói toàn bộ tiêu chuẩn thành một tờ quy trình SOP cho AI.</li>
+              <li><strong>1 câu lệnh ra trọn vẹn kết quả:</strong> Không cần nhắc lại cấu trúc, AI tự động xuất đủ các mục chuẩn.</li>
+              <li><strong>Chuẩn hóa toàn diện:</strong> Bất kỳ ai trong nhóm nghiên cứu gọi skill đều nhận kết quả cùng một chuẩn chất lượng.</li>
+              <li><strong>Kỷ luật chống bịa 100%:</strong> Bắt buộc AI chỉ dùng dữ liệu có thật; thiếu thì ghi <em>"Tài liệu không đề cập"</em>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Chatbot chỉ giải quyết câu hỏi ngẫu hứng — Skill giải quyết bài toán quy trình chuyên nghiệp."</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 04: SKILL SINH RA TỪ ĐÂU -->
+    <section class="slide-page" data-slide="4" data-title="Bản Chất: Skill Sinh Ra Từ Đâu?">
+      <div class="slide-header">
+        <span class="slide-tagline">🌱 Triết Lý Xây Dựng Quy Trình</span>
+        <h2 class="slide-title">Bản Chất Cốt Lõi: Skill Sinh Ra Từ Đâu?</h2>
+        <p class="slide-subtitle">Skill KHÔNG PHẢI là một file mẫu tải bừa trên mạng về chép — Skill sinh ra từ thực tế làm việc!</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="flow-steps-bar">
+          <div class="step-node">
+            <div class="step-number">1</div>
+            <h4 class="step-title">Làm Bằng Tay</h4>
+            <p class="step-desc">Tự chat với AI qua 3–5 lượt để nắn chỉnh kết quả theo đúng chuẩn học thuật mong muốn.</p>
+          </div>
+          <div class="step-node">
+            <div class="step-number">2</div>
+            <h4 class="step-title">Nhận Diện Lặp Lại</h4>
+            <p class="step-desc">Phát hiện ra những câu lệnh, cấu trúc hay lời dặn nào mình liên tục phải nhắc lại cho AI.</p>
+          </div>
+          <div class="step-node">
+            <div class="step-number">3</div>
+            <h4 class="step-title">Đóng Gói Thành Skill</h4>
+            <p class="step-desc">Gom toàn bộ các yêu cầu đó vào 1 file <code>SKILL.md</code> duy nhất đặt trong thư mục dự án.</p>
+          </div>
+          <div class="step-node">
+            <div class="step-number">4</div>
+            <h4 class="step-title">Tự Động Hóa Mãi Mãi</h4>
+            <p class="step-desc">Lần sau chỉ cần ra 1 câu lệnh ngắn gọn, AI tự động chạy trọn vẹn cả 5 bước chuẩn hóa.</p>
+          </div>
+        </div>
+
+        <div class="card-academic" style="margin-top: 14px; background: rgba(56, 189, 248, 0.06); border-color: var(--brand-blue);">
+          <span class="card-badge badge-blue">💡 Ví Dụ Thực Tế Trong Nghiên Cứu</span>
+          <p class="card-text">Lượt 1: Tóm tắt chung ➔ Lượt 2: Ép bóc tách Bối cảnh, Phương pháp, Cỡ mẫu ➔ Lượt 3: Bóc tách số liệu thống kê & p-value ➔ Lượt 4: Chỉ ra điểm hạn chế & Research Gap ➔ Lượt 5: Ép kỷ luật chống bịa số ➔ <strong>Đóng gói thành Skill bóc tách bài báo!</strong></p>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Đừng vội viết quy trình khi chưa làm tay — Hãy làm tay thật chuẩn rồi đóng gói quy trình."</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 05: VỊ TRÍ LƯU TRỮ & CẤU TRÚC VẬT LÝ -->
+    <section class="slide-page" data-slide="5" data-title="Cấu Trúc Thư Mục & Vị Trí Lưu Trữ">
+      <div class="slide-header">
+        <span class="slide-tagline">📁 Giải Phẫu Hệ Thống</span>
+        <h2 class="slide-title">Vị Trí Lưu Trữ & Cấu Trúc Vật Lý Của Skill</h2>
+        <p class="slide-subtitle">Skill đơn giản chỉ là 1 thư mục chứa 1 file Markdown — Không cần cài cắm phần mềm phức tạp!</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="terminal-container">
+            <div class="terminal-header">
+              <div class="terminal-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+              <span class="terminal-tag">Cây Thư Mục Workspace</span>
+            </div>
+            <div class="terminal-body">
+my-research-project/
+├── CLAUDE.md                   <span style="color: #94a3b8;"># Hiến pháp bối cảnh chung</span>
+├── .claude/
+│   └── skills/                 <span style="color: #38bdf8;"># KHO CHỨA SKILL CỦA BẠN</span>
+│       ├── literature-review/  <span style="color: #f59e0b;"># Thư mục mang tên Skill 1</span>
+│       │   └── SKILL.md        <span style="color: #10b981;"># File quy trình chuẩn</span>
+│       ├── academic-writing/   <span style="color: #f59e0b;"># Thư mục mang tên Skill 2</span>
+│       │   └── SKILL.md
+│       └── xuat-word-luan-van/ <span style="color: #c084fc;"># Custom Skill bạn tự tạo</span>
+│           └── SKILL.md
+└── du-lieu/
+    ├── bai-bao-01.pdf
+    └── abstracts/</div>
+          </div>
+
+          <div class="card-academic" style="justify-content: center; gap: 14px;">
+            <h3 class="card-title">3 Quy Tắc Bất Biến Khi Tạo Skill:</h3>
+            <div class="card-text" style="display: flex; flex-direction: column; gap: 10px;">
+              <p><strong>1. Nơi lưu trữ:</strong> Nằm trong thư mục <code>.claude/skills/&lt;ten-skill&gt;/</code> ngay trong workspace dự án.</p>
+              <p><strong>2. Tên file bắt buộc:</strong> Phải viết hoa chính xác 100% là <code>SKILL.md</code>.</p>
+              <p><strong>3. Tên thư mục:</strong> Dùng chữ thường, không dấu, nối bằng gạch ngang (ví dụ: <code>xuat-word-luan-van</code>). Tuyệt đối không chứa dấu cách hoặc chữ hoa.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Gọn gàng, minh bạch, dễ quản lý — Đó là vẻ đẹp kiến trúc của Claude Code."</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 06: DÒNG DESCRIPTION & CƠ CHẾ TỰ NẠP -->
+    <section class="slide-page" data-slide="6" data-title="Trái Tim Của Skill: Dòng Description">
+      <div class="slide-header">
+        <span class="slide-tagline">⚡ Linh Hồn Của Skill</span>
+        <h2 class="slide-title">Trái Tim Của Skill: Dòng Description & Tự Nạp (Auto-Load)</h2>
+        <p class="slide-subtitle">AI tìm và nạp skill ra sao khi bạn chỉ gõ một câu lệnh tự nhiên?</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="terminal-container">
+          <div class="terminal-header">
+            <div class="terminal-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+            <span class="terminal-tag">Giải Phẫu Đầu File SKILL.md (Frontmatter YAML)</span>
+          </div>
+          <div class="terminal-body">
+<span style="color: #94a3b8;">---</span>
+<span style="color: #38bdf8;">name:</span> <span style="color: #f59e0b;">xuat-word-luan-van</span>
+<span style="color: #38bdf8;">description:</span> <span style="color: #10b981;">Dùng khi người dùng muốn xuất văn bản, báo cáo nghiên cứu hoặc chương luận án từ Markdown sang Microsoft Word (.docx) đúng chuẩn thể thức Việt Nam (Times New Roman 13, giãn dòng 1.5, lề 2-2-3-2).</span>
+<span style="color: #94a3b8;">---</span>
+
+# Hướng dẫn chi tiết thực hiện quy trình bên dưới...</div>
+        </div>
+
+        <div class="grid-3" style="margin-top: 10px;">
+          <div class="card-academic">
+            <span class="card-badge badge-blue">Bước 1 · Quét Danh Mục</span>
+            <p class="card-text">Khi nhận lệnh, Claude quét toàn bộ thư mục <code>skills/</code> nhưng <strong>chưa đọc thân bài</strong> để tiết kiệm ngữ cảnh.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-gold">Bước 2 · So Khớp Biển Hiệu</span>
+            <p class="card-text">AI đọc lướt dòng <code>description</code> của từng skill để tìm xem skill nào giải quyết đúng vấn đề người dùng đang hỏi.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-emerald">Bước 3 · Tự Động Nạp</span>
+            <p class="card-text">Khớp ngữ cảnh ➔ AI tự động đọc toàn bộ file <code>SKILL.md</code> và hiển thị: <code>Using skill: xuat-word-luan-van...</code></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Description càng nêu rõ 'Dùng khi nào' thì AI càng tự nạp chính xác — Viết description mờ nhạt thì AI sẽ bỏ qua!"</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 07: HAI CÁCH KÍCH HOẠT SKILL -->
+    <section class="slide-page" data-slide="7" data-title="Hai Cách Kích Hoạt Skill">
+      <div class="slide-header">
+        <span class="slide-tagline">🎮 Thao Tác Kích Hoạt</span>
+        <h2 class="slide-title">Hai Cách Kích Hoạt Skill Trong Thực Tế</h2>
+        <p class="slide-subtitle">Linh hoạt giữa gọi lệnh tự nhiên và chỉ định mệnh lệnh chính xác tuyệt đối</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="card-academic" style="border-color: var(--brand-blue); background: rgba(56, 189, 248, 0.05);">
+            <span class="card-badge badge-blue">Cách 1: Tự Động Theo Ngữ Cảnh (Intent-Based)</span>
+            <h3 class="card-title">Gõ Tự Nhiên (Khuyên Dùng)</h3>
+            <p class="card-text">Bạn chỉ cần ra lệnh bình thường, không cần nhớ tên skill. Claude tự đọc dòng <code>description</code> và tự lôi skill ra dùng.</p>
+            <div class="terminal-container" style="margin-top: 14px;">
+              <div class="terminal-body" style="padding: 10px;">
+<span class="terminal-prompt-sym">&gt;</span> Hãy xuất báo cáo tổng quan tài liệu ra file Word chuẩn giúp tôi</div>
+            </div>
+            <p class="card-text" style="margin-top: 8px; color: var(--brand-blue); font-size: 0.9rem;">➔ Claude tự báo: <code>Using skill: xuat-word-luan-van...</code></p>
+          </div>
+
+          <div class="card-academic" style="border-color: var(--brand-gold); background: rgba(245, 158, 11, 0.05);">
+            <span class="card-badge badge-gold">Cách 2: Chỉ Định Đích Danh (Explicit Call)</span>
+            <h3 class="card-title">Mệnh Lệnh Trực Tiếp</h3>
+            <p class="card-text">Dùng khi bạn muốn ép buộc AI phải chạy chính xác skill đó mà không cần suy đoán ngữ cảnh.</p>
+            <div class="terminal-container" style="margin-top: 14px;">
+              <div class="terminal-body" style="padding: 10px;">
+<span class="terminal-prompt-sym">&gt;</span> Dùng skill xuat-word-luan-van để xuất file tong-quan-tai-lieu/research-gap.md</div>
+            </div>
+            <p class="card-text" style="margin-top: 8px; color: var(--brand-gold); font-size: 0.9rem;">➔ AI lập tức thực thi theo quy trình của skill đó.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">Muốn kiểm tra AI đã nhận đủ skill chưa? Gõ: "Hãy liệt kê các skill bạn đang có."</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 08: KỶ LUẬT CHỐNG BỊA SỐ LIỆU -->
+    <section class="slide-page" data-slide="8" data-title="Kỷ Luật Chống Bịa Số Liệu">
+      <div class="slide-header">
+        <span class="slide-tagline">🛡️ Nguyên Tắc Sống Còn Trong Nghiên Cứu</span>
+        <h2 class="slide-title">Kỷ Luật "Sắt Đá" Chống Bịa Số Liệu & Chống Bịa Nguồn</h2>
+        <p class="slide-subtitle">Một con số bịa đặt hay trích dẫn "ma" sẽ phá hỏng toàn bộ công trình nghiên cứu tiến sĩ / thạc sĩ!</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-3">
+          <div class="card-academic" style="border-color: var(--brand-emerald);">
+            <span class="card-badge badge-emerald">Nguyên Tắc 1</span>
+            <h3 class="card-title">100% Dữ Liệu Có Thật</h3>
+            <p class="card-text">Chỉ trích xuất từ văn bản được người dùng cung cấp trong dự án. Tuyệt đối không lấy dữ liệu trôi nổi ngoài internet để đắp vào khi chưa kiểm chứng.</p>
+          </div>
+
+          <div class="card-academic" style="border-color: var(--brand-rose);">
+            <span class="card-badge badge-rose">Nguyên Tắc 2 (Quan Trọng Nhất)</span>
+            <h3 class="card-title">"Tài Liệu Không Đề Cập"</h3>
+            <p class="card-text">Chỗ nào bài báo không nhắc tới cỡ mẫu, không nhắc giả thuyết ➔ Bắt buộc ghi rõ: <strong>"Tài liệu không đề cập"</strong> hoặc gắn nhãn <code>[CẦN NGUỒN]</code>. Tuyệt đối CẤM ĐOÁN MÒ!</p>
+          </div>
+
+          <div class="card-academic" style="border-color: var(--brand-blue);">
+            <span class="card-badge badge-blue">Nguyên Tắc 3</span>
+            <h3 class="card-title">Dẫn Chứng Nguyên Văn</h3>
+            <p class="card-text">Các phát hiện cốt lõi, định nghĩa biến số, trích dẫn rủi ro phải đặt nguyên văn trong dấu ngoặc kép <code>"..."</code> để bảo chứng học thuật.</p>
+          </div>
+        </div>
+
+        <div class="card-academic" style="background: rgba(244, 63, 94, 0.08); border-color: var(--brand-rose); margin-top: 10px;">
+          <p class="card-text" style="color: var(--brand-rose); font-weight: bold;">⚠️ NGUYÊN TẮC VÀNG: Trong nghiên cứu khoa học, thà để trống một thông tin còn hơn đưa vào một nguồn giả mạo!</p>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"AI không biết xấu hổ khi nó bịa — Người nghiên cứu phải là bức tường phòng thủ kiên cố nhất."</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 09: DEMO GV LƯỢT 1 & 2 -->
+    <section class="slide-page" data-slide="9" data-title="Demo: Từ Tóm Tắt Hời Hợt Đến Ép Bố Cục">
+      <div class="slide-header">
+        <span class="slide-tagline">🔍 Hành Trình Tạo Skill Thực Tế</span>
+        <h2 class="slide-title">Lượt 1 & Lượt 2: Từ Tóm Tắt Hời Hợt Đến Ép Bố Cục</h2>
+        <p class="slide-subtitle">Quan sát cách một câu lệnh sơ sài biến đổi thành một tiêu chuẩn cấu trúc</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div>
+            <div class="card-badge badge-rose" style="margin-bottom: 6px;">Lượt 1: Nghĩ Gì Gõ Nấy (Thất Bại)</div>
+            <div class="terminal-container">
+              <div class="terminal-body">
+<span class="terminal-prompt-sym">&gt;</span> Tóm tắt giúp tôi bài báo trong du-lieu-mau/demo/bai-bao-nghien-cuu-demo-chuyen-doi-so-ai-2026.docx</div>
+            </div>
+            <p class="card-text" style="margin-top: 8px; color: var(--text-muted); font-size: 0.9rem;">➔ <strong>Kết quả:</strong> Trả về vài đoạn văn chung chung kiểu "bài báo nghiên cứu về AI trong doanh nghiệp...". Chưa bóc được cỡ mẫu, chưa thấy phương pháp, không dùng được vào luận án!</p>
+          </div>
+
+          <div>
+            <div class="card-badge badge-blue" style="margin-bottom: 6px;">Lượt 2: Ép Bóc Tách Theo Bố Cục Học Thuật</div>
+            <div class="terminal-container">
+              <div class="terminal-body">
+<span class="terminal-prompt-sym">&gt;</span> Chưa đủ. Hãy bóc tách theo các mục: Bối cảnh, Cơ sở lý thuyết, Phương pháp & Cỡ mẫu, Phát hiện chính, Hạn chế.</div>
+            </div>
+            <p class="card-text" style="margin-top: 8px; color: var(--brand-blue); font-size: 0.9rem;">➔ <strong>Kết quả:</strong> AI bóc tách rõ ràng từng phần. Đây chính là tiền thân của mục <strong>Ý CHÍNH CHI TIẾT</strong> trong file SKILL.md!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">Mỗi câu bạn chỉnh AI hôm nay sẽ biến thành một mục tiêu chuẩn trong Skill ngày mai.</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: DEMO GV LƯỢT 3 & 4 -->
+    <section class="slide-page" data-slide="10" data-title="Demo: Bóc Số Liệu & Phát Hiện Research Gap">
+      <div class="slide-header">
+        <span class="slide-tagline">🔬 Khoảnh Khắc 'Đáng Tiền'</span>
+        <h2 class="slide-title">Lượt 3 & Lượt 4: Bóc Số Liệu Thống Kê & Phát Hiện Research Gap</h2>
+        <p class="slide-subtitle">Ép AI tìm ra những con số bị chôn sâu và điểm mâu thuẫn học thuật</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="card-academic">
+            <span class="card-badge badge-gold">Lượt 3: Bóc Sạch Số Liệu & Chỉ Số Đo Lường</span>
+            <div class="terminal-container" style="margin: 8px 0;">
+              <div class="terminal-body">
+<span class="terminal-prompt-sym">&gt;</span> Bóc ra mọi con số thống kê, cỡ mẫu N, hệ số tin cậy Cronbach's Alpha, p-value và R-squared trong bài.</div>
+            </div>
+            <p class="card-text">AI nhặt sạch các chỉ số định lượng. Đặc biệt bắt được cỡ mẫu <code>N = 356</code> chôn sâu ở phần Chú thích bảng! ➔ Trở thành mục <strong>SỐ LIỆU & CHỈ SỐ</strong>.</p>
+          </div>
+
+          <div class="card-academic">
+            <span class="card-badge badge-purple">Lượt 4: Soi Điểm Mâu Thuẫn & Khoảng Trống (Gap)</span>
+            <div class="terminal-container" style="margin: 8px 0;">
+              <div class="terminal-body">
+<span class="terminal-prompt-sym">&gt;</span> Tác giả tự thừa nhận hạn chế gì? Có chỗ nào kết quả trái ngược với các nghiên cứu trước đây không?</div>
+            </div>
+            <p class="card-text">AI phát hiện nghiên cứu chỉ khảo sát tại 1 thành phố lớn và chưa xét biến trung gian văn hóa ➔ Trở thành mục <strong>KHOẢNG TRỐNG NGHIÊN CỨU (GAP)</strong>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"AI đọc cả bài trong 5 giây để lôi ra những thứ con người rất dễ bỏ sót khi đọc lướt."</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: DEMO GV LƯỢT 5 -->
+    <section class="slide-page" data-slide="11" data-title="Demo: Chặn Ảo Giác Bằng Quy Tắc 'Không Đề Cập'">
+      <div class="slide-header">
+        <span class="slide-tagline">🛑 Khóa Chặt Ảo Giác</span>
+        <h2 class="slide-title">Lượt 5: Chặn Suy Đoán & Chốt Quy Tắc "Không Đề Cập"</h2>
+        <p class="slide-subtitle">Thử thách bẫy AI để kiểm tra xem nó có dám thừa nhận tài liệu thiếu dữ liệu hay không</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="terminal-container">
+          <div class="terminal-header">
+            <div class="terminal-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+            <span class="terminal-tag">Lệnh Khóa Suy Đoán Học Thuật</span>
+            <button class="btn-copy" onclick="copyPrompt('pDemo5', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body" id="pDemo5"><span class="terminal-prompt-sym">&gt;</span> Trong những gì bạn vừa trả lời, có chỗ nào bạn tự suy đoán mà bài báo không nói không? Từ giờ chỉ dùng thông tin có trong tài liệu, chỗ nào bài báo không nói thì ghi rõ "Tài liệu không đề cập", KHÔNG được tự đoán. Tóm tắt lại 3 gạch đầu dòng cốt lõi nhất để tôi dùng vào đề cương.</div>
+        </div>
+
+        <div class="card-academic" style="margin-top: 14px; background: rgba(16, 185, 129, 0.08); border-color: var(--brand-emerald);">
+          <span class="card-badge badge-emerald">Kết Quả Thu Được</span>
+          <p class="card-text">AI tự động rà lại, thừa nhận một giả định là do nó suy luận ngoài bài báo, và rút gọn lại đúng 3 gạch đầu dòng chuẩn xác. Mục này chính là <strong>QUY TẮC CHỐNG BỊA</strong> và <strong>TÓM TẮT NHANH</strong> trong file Skill!</p>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">5 lượt chat = 5 mục cấu thành nên tờ quy trình SOP hoàn chỉnh. Giờ ta đóng gói lại!</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: ĐÓNG GÓI 5 LƯỢT CHAT VÀO SKILL.MD -->
+    <section class="slide-page" data-slide="12" data-title="Đóng Gói 5 Lượt Chat Vào SKILL.md">
+      <div class="slide-header">
+        <span class="slide-tagline">📦 Bước Ngoặt Tự Động Hóa</span>
+        <h2 class="slide-title">Đóng Gói 5 Lượt Chat Thành File SKILL.md</h2>
+        <p class="slide-subtitle">Không phải chat lại 5 lần vào tuần sau — 1 câu lệnh đóng gói dùng cho cả hành trình luận án!</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="terminal-container">
+          <div class="terminal-header">
+            <div class="terminal-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+            <span class="terminal-tag">Prompt Đóng Gói Thành Skill Mẫu</span>
+            <button class="btn-copy" onclick="copyPrompt('pPack', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body" id="pPack"><span class="terminal-prompt-sym">&gt;</span> Tôi thấy kết quả bóc tách rất tốt. Hãy đóng gói toàn bộ quy trình 5 bước vừa rồi thành một Skill tên "phan-tich-bai-bao" đặt trong .claude/skills/phan-tich-bai-bao/SKILL.md:
+- Dòng description: Dùng khi người dùng đưa vào bài báo khoa học, luận án hoặc abstract cần bóc tách học thuật chuẩn xác.
+- Cấu trúc xuất ra đủ 5 phần:
+  1. TÓM TẮT NHANH (3 gạch đầu dòng)
+  2. Ý CHÍNH CHI TIẾT (Bối cảnh, Lý thuyết, Phương pháp, Mẫu, Kết quả)
+  3. SỐ LIỆU & CHỈ SỐ THỐNG KÊ (N, p-value, Alpha, R2)
+  4. KHOẢNG TRỐNG NGHIÊN CỨU & HẠN CHẾ (Research Gap)
+  5. QUY TẮC CHỐNG BỊA: Chỗ nào không có thì ghi "Tài liệu không đề cập", cấm đoán. Trích nguyên văn bằng chứng trong ngoặc kép.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Từ nay về sau: Chỉ cần đưa bài báo và bảo 'Tóm tắt bài này' là xong trọn vẹn 5 mục!"</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: PHẦN A — ĐẶT ĐỀ TÀI & CHUẨN BỊ TÀI LIỆU -->
+    <section class="slide-page" data-slide="13" data-title="Thực Chiến A: Đặt Đề Tài Làm Trục">
+      <div class="slide-header">
+        <span class="slide-tagline">🚀 Bắt Đầu Thực Chiến</span>
+        <h2 class="slide-title">Phần A: Đặt Đề Tài Làm Trục & Chuẩn Bị Tài Liệu</h2>
+        <p class="slide-subtitle">Treo "biển tên" cho dự án để mọi câu lệnh bám sát đề tài nghiên cứu của bạn</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="card-academic">
+            <span class="card-badge badge-blue">Thao Tác 1: Cập Nhật CLAUDE.md</span>
+            <p class="card-text">Gõ vào Claude Code:</p>
+            <div class="terminal-container" style="margin-top: 8px;">
+              <div class="terminal-body">
+<span class="terminal-prompt-sym">&gt;</span> Đề tài nghiên cứu của tôi: [nghiên cứu các yếu tố ảnh hưởng đến ý định ứng dụng AI trong doanh nghiệp nhỏ và vừa tại Việt Nam]. Cập nhật đề tài này vào mục Đề tài trong CLAUDE.md.</div>
+            </div>
+          </div>
+
+          <div class="card-academic">
+            <span class="card-badge badge-emerald">Thao Tác 2: Chuẩn Bị Nguồn Sạch</span>
+            <p class="card-text">Chuẩn bị 3–5 file PDF bài báo thật của bạn vào thư mục <code>du-lieu/</code> hoặc dùng bộ abstract mẫu trong <code>du-lieu-mau/abstracts/</code>. Sau đó kiểm tra:</p>
+            <div class="terminal-container" style="margin-top: 8px;">
+              <div class="terminal-body">
+<span class="terminal-prompt-sym">&gt;</span> Liệt kê các tài liệu nghiên cứu hiện có trong thư mục du-lieu/ để tôi kiểm tra.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">Không cần cào link hay đăng nhập phức tạp — Đọc trực tiếp file PDF/text sạch trong thư mục dự án!</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: PHẦN B — TÌM RESEARCH GAP & KIỂM CHỨNG -->
+    <section class="slide-page" data-slide="14" data-title="Thực Chiến B: Tìm Research Gap & Kiểm Chứng">
+      <div class="slide-header">
+        <span class="slide-tagline">🎯 Phát Hiện Khoảng Trống Học Thuật</span>
+        <h2 class="slide-title">Phần B: Bóc Tách Tài Liệu, Tìm Gap & Kiểm Chứng Nguồn</h2>
+        <p class="slide-subtitle">Tách bạch cái ĐÃ CÓ BẰNG CHỨNG và cái CÒN BỎ NGỎ để phát biểu Research Gap có căn cứ</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="terminal-container">
+          <div class="terminal-header">
+            <div class="terminal-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+            <span class="terminal-tag">Prompt Tìm Research Gap & Kiểm Chứng</span>
+            <button class="btn-copy" onclick="copyPrompt('pGap', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body" id="pGap"><span class="terminal-prompt-sym">&gt;</span> Dùng skill literature-review. Đọc các bài báo trong du-lieu/, phân tích:
+1. Những vấn đề nào ĐÃ CÓ BẰNG CHỨNG rõ ràng?
+2. Những điểm nào CÒN BỎ NGỎ hoặc chưa đồng thuận?
+Từ đó, tổng hợp thành 3-4 theme lớn và phát biểu 3 Research Gap cụ thể kèm câu hỏi nghiên cứu. Áp dụng kỷ luật: Chỉ dùng thông tin từ tài liệu thật, lưu vào file tong-quan-tai-lieu/research-gap.md. Xong rà soát lại xem có nguồn nào nghi vấn cần kiểm chứng trên Google Scholar/DOI không.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">Research Gap không phải là "tôi nghĩ là thiếu" — Nó phải là "tài liệu chứng minh còn thiếu"!</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 15: PHẦN C — MA TRẬN TRÍCH XUẤT TÀI LIỆU -->
+    <section class="slide-page" data-slide="15" data-title="Thực Chiến C: Ma Trận Trích Xuất Tài Liệu">
+      <div class="slide-header">
+        <span class="slide-tagline">📊 Synthesis Matrix Chuẩn Quốc Tế</span>
+        <h2 class="slide-title">Phần C: Ma Trận Trích Xuất Tài Liệu (Synthesis Matrix)</h2>
+        <p class="slide-subtitle">Nhìn thấy toàn bộ kho bài báo trong 1 trang bảng Markdown với 7 cột học thuật chuẩn</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="terminal-container">
+          <div class="terminal-header">
+            <div class="terminal-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+            <span class="terminal-tag">Prompt Lập Ma Trận Trích Xuất</span>
+            <button class="btn-copy" onclick="copyPrompt('pMatrix', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body" id="pMatrix"><span class="terminal-prompt-sym">&gt;</span> Dùng skill literature-review. Hãy lập Ma trận trích xuất tài liệu dạng bảng Markdown gồm 7 cột:
+1. Mã & Tác giả (Năm)
+2. Bối cảnh nghiên cứu / Quốc gia
+3. Cơ sở lý thuyết nền tảng
+4. Thiết kế nghiên cứu & Phương pháp phân tích
+5. Quy mô mẫu (Cỡ mẫu N)
+6. Phát hiện chính
+7. Hạn chế nghiên cứu
+Chỉ điền dữ liệu có thật, không có thì ghi "Tài liệu không đề cập". Lưu vào file tong-quan-tai-lieu/ma-tran-tai-lieu.md.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Ma trận trích xuất là xương sống của mọi chương tổng quan tài liệu trong luận án."</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 16: PHẦN C — DÀN Ý THEO CHỦ ĐỀ -->
+    <section class="slide-page" data-slide="16" data-title="Thực Chiến C: Dàn Ý Tổng Quan Theo Chủ Đề">
+      <div class="slide-header">
+        <span class="slide-tagline">🏗️ Dựng Khung Học Thuật</span>
+        <h2 class="slide-title">Phần C: Xây Dựng Dàn Ý Theo Chủ Đề (Thematic Outline)</h2>
+        <p class="slide-subtitle">Tuyệt đối không liệt kê bài 1, bài 2 — Gom nhóm chủ đề để tạo cuộc đối thoại giữa các tác giả</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="card-academic">
+            <span class="card-badge badge-rose">❌ Cách Viết Sai Phổ Biến</span>
+            <h3 class="card-title">Tóm Tắt Tuần Tự Từng Bài</h3>
+            <p class="card-text"><em>"Nguyễn Văn A (2022) nghiên cứu về... Tiếp theo, Trần Thị B (2023) cũng nói về... Còn Lê Văn C (2024) thì cho rằng..."</em></p>
+            <p class="card-text" style="color: var(--brand-rose); margin-top: 8px;">➔ Đây chỉ là bản báo cáo tóm tắt, hội đồng đánh giá rất thấp!</p>
+          </div>
+
+          <div class="card-academic">
+            <span class="card-badge badge-emerald">✅ Cách Viết Chuẩn Thematic</span>
+            <h3 class="card-title">Tổng Hợp Theo Chủ Đề</h3>
+            <p class="card-text"><em>"Về rào cản chi phí công nghệ, phần lớn nghiên cứu thực nghiệm đồng thuận rằng vốn đầu tư là trở ngại lớn (Nguyễn, 2022; Trần, 2023). Tuy nhiên, Lê (2024) lại chỉ ra rằng văn hóa doanh nghiệp mới là rào cản mang tính quyết định..."</em></p>
+            <p class="card-text" style="color: var(--brand-emerald); margin-top: 8px;">➔ Có sự so sánh, đối chiếu, làm nổi bật khoảng trống nghiên cứu!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">Prompt tiếp theo: Từ ma trận, dựng dàn ý theo 3-4 chủ đề và lưu vào `tong-quan-tai-lieu/dan-y-tong-quan.md`.</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 17: PHẦN D — VIẾT BÁO CÁO CHUẨN APA 7 -->
+    <section class="slide-page" data-slide="17" data-title="Thực Chiến D: Viết Báo Cáo Chuẩn APA 7">
+      <div class="slide-header">
+        <span class="slide-tagline">✍️ Viết Văn Học Thuật</span>
+        <h2 class="slide-title">Phần D: Viết Báo Cáo Tổng Quan Chuẩn APA 7 (~1.200 Từ)</h2>
+        <p class="slide-subtitle">Văn phong khách quan, lập luận sắc bén và trích dẫn chuẩn chỉ trong bài</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="terminal-container">
+          <div class="terminal-header">
+            <div class="terminal-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+            <span class="terminal-tag">Prompt Viết Tổng Quan Bằng Skill academic-writing</span>
+            <button class="btn-copy" onclick="copyPrompt('pWrite', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body" id="pWrite"><span class="terminal-prompt-sym">&gt;</span> Dùng skill academic-writing. Viết phần "Tổng quan tài liệu" khoảng 1.200 từ theo dàn ý trong file tong-quan-tai-lieu/dan-y-tong-quan.md:
+- Văn phong học thuật tiếng Việt trang trọng, khách quan, lập luận chặt chẽ.
+- Viết theo chủ đề (Thematic), đối thoại giữa các nghiên cứu, không liệt kê từng bài.
+- Trích dẫn trong bài theo chuẩn APA 7 dạng (Tác giả, năm) hoặc Tác giả (năm).
+- Nguồn nào chưa được xác minh 100% thì đánh dấu [CẦN NGUỒN], tuyệt đối cấm bịa trích dẫn.
+- Cuối bài có mục "Tài liệu tham khảo" theo chuẩn APA 7.
+Lưu vào file tong-quan-tai-lieu/bao-cao-tong-quan-tai-lieu.md.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">Dùng tiếp skill `citation-manager` để rà soát đối chiếu trích dẫn 2 chiều giữa thân bài và mục tài liệu tham khảo!</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 18: PHẦN D — XUẤT WORD CHUẨN THỂ THỨC -->
+    <section class="slide-page" data-slide="18" data-title="Thực Chiến D: Xuất Word Chuẩn Thể Thức">
+      <div class="slide-header">
+        <span class="slide-tagline">📄 Hoàn Thiện Bản In Luận Án</span>
+        <h2 class="slide-title">Phần D: Xuất Báo Cáo Ra File Word (.docx) Chuẩn Việt Nam</h2>
+        <p class="slide-subtitle">Tuân thủ nghiêm ngặt Nghị định 30/2020/NĐ-CP & Thể thức luận văn thạc sĩ / tiến sĩ</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="terminal-container">
+          <div class="terminal-header">
+            <div class="terminal-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+            <span class="terminal-tag">Prompt Xuất File Word Chuẩn Nghị Định</span>
+            <button class="btn-copy" onclick="copyPrompt('pDocx', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body" id="pDocx"><span class="terminal-prompt-sym">&gt;</span> Hãy xuất file tong-quan-tai-lieu/bao-cao-tong-quan-tai-lieu.md thành file Word (.docx) với tên tong-quan-tai-lieu/Bao-cao-tong-quan-luan-an.docx theo đúng thể thức báo cáo học thuật chuẩn Việt Nam:
+- Phông chữ: 100% bắt buộc dùng Times New Roman.
+- Tiêu đề chính: Cỡ 16, in đậm, căn giữa.
+- Tiêu đề mục (Heading 1, 2): Cỡ 14, in đậm.
+- Thân bài (Body text): Cỡ 13, căn đều hai bên (Justified), thụt đầu dòng 1.27cm, giãn dòng 1.5 lines, giãn đoạn Before 3pt, After 3pt.
+- Căn lề trang A4 chuẩn: Lề trên 2cm, lề dưới 2cm, lề trái 3cm, lề phải 2cm.
+Tự cài đặt thư viện cần thiết (python-docx) nếu máy chưa có và báo đường dẫn file hoàn thành.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">Mở file Word lên kiểm tra: Đúng lề 2-2-3-2 cm, đúng font Times New Roman cỡ 13, giãn dòng 1.5 lines!</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 19: THỰC HÀNH TẠI LỚP (TIMER) -->
+    <section class="slide-page" data-slide="19" data-title="Thực Hành: Tự Đóng Gói Custom Skill">
+      <div class="slide-header">
+        <span class="slide-tagline">⏱️ Thử Thách Thực Hành Tại Lớp (Hands-On Lab)</span>
+        <h2 class="slide-title">Phần E: Tự Tay Đóng Gói Custom Skill "xuat-word-luan-van"</h2>
+        <p class="slide-subtitle">Biến quy trình xuất Word vừa làm thành 1 Skill riêng trong thư mục <code>.claude/skills/</code></p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="timer-banner-box">
+          <div class="timer-clock-display">
+            <span class="timer-digits-text" id="timerDisplay">25:00</span>
+            <div>
+              <div class="timer-info-title">Đồng Hồ Thực Hành Đóng Gói & Chạy Thử Skill</div>
+              <div class="timer-info-sub">Giảng viên và trợ giảng hỗ trợ trực tiếp từng máy học viên</div>
+            </div>
+          </div>
+          <div class="nav-buttons-group">
+            <button class="btn-keynote btn-keynote-primary" id="btnTimerStart" onclick="toggleTimer()">Bắt đầu</button>
+            <button class="btn-keynote" onclick="resetTimer()">Đặt lại</button>
+          </div>
+        </div>
+
+        <div class="terminal-container" style="margin-top: 14px;">
+          <div class="terminal-header">
+            <div class="terminal-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+            <span class="terminal-tag">Prompt Đóng Gói Skill xuat-word-luan-van</span>
+            <button class="btn-copy" onclick="copyPrompt('pSkillWord', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body" id="pSkillWord"><span class="terminal-prompt-sym">&gt;</span> Hãy đóng gói quy trình xuất file Word chuẩn thể thức luận văn Việt Nam vừa rồi thành một Skill riêng đặt tên là "xuat-word-luan-van":
+1. Tạo thư mục mới tại .claude/skills/xuat-word-luan-van/
+2. Tạo file SKILL.md có đầy đủ frontmatter:
+   - name: xuat-word-luan-van
+   - description: Dùng khi người dùng muốn xuất văn bản, báo cáo nghiên cứu hoặc chương luận án từ Markdown sang Microsoft Word (.docx) đúng chuẩn thể thức Việt Nam (Times New Roman 13, giãn dòng 1.5, lề 2-2-3-2).
+3. Hướng dẫn chi tiết cách đọc file md, thiết lập font, cỡ chữ, căn lề và lưu file docx.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">Tạo xong ➔ Khởi động lại Claude Code / VS Code để hệ thống nhận diện skill mới!</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 20: KIỂM CHỨNG SỨC MẠNH SKILL VỪA TẠO -->
+    <section class="slide-page" data-slide="20" data-title="Kiểm Chứng: 1 Câu Lệnh Tự Nạp Skill">
+      <div class="slide-header">
+        <span class="slide-tagline">✨ Khoảnh Khắc Kỳ Diệu (Aha Moment)</span>
+        <h2 class="slide-title">Kiểm Chứng Sức Mạnh: 1 Câu Lệnh Tự Nạp Skill</h2>
+        <p class="slide-subtitle">Không nhắc lại font chữ, không nhắc lại lề trang — AI tự động thi hành chuẩn 100%</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div>
+            <div class="card-badge badge-gold" style="margin-bottom: 6px;">Thử Nghiệm Kích Hoạt Tự Nạp Trên Bài Báo Số 2</div>
+            <div class="terminal-container">
+              <div class="terminal-header">
+                <div class="terminal-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+                <span class="terminal-tag">1 Câu Lệnh Tự Nhiên (Không Nhắc Tên Skill)</span>
+                <button class="btn-copy" onclick="copyPrompt('pActPaper2', this)">📋 Sao chép</button>
+              </div>
+              <div class="terminal-body" id="pActPaper2"><span class="terminal-prompt-sym">&gt;</span> Phân tích và bóc tách bài báo trong du-lieu-mau/demo/bai-bao-so-02-demo-genai-hoc-thuat-2026.docx</div>
+            </div>
+            <p class="card-text" style="margin-top: 10px;">Bạn chỉ gõ <strong>1 câu tự nhiên</strong>, không hề dặn lại 5 bước hay quy tắc chống bịa!</p>
+          </div>
+
+          <div class="card-academic" style="background: rgba(16, 185, 129, 0.08); border-color: var(--brand-emerald);">
+            <span class="card-badge badge-emerald">Điều Kỳ Diệu Xảy Ra (Auto-Load)</span>
+            <div class="card-text" style="display: flex; flex-direction: column; gap: 8px;">
+              <p>✓ Claude đọc <code>description</code> và tự động báo: <code>Using skill: phan-tich-bai-bao...</code></p>
+              <p>✓ Trả về ngay lập tức đủ <strong>5 phần chuẩn</strong>: Tóm tắt nhanh, Ý chính, Số liệu (N=412, Alpha, Beta), Research Gap và Quy tắc chống bịa.</p>
+              <p>✓ <strong>So sánh:</strong> Bài báo 1 mất 5 lượt chat làm tay ➔ Bài báo 2 chỉ mất đúng <strong>1 câu lệnh</strong>!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Chúc mừng bạn! Bạn đã chính thức trở thành người huấn luyện AI Agent cho công việc của mình."</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 21: BẢNG TRA NHANH PROMPT & SỰ CỐ -->
+    <section class="slide-page" data-slide="21" data-title="Bảng Tra Nhanh Prompt & Xử Lý Sự Cố">
+      <div class="slide-header">
+        <span class="slide-tagline">🛠️ Cẩm Nang Bỏ Túi</span>
+        <h2 class="slide-title">Bảng Tra Nhanh Prompt & Xử Lý Sự Cố (Troubleshooting)</h2>
+        <p class="slide-subtitle">Các tình huống thường gặp khi tạo và vận hành Skill trong Claude Code</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="card-academic">
+            <span class="card-badge badge-blue">Các Mẫu Lệnh Thần Chú</span>
+            <div class="card-text" style="display: flex; flex-direction: column; gap: 8px;">
+              <p>• <strong>Kiểm tra kho skill:</strong> <code>Hãy liệt kê các skill bạn đang có</code></p>
+              <p>• <strong>Tự nạp theo ngữ cảnh:</strong> <code>Xuất file [tên-file.md] ra Word chuẩn</code></p>
+              <p>• <strong>Gọi đích danh skill:</strong> <code>Dùng skill [tên-skill] để xử lý [file]</code></p>
+              <p>• <strong>Ép chống bịa:</strong> <code>Chỗ nào không có thì ghi "Tài liệu không đề cập", cấm đoán</code></p>
+            </div>
+          </div>
+
+          <div class="card-academic">
+            <span class="card-badge badge-rose">Cách Khắc Phục Sự Cố</span>
+            <div class="card-text" style="display: flex; flex-direction: column; gap: 8px;">
+              <p>• <strong>Claude không thấy skill mới:</strong> Đóng VS Code và mở lại (reload window) để Claude quét lại thư mục <code>.claude/skills/</code>.</p>
+              <p>• <strong>Claude không tự nạp skill:</strong> Kiểm tra dòng <code>description</code> xem có từ khóa rõ ràng chưa, hoặc gọi đích danh tên skill.</p>
+              <p>• <strong>Lỗi sai đường dẫn:</strong> Đảm bảo file tên đúng là <code>SKILL.md</code> (viết hoa) và nằm đúng thư mục mang tên skill.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">Hãy chụp lại màn hình slide này để tra cứu nhanh khi làm bài tập tại nhà!</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 22: TỔNG KẾT & TEASER BUỔI 03 -->
+    <section class="slide-page" data-slide="22" data-title="Tổng Kết Buổi 02 & Chuẩn Bị Buổi 03">
+      <div class="slide-header">
+        <span class="slide-tagline">🎓 Hoàn Thành Xuất Sắc Buổi 02</span>
+        <h2 class="slide-title">Checklist 5 Sản Phẩm Cầm Về & Chuẩn Bị Buổi 03</h2>
+        <p class="slide-subtitle">Rà soát thành quả hôm nay trước khi bước sang giai đoạn Phân tích dữ liệu định lượng</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="card-academic" style="border-color: var(--brand-emerald);">
+            <span class="card-badge badge-emerald">Checklist 5 Sản Phẩm Cầm Về Hôm Nay:</span>
+            <div class="card-text" style="display: flex; flex-direction: column; gap: 6px;">
+              <p>☑️ <strong>CLAUDE.md</strong> đã cập nhật đề tài nghiên cứu chính thức.</p>
+              <p>☑️ <strong>research-gap.md</strong> với 3 khoảng trống nghiên cứu có căn cứ.</p>
+              <p>☑️ <strong>ma-tran-tai-lieu.md</strong> bảng trích xuất 7 cột chuẩn học thuật.</p>
+              <p>☑️ <strong>bao-cao-tong-quan-tai-lieu.md</strong> và bản <strong>Word (.docx)</strong> chuẩn lề 2-2-3-2.</p>
+              <p>☑️ <strong>Custom Skill</strong> <code>xuat-word-luan-van</code> chạy thành công.</p>
+            </div>
+          </div>
+
+          <div class="card-academic" style="border-color: var(--brand-gold);">
+            <span class="card-badge badge-gold">Teaser Buổi 03: Phân Tích Dữ Liệu & Báo Cáo</span>
+            <h4 class="card-title" style="color: var(--brand-gold);">Làm Chủ Agent Phân Tích Định Lượng</h4>
+            <p class="card-text">Buổi sau chúng ta sẽ đổ dữ liệu khảo sát thật (file CSV) vào dự án: Làm sạch dữ liệu, kiểm định độ tin cậy Cronbach's Alpha, phân tích hồi quy, vẽ biểu đồ xuất bản và viết báo cáo học thuật có khai báo sử dụng AI đúng chuẩn quốc tế!</p>
+            <p class="card-text" style="margin-top: 8px; font-weight: bold; color: var(--text-main);">📅 Hẹn gặp lại cả lớp vào Buổi 03!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">CES Global — Đơn vị tiên phong đào tạo & ứng dụng Agentic AI cho nghiên cứu khoa học tại Việt Nam.</span>
+        <div class="footer-actions">
+          <button class="btn-keynote btn-keynote-primary" onclick="goToSlide(1)">Về trang đầu ⤾</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- OVERVIEW THUMBNAILS MODAL -->
+  <div class="overview-overlay" id="overviewModal">
+    <div class="overview-header">
+      <h2 class="overview-title">⊞ Tổng Quan 22 Slide Bài Giảng Buổi 02</h2>
+      <button class="btn-keynote btn-keynote-primary" onclick="toggleOverview()">Đóng [Esc]</button>
+    </div>
+    <div class="overview-grid" id="overviewGrid">
+      <!-- Generated dynamically by JS -->
+    </div>
+  </div>
+
+  <!-- SPEAKER NOTES DRAWER -->
+  <div class="speaker-drawer" id="speakerDrawer">
+    <div class="speaker-header">
+      <div class="speaker-title">📝 Ghi Chú Giảng Viên (Speaker Notes)</div>
+      <button class="btn-keynote" onclick="toggleNotes()">Thu gọn</button>
+    </div>
+    <div class="speaker-content" id="speakerNoteContent">
+      Chào mừng lớp đến với Buổi 2.
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-box" id="toastMsg">✓ Đã sao chép prompt vào Clipboard!</div>
+
+  <!-- SLIDE JAVASCRIPT CONTROLLER -->
+  <script>
+    const totalSlides = 22;
+    let currentSlide = 1;
+
+    const slideIndicator = document.getElementById('slideIndicator');
+    const topProgressFill = document.getElementById('topProgressFill');
+    const overviewModal = document.getElementById('overviewModal');
+    const overviewGrid = document.getElementById('overviewGrid');
+    const speakerDrawer = document.getElementById('speakerDrawer');
+    const speakerNoteContent = document.getElementById('speakerNoteContent');
+
+    /* SPEAKER NOTES DICTIONARY */
+    const speakerNotes = {
+      1: "Chào mừng học viên đến với Buổi 02. Nhắc lại Buổi 1 đã có CLAUDE.md để AI nhớ bối cảnh. Hôm nay mình lên một nấc cao hơn: Dạy cho AI một quy trình chuẩn để nó làm đúng từng bước mỗi lần, không phải nhắc lại. Cái đó gọi là Skill.",
+      2: "Điểm qua 6 chuẩn đầu ra cụ thể. Nhấn mạnh cuối buổi mỗi người sẽ có ít nhất 1 skill riêng chạy được trên máy và 1 file Word báo cáo luận văn chuẩn mực theo đúng Nghị định 30/2020/NĐ-CP.",
+      3: "Đánh thẳng vào nỗi đau của người làm nghiên cứu: Copy-paste prompt mệt mỏi, hỏi 5 câu mới ra đủ ý và nỗi sợ lớn nhất là AI bịa trích dẫn/số liệu. Skill sinh ra để giải quyết triệt để 4 vấn đề này.",
+      4: "Nhấn mạnh thông điệp cốt lõi: 'Lát nữa tôi không phát sẵn file mẫu cho cả lớp chép. Tôi sẽ làm việc bằng tay trước, rồi cả lớp xem tờ quy trình đó tự hình thành thế nào qua 5 lượt chat.'",
+      5: "Giải phẫu thư mục. Không cần cài phần mềm cao siêu. Skill chỉ đơn giản là 1 thư mục chứa 1 file SKILL.md đặt đúng chỗ trong .claude/skills/. Tên thư mục dùng chữ thường gạch ngang.",
+      6: "Giải thích dòng description. Đặt câu hỏi tương tác: 'Nếu viết description mờ nhạt như: Skill tóm tắt thì chuyện gì xảy ra?' -> Claude sẽ không biết khi nào nên lôi ra dùng.",
+      7: "Trình bày 2 cách kích hoạt: Gọi tự nhiên (khuyên dùng) và gọi đích danh. Cho học viên gõ thử câu lệnh kiểm tra danh mục skill.",
+      8: "DỪNG LẠI Ở ĐÂY để nhấn mạnh Kỷ luật chống bịa: Với khoa học, thà để AI nói 'Tài liệu không đề cập' còn hơn để nó bịa số liệu hay trích dẫn giả mạo!",
+      9: "Bắt đầu demo GV: Mở file Word bài báo mẫu du-lieu-mau/demo/bai-bao-nghien-cuu-demo-chuyen-doi-so-ai-2026.docx. Chiếu số trang (khoảng 8 trang) và cấu trúc 7 phần cho cả lớp nhìn thấy. Sau đó chạy Lượt 1 cho lớp thấy AI trả lời chung chung chưa dùng được, tiếp tục chạy Lượt 2 ép theo bố cục học thuật.",
+      10: "Demo Lượt 3 bóc số liệu và Lượt 4 phát hiện Research Gap: Chỉ cho học viên thấy con số cỡ mẫu N = 356 bị chôn sâu ở Bảng 1 và Bảng 2. Tiếp đó bắt mâu thuẫn: Tóm tắt ghi 350 nhưng bảng ghi 356 (lệch 6 doanh nghiệp). Soi tiếp Research Gap: Nghiên cứu thiếu mẫu miền Trung (Đà Nẵng chỉ 8.4%).",
+      11: "Chạy Lượt 5 để khóa suy đoán của AI: Thử bẫy hỏi 'Ngân sách chi cho AI hàng năm là bao nhiêu?'. AI phải trả lời 'Tài liệu không đề cập' vì bài báo không có con số tiền mặt. Đây là khoảnh khắc chứng minh Kỷ luật chống bịa!",
+      12: "Khoảnh khắc chốt hạ: Chỉ lên bảng 5 lượt chat vừa làm và gõ prompt đóng gói toàn bộ vào file .claude/skills/phan-tich-bai-bao/SKILL.md.",
+      13: "Học viên bắt đầu thực hành phần A: Ghi đề tài nghiên cứu thật của mình vào CLAUDE.md và kiểm tra tài liệu trong thư mục du-lieu/.",
+      14: "Học viên chạy prompt tìm Research Gap bằng skill literature-review. Nhắc học viên kiểm chứng nguồn bằng Google Scholar / DOI.",
+      15: "Học viên chạy lệnh lập Ma trận trích xuất tài liệu (Synthesis Matrix) 7 cột và lưu vào file tong-quan-tai-lieu/ma-tran-tai-lieu.md.",
+      16: "Nhấn mạnh tư duy Thematic: Tuyệt đối không liệt kê tuần tự từng bài. Gom nhóm theo chủ đề để tạo sự đối thoại học thuật.",
+      17: "Dùng skill academic-writing viết báo cáo ~1.200 từ chuẩn APA 7. Nhắc học viên chú ý các chỗ gắn nhãn [CẦN NGUỒN].",
+      18: "Hướng dẫn xuất báo cáo ra file Word (.docx) chuẩn thể thức Việt Nam: Times New Roman 13, giãn dòng 1.5, lề 2-2-3-2 cm.",
+      19: "Bật đồng hồ 25 phút thực hành tại lớp. Giảng viên và trợ giảng đi hỗ trợ học viên đóng gói skill xuat-word-luan-van.",
+      20: "Khoảnh khắc Aha Moment (Kích hoạt Skill trên Bài báo số 2): Giảng viên đưa file bài báo số 2 (du-lieu-mau/demo/bai-bao-so-02-demo-genai-hoc-thuat-2026.docx), chỉ gõ 1 câu tự nhiên: 'Phân tích và bóc tách bài báo...'. Cho lớp thấy Claude tự động 'Using skill: phan-tich-bai-bao' và trả về đủ 5 mục (N=412, R2=0.518, rủi ro liêm chính AIR beta=-0.215, hạn chế thiếu ngành y dược). Nhấn mạnh: Bài 1 mất 5 lượt, bài 2 chỉ mất 1 câu lệnh!",
+      21: "Chiếu bảng tra nhanh prompt và hướng dẫn xử lý sự cố (reload VS Code khi Claude chưa nhận skill mới).",
+      22: "Tổng kết, điểm lại checklist 5 sản phẩm cầm về và giới thiệu Buổi 03: Phân tích dữ liệu khảo sát CSV với Cronbach's Alpha và Hồi quy."
+    };
+
+    /* BUILD OVERVIEW THUMBNAILS */
+    function buildOverview() {
+      overviewGrid.innerHTML = '';
+      document.querySelectorAll('.slide-page').forEach((slide, idx) => {
+        const num = idx + 1;
+        const title = slide.getAttribute('data-title') || `Slide ${num}`;
+        const card = document.createElement('div');
+        card.className = `overview-thumb ${num === currentSlide ? 'active' : ''}`;
+        card.innerHTML = `
+          <span class="thumb-num">SLIDE ${num < 10 ? '0' + num : num}</span>
+          <div class="thumb-title">${title}</div>
+        `;
+        card.onclick = () => {
+          goToSlide(num);
+          toggleOverview();
+        };
+        overviewGrid.appendChild(card);
+      });
+    }
+
+    /* SLIDE NAVIGATION ENGINE */
+    function goToSlide(num) {
+      if (num < 1 || num > totalSlides) return;
+      document.querySelectorAll('.slide-page').forEach(page => page.classList.remove('active'));
+      const target = document.querySelector(`.slide-page[data-slide="${num}"]`);
+      if (target) {
+        target.classList.add('active');
+        target.scrollTop = 0;
+      }
+
+      currentSlide = num;
+      slideIndicator.textContent = `Slide ${currentSlide < 10 ? '0' + currentSlide : currentSlide} / ${totalSlides}`;
+      topProgressFill.style.width = `${(currentSlide / totalSlides) * 100}%`;
+
+      // Update speaker note
+      speakerNoteContent.textContent = speakerNotes[currentSlide] || "Không có ghi chú thêm cho slide này.";
+
+      // Update active card in modal if open
+      document.querySelectorAll('.overview-thumb').forEach((thumb, idx) => {
+        thumb.classList.toggle('active', idx + 1 === currentSlide);
+      });
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) goToSlide(currentSlide - 1);
+    }
+
+    function toggleOverview() {
+      overviewModal.classList.toggle('active');
+      if (overviewModal.classList.contains('active')) {
+        buildOverview();
+      }
+    }
+
+    function toggleNotes() {
+      speakerDrawer.classList.toggle('active');
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+      const btn = document.getElementById('btnTheme');
+      if (document.body.classList.contains('light-theme')) {
+        btn.textContent = '🌙 Nền tối [T]';
+      } else {
+        btn.textContent = '☀️ Nền sáng [T]';
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    /* 1-CLICK COPY PROMPT */
+    function copyPrompt(elementId, btn) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        if (btn) {
+          const original = btn.innerHTML;
+          btn.innerHTML = '✓ Đã chép!';
+          btn.style.background = 'var(--brand-emerald)';
+          btn.style.color = '#070b14';
+          setTimeout(() => {
+            btn.innerHTML = original;
+            btn.style.background = '';
+            btn.style.color = '';
+          }, 2000);
+        }
+        showToast("✓ Đã sao chép prompt vào Clipboard!");
+      }).catch(() => {
+        showToast("Vui lòng chọn văn bản và sao chép thủ công.");
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastMsg');
+      toast.textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2500);
+    }
+
+    /* PRACTICE COUNTDOWN TIMER (Slide 19) */
+    let timerSec = 25 * 60;
+    let timerRef = null;
+    const timerDisplay = document.getElementById('timerDisplay');
+    const btnTimerStart = document.getElementById('btnTimerStart');
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timerSec / 60);
+      const s = timerSec % 60;
+      timerDisplay.textContent = `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+    }
+
+    function toggleTimer() {
+      if (timerRef) {
+        clearInterval(timerRef);
+        timerRef = null;
+        btnTimerStart.textContent = 'Tiếp tục';
+        btnTimerStart.classList.remove('btn-keynote-primary');
+      } else {
+        btnTimerStart.textContent = 'Tạm dừng';
+        btnTimerStart.classList.add('btn-keynote-primary');
+        timerRef = setInterval(() => {
+          if (timerSec > 0) {
+            timerSec--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerRef);
+            timerRef = null;
+            btnTimerStart.textContent = 'Hoàn thành';
+            showToast("⏰ Đã hết 25 phút thực hành!");
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      if (timerRef) {
+        clearInterval(timerRef);
+        timerRef = null;
+      }
+      timerSec = 25 * 60;
+      updateTimerDisplay();
+      btnTimerStart.textContent = 'Bắt đầu';
+      btnTimerStart.classList.add('btn-keynote-primary');
+    }
+
+    /* KEYBOARD SHORTCUTS */
+    document.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        toggleOverview();
+      } else if (e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        toggleTheme();
+      } else if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        goToSlide(1);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        goToSlide(totalSlides);
+      } else if (e.key === 'Escape') {
+        if (overviewModal.classList.contains('active')) toggleOverview();
+        if (speakerDrawer.classList.contains('active')) toggleNotes();
+      }
+    });
+
+    /* BUTTON LISTENERS */
+    document.getElementById('btnNext').addEventListener('click', nextSlide);
+    document.getElementById('btnPrev').addEventListener('click', prevSlide);
+    document.getElementById('btnOverview').addEventListener('click', toggleOverview);
+    document.getElementById('btnNotes').addEventListener('click', toggleNotes);
+    document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+    document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+
+    // Initial load
+    goToSlide(1);
+  </script>
+</body>
+</html>

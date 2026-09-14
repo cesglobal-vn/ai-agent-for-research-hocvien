@@ -1,0 +1,9 @@
+**ab05**
+
+> ⚠️ \*Dữ liệu mô phỏng để luyện tập. Tác giả, tạp chí và năm xuất bản đều \*\*hư cấu\*\*, không dùng để trích dẫn.
+
+Tiêu đề:\*\* Liêm chính học thuật trong kỷ nguyên ChatGPT: nhận thức và hành vi của sinh viên đại học
+
+Tác giả & năm:\*\* Cao Thị Hồng Nhung & Lý Thành Trung (2023) — \*Tạp chí Đạo đức và Chính sách Giáo dục\* (hư cấu)
+
+Abstract:\*\* Nghiên cứu khảo sát nhận thức và hành vi của sinh viên về liêm chính học thuật khi sử dụng ChatGPT trong làm bài tập và tiểu luận. Dữ liệu được thu thập từ 537 sinh viên thông qua bảng hỏi, kết hợp phỏng vấn bán cấu trúc 22 sinh viên và 6 giảng viên. Kết quả cho thấy ranh giới giữa "hỗ trợ học tập hợp lệ" và "gian lận học thuật" còn mơ hồ trong nhận thức của sinh viên: 41% cho rằng dùng ChatGPT viết nháp là chấp nhận được, nhưng chỉ 17% sẵn sàng khai báo việc đó. Phân tích định tính chỉ ra ba yếu tố chi phối hành vi: áp lực điểm số, mức độ rõ ràng của quy định nhà trường, và cảm nhận về nguy cơ bị phát hiện. Sinh viên mong muốn có hướng dẫn cụ thể thay vì lệnh cấm chung chung. Nghiên cứu đề xuất các trường xây dựng chính sách sử dụng AI minh bạch, kèm yêu cầu khai báo và thiết kế lại hình thức đánh giá để giảm động cơ gian lận.

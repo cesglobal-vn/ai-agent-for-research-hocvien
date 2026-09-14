@@ -1,0 +1,2262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khóa Học AI Cho Nghiên Cứu (K3) - Buổi 03: CLAUDE.md Global, MarkItDown & Phân Tích Dữ Liệu NCKH | CES Global</title>
+  
+  <style>
+    /* ==========================================================================
+       FONT MANDATE: 100% Times New Roman theo quy chuẩn toàn cục bắt buộc
+       Monospace chỉ áp dụng cho khối Code, Terminal, Prompt và Timer.
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Times New Roman', Times, serif !important;
+    }
+
+    code, pre, .font-mono, .terminal-code, .timer-digits-text {
+      font-family: Consolas, 'Courier New', 'JetBrains Mono', monospace !important;
+    }
+
+    :root {
+      /* Theme Canvas (Executive Academic Dark) */
+      --canvas-bg: #070b14;
+      --surface-base: #0d1527;
+      --surface-card: rgba(18, 29, 53, 0.88);
+      --surface-card-hover: rgba(26, 42, 77, 0.98);
+      --surface-glass: rgba(15, 23, 42, 0.85);
+      --terminal-bg: #050811;
+
+      /* Borders & Shadows */
+      --border-subtle: #1e2c4f;
+      --border-medium: #314878;
+      --border-highlight: #38bdf8;
+      --shadow-elevation: 0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 24px rgba(56, 189, 248, 0.08);
+      --shadow-card: 0 6px 20px -2px rgba(0, 0, 0, 0.4);
+
+      /* Typography Colors */
+      --text-main: #f8fafc;
+      --text-body: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --text-white: #ffffff;
+
+      /* Vibrant Academic Accent Colors */
+      --brand-blue: #38bdf8;
+      --brand-blue-glow: rgba(56, 189, 248, 0.25);
+      --brand-blue-deep: #0284c7;
+      --brand-gold: #f59e0b;
+      --brand-gold-glow: rgba(245, 158, 11, 0.25);
+      --brand-emerald: #10b981;
+      --brand-rose: #f43f5e;
+      --brand-purple: #c084fc;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Light Theme Switcher */
+    body.light-theme {
+      --canvas-bg: #f8fafc;
+      --surface-base: #ffffff;
+      --surface-card: rgba(255, 255, 255, 0.95);
+      --surface-card-hover: #ffffff;
+      --surface-glass: rgba(255, 255, 255, 0.9);
+      --terminal-bg: #0f172a;
+
+      --border-subtle: #e2e8f0;
+      --border-medium: #cbd5e1;
+      --border-highlight: #0284c7;
+      --shadow-elevation: 0 16px 36px -8px rgba(15, 23, 42, 0.12);
+      --shadow-card: 0 4px 14px -2px rgba(15, 23, 42, 0.06);
+
+      --text-main: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --text-white: #ffffff;
+
+      --brand-blue: #0284c7;
+      --brand-blue-glow: rgba(2, 132, 199, 0.15);
+      --brand-blue-deep: #0369a1;
+      --brand-gold: #d97706;
+      --brand-gold-glow: rgba(217, 119, 6, 0.15);
+      --brand-emerald: #059669;
+      --brand-rose: #e11d48;
+      --brand-purple: #7c3aed;
+    }
+
+    body {
+      background-color: var(--canvas-bg);
+      color: var(--text-main);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    /* Ambient Dynamic Mesh Canvas */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 85% 20%, rgba(192, 132, 252, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.06) 0%, transparent 55%),
+        linear-gradient(180deg, rgba(7, 11, 20, 0.95) 0%, var(--canvas-bg) 100%);
+      transition: background 0.4s ease;
+    }
+
+    body.light-theme .ambient-canvas {
+      background: 
+        radial-gradient(circle at 15% 15%, rgba(2, 132, 199, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 85% 20%, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 50% 85%, rgba(217, 119, 6, 0.04) 0%, transparent 55%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    /* TOP FLOATING NAVIGATION BAR */
+    .top-navbar {
+      position: relative;
+      z-index: 50;
+      height: 56px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ces-logo-badge {
+      background: linear-gradient(135deg, #0284c7 0%, #6366f1 100%);
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: bold;
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.08em;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+    }
+
+    .course-breadcrumb {
+      font-size: 0.96rem;
+      font-weight: bold;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .session-chip {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--brand-blue);
+      font-size: 0.82rem;
+      font-weight: bold;
+      padding: 2px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-highlight);
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slide-badge {
+      background: var(--surface-base);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-weight: bold;
+      font-size: 0.88rem;
+      padding: 4px 14px;
+      border-radius: 999px;
+    }
+
+    .nav-buttons-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-keynote {
+      background: var(--surface-base);
+      border: 1px solid var(--border-medium);
+      color: var(--text-body);
+      font-size: 0.84rem;
+      font-weight: bold;
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn-keynote:hover {
+      background: var(--surface-card);
+      border-color: var(--brand-blue);
+      color: var(--brand-blue);
+      transform: translateY(-1px);
+    }
+
+    .btn-keynote-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: #ffffff;
+      border-color: var(--brand-blue);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-keynote-primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+      color: #ffffff;
+    }
+
+    .top-progress-track {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--border-subtle);
+    }
+
+    .top-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--brand-blue) 0%, var(--brand-purple) 100%);
+      width: 4.54%;
+      transition: width 0.3s ease;
+    }
+
+    /* SLIDE CANVAS CONTAINER */
+    .slide-canvas {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      width: 100vw;
+      height: calc(100vh - 56px);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .slide-page {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 24px 60px 24px;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+      animation: keynoteFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .slide-page.active {
+      display: flex;
+    }
+
+    @keyframes keynoteFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* TYPOGRAPHY */
+    .slide-header {
+      margin-bottom: 14px;
+    }
+
+    .slide-tagline {
+      display: inline-block;
+      font-size: 0.88rem;
+      font-weight: bold;
+      color: var(--brand-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .slide-title {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: var(--text-main);
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+    }
+
+    .slide-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .slide-content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      margin: 10px 0;
+    }
+
+    .slide-footer-bar {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.86rem;
+      color: var(--text-dim);
+    }
+
+    .footer-quote {
+      font-style: italic;
+      color: var(--text-muted);
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* GRIDS & LAYOUTS */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .grid-2-1 {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    .grid-1-2 {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 20px;
+    }
+
+    /* BENTO CARD & ACADEMIC BOXES */
+    .card-academic {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 22px;
+      box-shadow: var(--shadow-card);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .card-academic:hover {
+      border-color: var(--border-highlight);
+      background: var(--surface-card-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-elevation);
+    }
+
+    .card-academic.border-gold { border-left: 4px solid var(--brand-gold); }
+    .card-academic.border-blue { border-left: 4px solid var(--brand-blue); }
+    .card-academic.border-emerald { border-left: 4px solid var(--brand-emerald); }
+    .card-academic.border-rose { border-left: 4px solid var(--brand-rose); }
+    .card-academic.border-purple { border-left: 4px solid var(--brand-purple); }
+
+    .card-badge {
+      align-self: flex-start;
+      font-size: 0.76rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--brand-blue); }
+    .badge-gold { background: rgba(245, 158, 11, 0.15); color: var(--brand-gold); }
+    .badge-emerald { background: rgba(16, 185, 129, 0.15); color: var(--brand-emerald); }
+    .badge-rose { background: rgba(244, 63, 94, 0.15); color: var(--brand-rose); }
+    .badge-purple { background: rgba(192, 132, 252, 0.15); color: var(--brand-purple); }
+
+    .card-title {
+      font-size: 1.18rem;
+      font-weight: bold;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .card-text {
+      font-size: 0.94rem;
+      color: var(--text-body);
+      line-height: 1.5;
+    }
+
+    /* ACADEMIC DATA TABLES */
+    .table-academic {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      margin: 6px 0;
+    }
+
+    .table-academic th, .table-academic td {
+      padding: 9px 12px;
+      border: 1px solid var(--border-subtle);
+      text-align: left;
+    }
+
+    .table-academic th {
+      background: rgba(30, 44, 79, 0.6);
+      color: var(--brand-blue);
+      font-weight: bold;
+      font-size: 0.92rem;
+    }
+
+    body.light-theme .table-academic th {
+      background: #eff6ff;
+      color: #0369a1;
+    }
+
+    .table-academic tr:hover td {
+      background: rgba(56, 189, 248, 0.04);
+    }
+
+    .table-academic .col-center { text-align: center; }
+    .table-academic .col-right { text-align: right; }
+
+    /* PROMPT TERMINAL BOX WITH 1-CLICK COPY */
+    .prompt-terminal {
+      background: var(--terminal-bg);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .terminal-header {
+      background: rgba(15, 23, 42, 0.95);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .terminal-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: bold;
+    }
+
+    .btn-copy-prompt {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid var(--border-highlight);
+      color: var(--brand-blue);
+      font-size: 0.78rem;
+      font-weight: bold;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-copy-prompt:hover {
+      background: var(--brand-blue);
+      color: #070b14;
+    }
+
+    .terminal-body {
+      padding: 14px 18px;
+      overflow-x: auto;
+      max-height: 240px;
+    }
+
+    .terminal-code {
+      font-size: 0.88rem;
+      color: #38bdf8;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    body.light-theme .terminal-code {
+      color: #0284c7;
+    }
+
+    /* COMPARE BOX (BEFORE / AFTER) */
+    .compare-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .compare-box {
+      border-radius: var(--radius-lg);
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .compare-pain {
+      background: rgba(244, 63, 94, 0.06);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .compare-gain {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .compare-title {
+      font-size: 1.18rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .compare-pain .compare-title { color: var(--brand-rose); }
+    .compare-gain .compare-title { color: var(--brand-emerald); }
+
+    .compare-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.94rem;
+      color: var(--text-body);
+    }
+
+    .compare-list li {
+      position: relative;
+      padding-left: 22px;
+      line-height: 1.4;
+    }
+
+    .compare-pain li::before {
+      content: '✕';
+      position: absolute;
+      left: 0;
+      color: var(--brand-rose);
+      font-weight: bold;
+    }
+
+    .compare-gain li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--brand-emerald);
+      font-weight: bold;
+    }
+
+    /* STEP FLOW HORIZONTAL */
+    .flow-steps-bar {
+      display: flex;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .step-node {
+      flex: 1;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .step-number {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--brand-blue);
+      color: #070b14;
+      font-weight: bold;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+
+    .step-title {
+      font-size: 1.02rem;
+      font-weight: bold;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .step-desc {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      line-height: 1.38;
+    }
+
+    /* PRACTICE COUNTDOWN TIMER */
+    .timer-banner-box {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(18, 29, 53, 0.9) 100%);
+      border: 1px solid var(--border-highlight);
+      border-radius: var(--radius-lg);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .timer-clock-display {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .timer-digits-text {
+      font-size: 2.6rem;
+      font-weight: bold;
+      color: var(--brand-gold);
+      letter-spacing: 2px;
+    }
+
+    .timer-info-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    .timer-info-sub {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    /* OVERVIEW MODAL GRID */
+    .overview-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 11, 20, 0.92);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      padding: 32px 56px;
+      overflow-y: auto;
+    }
+
+    .overview-overlay.active {
+      display: flex;
+    }
+
+    .overview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .overview-title {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .overview-thumb {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .overview-thumb:hover, .overview-thumb.active {
+      border-color: var(--brand-blue);
+      background: var(--surface-card-hover);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .thumb-num {
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: var(--brand-blue);
+    }
+
+    .thumb-title {
+      font-size: 0.94rem;
+      font-weight: bold;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    /* SPEAKER NOTES DRAWER */
+    .speaker-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface-base);
+      border-top: 2px solid var(--brand-blue);
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.5);
+      z-index: 80;
+      padding: 18px 48px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 230px;
+      overflow-y: auto;
+    }
+
+    .speaker-drawer.active {
+      transform: translateY(0);
+    }
+
+    .speaker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .speaker-title {
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: var(--brand-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .speaker-content {
+      font-size: 0.98rem;
+      color: var(--text-body);
+      line-height: 1.5;
+    }
+
+    /* TOAST NOTIFICATION */
+    .toast-box {
+      position: fixed;
+      bottom: 24px;
+      right: 32px;
+      background: var(--brand-emerald);
+      color: #070b14;
+      font-weight: bold;
+      font-size: 0.92rem;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      z-index: 120;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      animation: toastFade 0.25s ease-out;
+    }
+
+    @keyframes toastFade {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-canvas"></div>
+
+  <!-- TOP NAVBAR -->
+  <header class="top-navbar">
+    <div class="brand-section">
+      <span class="ces-logo-badge">CES GLOBAL</span>
+      <div class="course-breadcrumb">
+        <span>Khóa Học AI Cho Nghiên Cứu (K3)</span>
+        <span class="session-chip">Buổi 03 / 04</span>
+      </div>
+    </div>
+
+    <div class="nav-status">
+      <span class="slide-badge" id="slideIndicator">Slide 01 / 22</span>
+      <div class="nav-buttons-group">
+        <button class="btn-keynote" id="btnPrev">◀ Trước</button>
+        <button class="btn-keynote btn-keynote-primary" id="btnNext">Sau ▶</button>
+        <button class="btn-keynote" id="btnOverview">⊞ Tổng quan [O]</button>
+        <button class="btn-keynote" id="btnNotes">📝 Ghi chú [N]</button>
+        <button class="btn-keynote" id="btnTheme">☀️ Nền sáng [T]</button>
+        <button class="btn-keynote" id="btnFullscreen">⛶ Toàn màn hình [F]</button>
+      </div>
+    </div>
+
+    <div class="top-progress-track">
+      <div class="top-progress-fill" id="topProgressFill"></div>
+    </div>
+  </header>
+
+  <!-- SLIDE CANVAS CONTAINER -->
+  <main class="slide-canvas">
+
+    <!-- SLIDE 01: TITLE -->
+    <section class="slide-page active" data-slide="1" data-title="Tiêu đề: CLAUDE.md Global, MarkItDown & Dữ Liệu NCKH">
+      <div class="slide-header">
+        <span class="slide-tagline">🎓 Khóa K3 · AI Agent Cho Nghiên Cứu Khoa Học & Luận Án Tiến Sĩ</span>
+        <h1 class="slide-title">BUỔI 03: KIẾN TRÚC CLAUDE.MD 2 TẦNG, TỐI ƯU TOKEN<br>VỚI MARKITDOWN & PHÂN TÍCH DỮ LIỆU NCKH</h1>
+        <p class="slide-subtitle">Từ Hiến pháp cá nhân Global đến bộ dữ liệu 320 mẫu khảo sát · Làm sạch, Cronbach Alpha, Hồi quy & Trung gian</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-3">
+          <div class="card-academic border-blue">
+            <span class="card-badge badge-blue">Trụ Cột 1</span>
+            <h3 class="card-title">Kiến Trúc CLAUDE.md 2 Tầng</h3>
+            <p class="card-text">Phân biệt <code>Global</code> (toàn cục máy tính) và <code>Local</code> (dự án). Cài đặt 5 Super Rules: tự động đánh số file, backup và chuẩn Times New Roman.</p>
+          </div>
+          <div class="card-academic border-gold">
+            <span class="card-badge badge-gold">Trụ Cột 2</span>
+            <h3 class="card-title">Tiết Kiệm 80% Token</h3>
+            <p class="card-text">Dùng công cụ Microsoft MarkItDown bóc tách PDF/Word 30–50 trang thành Markdown sạch lưu ngay trong project. Bảo vệ Context Window tuyệt đối.</p>
+          </div>
+          <div class="card-academic border-emerald">
+            <span class="card-badge badge-emerald">Trụ Cột 3</span>
+            <h3 class="card-title">Phân Tích Dữ Liệu & Khai Báo AI</h3>
+            <p class="card-text">Làm sạch 320 mẫu thành 302 mẫu sạch; chạy Cronbach Alpha; hồi quy và kiểm định trung gian Bootstrap 95%; báo cáo 8 phần có Tuyên bố dùng AI.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Khoa học chuẩn mực bắt đầu từ dữ liệu trung thực, kỷ luật hệ thống và sự minh bạch liêm chính."</span>
+        <div class="footer-actions">
+          <span class="card-badge badge-blue">Thời lượng: 150 Phút</span>
+          <span class="card-badge badge-gold">Live Zoom Masterclass</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 02: 8 CHUẨN ĐẦU RA -->
+    <section class="slide-page" data-slide="2" data-title="Mục Tiêu & 8 Chuẩn Đầu Ra">
+      <div class="slide-header">
+        <span class="slide-tagline">🎯 Cam Kết Đầu Ra Buổi 03</span>
+        <h1 class="slide-title">MỤC TIÊU & 8 CHUẨN ĐẦU RA BẮT BUỘC</h1>
+        <p class="slide-subtitle">Sau 150 phút tối nay, bạn sẽ hoàn toàn làm chủ hệ thống trợ lý nghiên cứu ở cấp độ chuyên sâu</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-4">
+          <div class="card-academic">
+            <span class="card-badge badge-blue">Chuẩn 1 & 2</span>
+            <h3 class="card-title">2 Tầng CLAUDE.md & Super Rules</h3>
+            <p class="card-text">Làm chủ Global vs Local; cài Super Rule tự động đánh số file <code>01_...</code>, lưu trữ <code>_backup/</code> và cấm bịa số.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-gold">Chuẩn 3 & 4</span>
+            <h3 class="card-title">MarkItDown & Làm Sạch Dữ Liệu</h3>
+            <p class="card-text">Cài đặt <code>markitdown</code> ép gọn PDF/DOCX; phát hiện 14 ô trống và 4 outlier để làm sạch 320 mẫu về 302 mẫu chuẩn.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-emerald">Chuẩn 5 & 6</span>
+            <h3 class="card-title">Cronbach Alpha & Hồi Quy</h3>
+            <p class="card-text">Kiểm định thang đo đạt $\alpha \ge 0.80$; chạy hồi quy tuyến tính $R^2 \approx 0.26$ và kiểm định trung gian Bootstrap 95%.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-purple">Chuẩn 7 & 8</span>
+            <h3 class="card-title">Báo Cáo APA & Khai Báo AI</h3>
+            <p class="card-text">Viết báo cáo 8 phần cẩn trọng (Hedging), làm mượt văn giữ 100% số và thêm dòng Tuyên bố dùng AI theo chuẩn Elsevier.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Làm tuần tự từng bước — Mỗi con số phân tích đều được kiểm chứng chéo với Bảng số chuẩn."</span>
+        <span class="card-badge badge-emerald">Bộ dữ liệu: 320 Phiếu DNNVV</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 03: CLAUDE.MD GLOBAL VS PROJECT -->
+    <section class="slide-page" data-slide="3" data-title="Kiến Trúc CLAUDE.md: Global vs Local">
+      <div class="slide-header">
+        <span class="slide-tagline">🏛️ Kiến Trúc Hệ Thống Cấu Hình 2 Tầng</span>
+        <h1 class="slide-title">PHÂN BIỆT CLAUDE.MD GLOBAL VS PROJECT</h1>
+        <p class="slide-subtitle">Nguyên tắc vàng: "Những gì áp dụng cho cả đời nghiên cứu thì để Global — Đề tài cụ thể thì để Local"</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="card-academic border-blue">
+            <span class="card-badge badge-blue">Tầng 1: Global CLAUDE.md</span>
+            <h3 class="card-title">Hiến Pháp & Kỷ Luật Nghiên Cứu</h3>
+            <p class="card-text" style="margin-bottom: 8px;">• <strong>Vị trí:</strong> <code>~/.claude/CLAUDE.md</code> (Thư mục User máy tính).</p>
+            <p class="card-text" style="margin-bottom: 8px;">• <strong>Phạm vi:</strong> Toàn bộ thư mục và dự án mở trên máy.</p>
+            <p class="card-text" style="margin-bottom: 8px;">• <strong>Nội dung:</strong> Danh tính NCS/Giảng viên, cấm bịa số liệu, tự động đánh số thứ tự file, phông Times New Roman.</p>
+            <p class="card-text">• <strong>Tần suất:</strong> Cài 1 lần, áp dụng tự động cho mọi đề tài.</p>
+          </div>
+          <div class="card-academic border-gold">
+            <span class="card-badge badge-gold">Tầng 2: Local CLAUDE.md</span>
+            <h3 class="card-title">Hồ Sơ Chuyên Môn Của Từng Đề Tài</h3>
+            <p class="card-text" style="margin-bottom: 8px;">• <strong>Vị trí:</strong> <code>./CLAUDE.md</code> (Ngay tại gốc thư mục nghiên cứu).</p>
+            <p class="card-text" style="margin-bottom: 8px;">• <strong>Phạm vi:</strong> Duy nhất thư mục đề tài đó.</p>
+            <p class="card-text" style="margin-bottom: 8px;">• <strong>Nội dung:</strong> Tên đề tài, câu hỏi nghiên cứu, giả thuyết $H_1, H_2$, codebook biến số, định dạng riêng của tạp chí mục tiêu.</p>
+            <p class="card-text">• <strong>Nguyên tắc xung đột:</strong> <em>Cụ thể hơn sẽ thắng (Local ghi đè Global)</em>.</p>
+          </div>
+        </div>
+
+        <div class="card-academic" style="background: rgba(56, 189, 248, 0.06); border-color: var(--border-highlight); padding: 12px 18px;">
+          <p style="font-size: 0.95rem; color: var(--text-main);">
+            ⚡ <strong>Thao tác then chốt:</strong> Sau khi chỉnh sửa hoặc tạo mới file Global, <strong>BẮT BUỘC PHẢI MỞ PHIÊN MỚI</strong> (chạy lại lệnh <code>claude</code> trong Terminal hoặc New Session) để AI nạp quy tắc mới!
+          </p>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Global = Nội quy công ty / Hiến pháp; Local = Quy trình của từng phòng ban."</span>
+        <span class="card-badge badge-blue">Quy tắc: Cụ thể hơn sẽ thắng</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 04: 5 SUPER RULES BẮT BUỘC -->
+    <section class="slide-page" data-slide="4" data-title="5 Super Rules Trong Global CLAUDE.md">
+      <div class="slide-header">
+        <span class="slide-tagline">⚔️ 5 Quy Tắc Thép Cho Nhà Nghiên Cứu</span>
+        <h1 class="slide-title">5 SUPER RULES CÀI VÀO MÁY TÍNH CỦA BẠN</h1>
+        <p class="slide-subtitle">Đảm bảo dự án nghiên cứu luôn ngăn nắp, dữ liệu an toàn và số liệu chính xác 100%</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="flow-steps-bar">
+          <div class="step-node">
+            <div class="step-number">1</div>
+            <h4 class="step-title">Tự Đánh Số File</h4>
+            <p class="step-desc">Agent tự quét thư mục và gán tiền tố tuần tự (<code>01_...</code>, <code>02_...</code>). Không đặt tên tùy tiện.</p>
+          </div>
+          <div class="step-node">
+            <div class="step-number">2</div>
+            <h4 class="step-title">An Toàn & Backup</h4>
+            <p class="step-desc">Cấm lệnh xóa hàng loạt (<code>rm -rf</code>, <code>del *.*</code>). Bản cũ tự chuyển vào <code>_backup/</code>.</p>
+          </div>
+          <div class="step-node">
+            <div class="step-number">3</div>
+            <h4 class="step-title">Chống Bịa Số</h4>
+            <p class="step-desc">Số liệu phải dẫn từ file nguồn. Thiếu ghi <code>[Chờ bổ sung]</code>, cấm tự suy diễn con số.</p>
+          </div>
+          <div class="step-node">
+            <div class="step-number">4</div>
+            <h4 class="step-title">Times New Roman</h4>
+            <p class="step-desc">100% Word, PDF, Excel tạo ra dùng phông Times New Roman theo chuẩn NĐ 30/2020 và APA 7th.</p>
+          </div>
+          <div class="step-node">
+            <div class="step-number">5</div>
+            <h4 class="step-title">Bố Cục Bảng Biểu</h4>
+            <p class="step-desc">Tách riêng cột STT căn giữa (rộng 6-8), cột số căn phải, dòng động chống dồn chữ, đè dòng.</p>
+          </div>
+        </div>
+
+        <div class="compare-container" style="margin-top: 4px;">
+          <div class="compare-box compare-pain">
+            <div class="compare-title">✕ Khi chưa cài Super Rules</div>
+            <ul class="compare-list">
+              <li>File rác lộn xộn: <code>de-cuong.md</code>, <code>de-cuong-moi.md</code>, <code>final-v2.md</code>.</li>
+              <li>Agent tự động xóa đè làm mất công sức nghiên cứu đã chỉnh sửa trước đó.</li>
+              <li>Agent bịa ra số liệu p-value hoặc Beta "đẹp" mà không có kiểm định thật.</li>
+            </ul>
+          </div>
+          <div class="compare-box compare-gain">
+            <div class="compare-title">✓ Khi đã cài Super Rules vào Global</div>
+            <ul class="compare-list">
+              <li>Cây thư mục tuần tự tuyệt đẹp: <code>01_...</code>, <code>02_...</code>, <code>03_...</code>.</li>
+              <li>Lịch sử nghiên cứu được bảo toàn nguyên vẹn trong <code>_backup/</code>.</li>
+              <li>Số liệu trung thực 100%, bảo vệ danh dự khoa học trước Hội đồng.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Quy tắc nghiêm cẩn bảo vệ nhà nghiên cứu khỏi những sai sót tai hại."</span>
+        <span class="card-badge badge-gold">Kỷ luật = Tự do học thuật</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 05: THỰC HÀNH P1 & P2 -->
+    <section class="slide-page" data-slide="5" data-title="Thực Hành: Cài Global CLAUDE.md & Test">
+      <div class="slide-header">
+        <span class="slide-tagline">💻 Thực Hành Tại Chỗ (Prompt P1 & P2)</span>
+        <h1 class="slide-title">CÀI ĐẶT GLOBAL CLAUDE.MD & KIỂM THỬ</h1>
+        <p class="slide-subtitle">Chạy prompt cài đặt hiến pháp cá nhân và chứng kiến phép màu tự động đánh số file</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">PROMPT P1 (Cài đặt Global CLAUDE.md)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP1', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP1">Tạo hoặc cập nhật file CLAUDE.md cấp Global tại ~/.claude/CLAUDE.md:
+- Vai trò: Trợ lý Nghiên cứu Khoa học cao cấp phục vụ Nghiên cứu sinh và Giảng viên.
+- Phong cách: Khách quan, trung thực học thuật, tiếng Việt chuẩn mực, không dùng emoji trong văn bản khoa học.
+- 5 SUPER RULES:
+  1. Tự động quét thư mục để đánh số thứ tự tiếp theo cho file mới (01_..., 02_...).
+  2. Không xóa đè, chuyển bản cũ vào _backup/. Cấm lệnh xóa hàng loạt (rm -rf, del *.*).
+  3. Kỷ luật chống bịa số: Số liệu phải trích dẫn dòng/file nguồn. Thiếu ghi [Chờ bổ sung].
+  4. 100% file tài liệu Word (.docx), PDF, Excel xuất ra bắt buộc dùng phông chữ Times New Roman chuẩn NĐ 30/2020 và APA 7.
+  5. Bố cục bảng biểu khoa học, tách riêng cột STT căn giữa, cột số căn phải, chống dồn chữ đè dòng.</pre>
+            </div>
+          </div>
+
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">PROMPT P2 (Kiểm tra Super Rule hoạt động)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP2', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP2">Hãy tạo giúp tôi 1 file ghi chú tóm tắt 3 mục tiêu nghiên cứu trọng tâm của luận án vào thư mục hiện tại.
+
+[LƯU Ý: Không dặn Agent đặt tên file là gì, để xem nó có tự động gán tiền tố 01_... hay không]</pre>
+              <div style="margin-top: 12px; padding: 8px 12px; background: rgba(16, 185, 129, 0.12); border-left: 3px solid var(--brand-emerald); border-radius: 4px;">
+                <p style="font-size: 0.88rem; color: var(--text-main);">
+                  ✓ <strong>Kết quả mong đợi:</strong> Agent quét thư mục và tự đặt tên file là <code>01_muc-tieu-nghien-cuu.md</code> mà không cần nhắc!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Nhớ mở phiên làm việc mới sau khi chạy Prompt P1 để Agent nạp Global CLAUDE.md!"</span>
+        <span class="card-badge badge-emerald">Thao tác: Đóng & Mở lại phiên</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 06: BÀI TOÁN TOKEN & MARKITDOWN -->
+    <section class="slide-page" data-slide="6" data-title="Bài Toán Token & Microsoft MarkItDown">
+      <div class="slide-header">
+        <span class="slide-tagline">📉 Tối Ưu Hóa Tài Nguyên & Context Window</span>
+        <h1 class="slide-title">BÀI TOÁN "CƠN ĐÓI TOKEN" & MICROSOFT MARKITDOWN</h1>
+        <p class="slide-subtitle">Giải pháp bóc tách tài liệu khoa học phức tạp giúp tiết kiệm 70% – 90% lượng token tiêu thụ</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="card-academic border-rose">
+            <span class="card-badge badge-rose">Nỗi Đau NCKH: Cơn Đói Token</span>
+            <h3 class="card-title">Khi ném thẳng file PDF/Word cho AI</h3>
+            <p class="card-text" style="margin-bottom: 8px;">• File PDF 30 trang hoặc Word đầy định dạng nhị phân, font chữ, style XML ẩn có thể ngốn <strong>40.000 – 80.000 tokens</strong>.</p>
+            <p class="card-text" style="margin-bottom: 8px;">• <strong>Tràn Context Window:</strong> AI bị "ngáo", quên mất giả thuyết nghiên cứu ban đầu, trả lời vòng vo mất trí nhớ.</p>
+            <p class="card-text">• <strong>Tốn kém & Chậm chạp:</strong> Chi phí tăng vọt, tốc độ phản hồi kéo dài hàng phút.</p>
+          </div>
+
+          <div class="card-academic border-emerald">
+            <span class="card-badge badge-emerald">Giải Pháp: Microsoft MarkItDown</span>
+            <h3 class="card-title">Mã nguồn mở chính thức của Microsoft</h3>
+            <p class="card-text" style="margin-bottom: 8px;">• <strong>Cơ chế:</strong> Bóc tách ruột text và bảng biểu từ PDF/DOCX/XLSX/PPTX thành Markdown (<code>.md</code>) siêu tinh gọn.</p>
+            <p class="card-text" style="margin-bottom: 8px;">• <strong>Hiệu quả vượt trội:</strong> Giảm <strong>80% – 90% lượng token</strong> tiêu thụ. Tốc độ đọc tăng gấp 5 lần.</p>
+            <p class="card-text">• <strong>Bảo toàn dữ liệu:</strong> Giữ nguyên 100% cấu trúc tiêu đề, bảng biểu khoa học mà không còn rác định dạng.</p>
+          </div>
+        </div>
+
+        <div class="card-academic" style="background: rgba(18, 29, 53, 0.95); padding: 14px 22px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">CÙNG MỘT BÀI BÁO KHOA HỌC 25 TRANG:</span>
+              <div style="font-size: 1.15rem; font-weight: bold; color: var(--text-main); margin-top: 4px;">
+                Đọc PDF gốc: <span style="color: var(--brand-rose);">55.000 Tokens</span> ➔ Dùng MarkItDown sang .md: <span style="color: var(--brand-emerald);">3.800 Tokens (Giảm 93%!)</span>
+              </div>
+            </div>
+            <span class="card-badge badge-emerald" style="font-size: 0.95rem; padding: 6px 14px;">Tiết Kiệm 14 Lần Chi Phí</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Context Window là tài sản quý giá nhất của Agent — Đừng lấp đầy nó bằng rác định dạng nhị phân."</span>
+        <span class="card-badge badge-blue">Repo: microsoft/markitdown</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 07: PIPELINE & PROMPT P3 MARKITDOWN -->
+    <section class="slide-page" data-slide="7" data-title="Pipeline 3 Bước & Thực Hành MarkItDown">
+      <div class="slide-header">
+        <span class="slide-tagline">⚙️ Quy Trình Vận Hành Tiết Kiệm Token</span>
+        <h1 class="slide-title">PIPELINE 3 BƯỚC & THỰC HÀNH MARKITDOWN</h1>
+        <p class="slide-subtitle">Chuyển đổi tài liệu khảo cứu sang Markdown sạch lưu ngay tại dự án trước khi phân tích</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="flow-steps-bar" style="margin-bottom: 12px;">
+          <div class="step-node">
+            <div class="step-number">1</div>
+            <h4 class="step-title">Cài Đặt Công Cụ</h4>
+            <p class="step-desc">Mở Terminal gõ lệnh một lần duy nhất: <code>pip install markitdown</code>.</p>
+          </div>
+          <div class="step-node">
+            <div class="step-number">2</div>
+            <h4 class="step-title">Convert Sang .MD</h4>
+            <p class="step-desc">Chạy ngầm: <code>markitdown file-goc.pdf -o 02_tai-lieu.md</code> lưu ngay trong project.</p>
+          </div>
+          <div class="step-node">
+            <div class="step-number">3</div>
+            <h4 class="step-title">Agent Đọc File Sạch</h4>
+            <p class="step-desc">Agent đọc file <code>.md</code> đã loại bỏ rác: Tốc độ siêu tốc, tiết kiệm 90% token.</p>
+          </div>
+        </div>
+
+        <div class="prompt-terminal">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="terminal-dot dot-red"></span>
+              <span class="terminal-dot dot-yellow"></span>
+              <span class="terminal-dot dot-green"></span>
+            </div>
+            <span class="terminal-label">PROMPT P3 (Chuyển đổi tài liệu và trích xuất thông tin nghiên cứu)</span>
+            <button class="btn-copy-prompt" onclick="copyPrompt('codeP3', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body">
+            <pre class="terminal-code" id="codeP3">Hãy kiểm tra công cụ markitdown đã sẵn sàng chưa. Sau đó, hãy dùng markitdown để chuyển đổi file tài liệu khảo cứu trong thư mục du-lieu-mau/ (file .docx hoặc .pdf) thành một file markdown lưu tại thư mục hiện tại với tên đúng chuẩn Super Rule (ví dụ: 02_tong-quan-tai-lieu.md).
+Sau khi chuyển đổi xong, hãy đọc file markdown đó và tóm tắt:
+1. Mục tiêu nghiên cứu chính của tài liệu.
+2. Phương pháp nghiên cứu và cách thu thập dữ liệu được áp dụng.
+3. Ba phát hiện hoặc đóng góp lý thuyết quan trọng nhất.</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"File Markdown được lưu ngay trong project để bạn có thể xem lại bất kỳ lúc nào mà không cần mạng."</span>
+        <span class="card-badge badge-emerald">Cú pháp: pip install markitdown</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 08: TỔNG QUAN MÔ HÌNH NCKH MẪU -->
+    <section class="slide-page" data-slide="8" data-title="Mô Hình Nghiên Cứu Khảo Sát Mẫu">
+      <div class="slide-header">
+        <span class="slide-tagline">📊 Bối Cảnh Dữ Liệu Khảo Sát Thực Hành</span>
+        <h1 class="slide-title">MÔ HÌNH NGHIÊN CỨU & BỘ DỮ LIỆU KHẢO SÁT</h1>
+        <p class="slide-subtitle">Đề tài: Tác động của Lãnh đạo số đến Hiệu quả đổi mới qua vai trò trung gian của Chia sẻ tri thức</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-3">
+          <div class="card-academic border-blue">
+            <span class="card-badge badge-blue">Biến Độc Lập</span>
+            <h3 class="card-title">Lãnh Đạo Số (DL)</h3>
+            <p class="card-text">Gồm 4 item Likert 1–5 (<code>DL1 – DL4</code>): Tầm nhìn số hóa, thúc đẩy đổi mới công nghệ, trao quyền kỹ thuật số và văn hóa học tập liên tục.</p>
+          </div>
+          <div class="card-academic border-gold">
+            <span class="card-badge badge-gold">Biến Trung Gian (Mediator)</span>
+            <h3 class="card-title">Chia Sẻ Tri Thức (KS)</h3>
+            <p class="card-text">Gồm 4 item Likert 1–5 (<code>KS1 – KS4</code>): Chia sẻ kinh nghiệm chuyên môn, sẵn sàng hỗ trợ đồng nghiệp, đóng góp tri thức vào hệ thống nội bộ.</p>
+          </div>
+          <div class="card-academic border-emerald">
+            <span class="card-badge badge-emerald">Biến Phụ Thuộc</span>
+            <h3 class="card-title">Hiệu Quả Đổi Mới (IP)</h3>
+            <p class="card-text">Gồm 4 item Likert 1–5 (<code>IP1 – IP4</code>): Tốc độ phát triển sản phẩm mới, cải tiến quy trình vận hành, mức độ thành công khi thương mại hóa.</p>
+          </div>
+        </div>
+
+        <div class="card-academic" style="background: rgba(18, 29, 53, 0.85); padding: 14px 20px;">
+          <h4 style="font-size: 1rem; color: var(--brand-blue); margin-bottom: 6px;">📂 Hồ sơ bộ dữ liệu: <code>du-lieu-mau/khao-sat/khao-sat-doi-moi-dnnvv.csv</code></h4>
+          <p style="font-size: 0.92rem; color: var(--text-body);">
+            • <strong>320 quan sát ban đầu:</strong> Khảo sát lãnh đạo và quản lý cấp trung tại các Doanh nghiệp nhỏ và vừa (DNNVV).<br>
+            • <strong>Biến nhân khẩu học:</strong> 5 cột (<code>gioi_tinh</code>, <code>nhom_tuoi</code>, <code>kinh_nghiem</code>, <code>quy_mo_dn</code>, <code>nganh</code>).<br>
+            • <strong>Lưu ý đặc biệt:</strong> Dữ liệu được gài sẵn các lỗi thực tế (ô trống, số ngoài thang điểm) để bạn rèn luyện kỹ năng làm sạch dữ liệu.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Mô hình trung gian (Mediation Model) giúp giải thích cơ chế dẫn truyền thay vì chỉ nhìn tương quan bề mặt."</span>
+        <span class="card-badge badge-blue">Thang đo: Likert 1–5</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 09: NẠP & RÀ SOÁT CSV (PROMPT P4) -->
+    <section class="slide-page" data-slide="9" data-title="Nạp & Rà Soát Dữ Liệu CSV (Prompt P4)">
+      <div class="slide-header">
+        <span class="slide-tagline">🔍 Bước 1: Khám Phá Cấu Trúc Dữ Liệu</span>
+        <h1 class="slide-title">NẠP VÀ RÀ SOÁT BỘ DỮ LIỆU KHẢO SÁT</h1>
+        <p class="slide-subtitle">Không vội phân tích ngay: Phải đọc qua cấu trúc, phân loại biến định danh và các item thang đo</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2-1">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">PROMPT P4 (Nạp dữ liệu & Phân loại biến)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP4', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP4">Hãy đọc file du-lieu-mau/khao-sat/khao-sat-doi-moi-dnnvv.csv:
+1. In ra 5 dòng đầu tiên của dữ liệu để tôi kiểm tra cấu trúc.
+2. Cho biết tổng số dòng (quan sát) và tổng số cột.
+3. Liệt kê tên tất cả các cột và phân loại rạch ròi: Đâu là biến định danh/nhân khẩu học, đâu là các item thang đo Likert (thuộc khái niệm nào: DL, KS, hay IP).
+Trình bày câu trả lời bằng bảng rõ ràng, tiếng Việt chuẩn mực.</pre>
+            </div>
+          </div>
+
+          <div class="card-academic border-gold">
+            <span class="card-badge badge-gold">Kết Quả Đối Soát</span>
+            <h4 class="card-title">Chỉ số kiểm định:</h4>
+            <p class="card-text" style="margin-bottom: 6px;">• <strong>Tổng dòng:</strong> 320 quan sát.</p>
+            <p class="card-text" style="margin-bottom: 6px;">• <strong>Cột nhân khẩu:</strong> 5 cột (Giới tính, Tuổi, Kinh nghiệm, Quy mô, Ngành).</p>
+            <p class="card-text" style="margin-bottom: 6px;">• <strong>Cột thang đo:</strong> 12 item (DL1-DL4, KS1-KS4, IP1-IP4).</p>
+            <p class="card-text">• <strong>Dạng thang đo:</strong> Likert 1 đến 5.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Một nhà nghiên cứu cẩn trọng luôn nhìn tổng quan cấu trúc trước khi chạm vào bất kỳ phép tính nào."</span>
+        <span class="card-badge badge-blue">Bước 1 / 6 Phân tích</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: LÀM SẠCH DỮ LIỆU LISTWISE (PROMPT P5) -->
+    <section class="slide-page" data-slide="10" data-title="Làm Sạch Dữ Liệu Listwise (Prompt P5)">
+      <div class="slide-header">
+        <span class="slide-tagline">🧹 Bước 2: Nhặt Lá Úa Trong Dữ Liệu</span>
+        <h1 class="slide-title">LÀM SẠCH DỮ LIỆU THEO PHƯƠNG PHÁP LISTWISE</h1>
+        <p class="slide-subtitle">Tìm kiếm ô trống (missing), giá trị vô lý ngoài thang 1–5 và loại bỏ minh bạch</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">PROMPT P5 (Phát hiện lỗi & Làm sạch Listwise)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP5', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP5">Trên file dữ liệu du-lieu-mau/khao-sat/khao-sat-doi-moi-dnnvv.csv:
+1. Đếm số ô trống (missing) trên từng cột và cho biết mã phiếu vi phạm.
+2. Quét các giá trị ngoài khoảng thang đo Likert [1, 5] ở tất cả 12 item, chỉ rõ mã phiếu (ID), tên cột và giá trị sai lệch.
+3. Kiểm tra các nhãn không nhất quán ở biến định danh hoặc dòng trùng lặp.
+4. Đề xuất quy trình làm sạch theo phương pháp listwise deletion: Nêu rõ tổng số quan sát bị loại theo từng lý do, và xác định chính xác số quan sát sạch còn lại để đưa vào phân tích.
+Trình bày bằng các bảng đối soát chi tiết.</pre>
+            </div>
+          </div>
+
+          <div class="card-academic border-emerald">
+            <span class="card-badge badge-emerald">Bộ Số Kiểm Định Bắt Buộc Khớp</span>
+            <h4 class="card-title">Kết quả làm sạch minh bạch:</h4>
+            <p class="card-text" style="margin-bottom: 6px;">• <strong>Ô trống (Missing):</strong> 14 ô trống.</p>
+            <p class="card-text" style="margin-bottom: 6px;">• <strong>4 Giá trị ngoài thang [1, 5]:</strong></p>
+            <ul style="font-size: 0.88rem; color: var(--text-body); margin-left: 18px; margin-bottom: 8px;">
+              <li>Phiếu <code>R045</code>: <code>DL3 = 0</code> (Dưới khoảng)</li>
+              <li>Phiếu <code>R110</code>: <code>KS1 = 0</code> (Dưới khoảng)</li>
+              <li>Phiếu <code>R077</code>: <code>IP2 = 7</code> (Vượt khoảng)</li>
+              <li>Phiếu <code>R203</code>: <code>IP4 = 9</code> (Vượt khoảng)</li>
+            </ul>
+            <p class="card-text" style="font-weight: bold; color: var(--brand-emerald);">
+              ➔ Loại 18 phiếu lỗi: 320 ban đầu ➔ Còn lại đúng 302 quan sát sạch!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Listwise Deletion là phương pháp minh bạch, dễ giải thích và hoàn toàn có thể tái lập được."</span>
+        <span class="card-badge badge-emerald">Số mẫu sạch: 302</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: THỐNG KÊ MÔ TẢ & MEAN/SD (PROMPT P6) -->
+    <section class="slide-page" data-slide="11" data-title="Thống Kê Mô Tả Nhân Khẩu Học & Mean/SD">
+      <div class="slide-header">
+        <span class="slide-tagline">📈 Bước 3: Vẽ Chân Dung Mẫu Nghiên Cứu</span>
+        <h1 class="slide-title">THỐNG KÊ MÔ TẢ MẪU & GIÁ TRỊ MEAN, SD</h1>
+        <p class="slide-subtitle">Lập bảng tần số, tỷ lệ phần trăm nhân khẩu học và độ lệch chuẩn của các thang đo chuẩn APA</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">PROMPT P6 (Bảng Nhân khẩu học & Mean/SD)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP6', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP6">Dựa trên bộ dữ liệu đã làm sạch (302 quan sát sạch):
+1. Lập bảng thống kê mô tả đặc điểm mẫu nghiên cứu (nhân khẩu học): Giới tính, Nhóm tuổi, Kinh nghiệm công tác, Quy mô doanh nghiệp, Ngành nghề. Mỗi biến nêu rõ Số lượng (Tần số N) và Tỷ lệ phần trăm (%).
+2. Tính giá trị Trung bình (Mean) và Độ lệch chuẩn (Standard Deviation - SD) cho từng item từ DL1 đến IP4, đồng thời tính điểm trung bình đại diện cho 3 thang đo tổng hợp (DL, KS, IP).
+Trình bày chuẩn bảng APA 7, phông Times New Roman, các số thập phân lấy 2 chữ số sau dấu phẩy.</pre>
+            </div>
+          </div>
+
+          <div class="card-academic border-blue">
+            <span class="card-badge badge-blue">Đặc Trưng Thống Kê Mẫu Sạch</span>
+            <h4 class="card-title">Kết quả phân phối điểm số (N = 302):</h4>
+            <table class="table-academic">
+              <tr>
+                <th>Khái niệm</th>
+                <th class="col-center">Số item</th>
+                <th class="col-center">Mean</th>
+                <th class="col-center">SD</th>
+              </tr>
+              <tr>
+                <td>Lãnh đạo số (DL)</td>
+                <td class="col-center">4</td>
+                <td class="col-center">3.71</td>
+                <td class="col-center">0.78</td>
+              </tr>
+              <tr>
+                <td>Chia sẻ tri thức (KS)</td>
+                <td class="col-center">4</td>
+                <td class="col-center">3.64</td>
+                <td class="col-center">0.75</td>
+              </tr>
+              <tr>
+                <td>Hiệu quả đổi mới (IP)</td>
+                <td class="col-center">4</td>
+                <td class="col-center">3.58</td>
+                <td class="col-center">0.82</td>
+              </tr>
+            </table>
+            <p class="card-text" style="font-size: 0.88rem; margin-top: 6px;">
+              • Điểm trung bình dao động 3.58 – 3.71 phản ánh mức độ đồng thuận khá tốt.<br>
+              • Độ lệch chuẩn SD quanh mức 0.75 – 0.82 cho thấy ý kiến phân tán hợp lý.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Độ lệch chuẩn SD cho biết các câu trả lời tụm lại gần trung bình hay tản ra xa."</span>
+        <span class="card-badge badge-gold">Định dạng số: 2 số thập phân</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: ĐỘ TIN CẬY CRONBACH'S ALPHA (PROMPT P7) -->
+    <section class="slide-page" data-slide="12" data-title="Kiểm Định Độ Tin Cậy Thang Đo (Cronbach's Alpha)">
+      <div class="slide-header">
+        <span class="slide-tagline">📏 Bước 4: Kiểm Định Tính Nhất Quán Nội Tại</span>
+        <h1 class="slide-title">KIỂM ĐỊNH ĐỘ TIN CẬY CRONBACH'S ALPHA</h1>
+        <p class="slide-subtitle">Bốn câu hỏi có thực sự cùng đo một khái niệm hay mỗi câu đo một nẻo? Tiêu chuẩn Nunnally $\ge 0.70$</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">PROMPT P7 (Tính Cronbach's Alpha)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP7', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP7">Trên bộ dữ liệu 302 quan sát đã làm sạch, hãy tính toán kiểm định độ tin cậy thang đo Cronbach's Alpha cho 3 khái niệm:
+1. Thang đo Lãnh đạo số (DL): Gồm DL1, DL2, DL3, DL4.
+2. Thang đo Chia sẻ tri thức (KS): Gồm KS1, KS2, KS3, KS4.
+3. Thang đo Hiệu quả đổi mới (IP): Gồm IP1, IP2, IP3, IP4.
+
+Với mỗi thang đo, hãy báo cáo:
+- Hệ số Cronbach's Alpha tổng thể.
+- Bảng chi tiết từng item: Tương quan biến - tổng hiệu chỉnh (Corrected Item-Total Correlation) và Cronbach's Alpha nếu loại item (Alpha if item deleted).
+- Nhận xét đánh giá độ tin cậy theo ngưỡng chuẩn học thuật (ngưỡng 0.70 và tương quan biến tổng 0.30).</pre>
+            </div>
+          </div>
+
+          <div class="card-academic border-emerald">
+            <span class="card-badge badge-emerald">Kết Quả Kiểm Định Chuẩn Xác</span>
+            <h4 class="card-title">Cả 3 thang đo đều đạt độ tin cậy cao:</h4>
+            <table class="table-academic">
+              <tr>
+                <th>Thang đo</th>
+                <th class="col-center">Số item</th>
+                <th class="col-center">Cronbach's $\alpha$</th>
+                <th class="col-center">Kết luận</th>
+              </tr>
+              <tr>
+                <td>Lãnh đạo số (DL)</td>
+                <td class="col-center">4</td>
+                <td class="col-center"><strong>0.81</strong></td>
+                <td class="col-center"><span style="color: var(--brand-emerald);">✓ Đạt tốt</span></td>
+              </tr>
+              <tr>
+                <td>Chia sẻ tri thức (KS)</td>
+                <td class="col-center">4</td>
+                <td class="col-center"><strong>0.81</strong></td>
+                <td class="col-center"><span style="color: var(--brand-emerald);">✓ Đạt tốt</span></td>
+              </tr>
+              <tr>
+                <td>Hiệu quả đổi mới (IP)</td>
+                <td class="col-center">4</td>
+                <td class="col-center"><strong>0.83</strong></td>
+                <td class="col-center"><span style="color: var(--brand-emerald);">✓ Đạt tốt</span></td>
+              </tr>
+            </table>
+            <p class="card-text" style="font-size: 0.88rem; margin-top: 8px;">
+              • Toàn bộ 12 item đều có tương quan biến - tổng $> 0.50$ (vượt chuẩn 0.30).<br>
+              • Không có item nào mà nếu loại bỏ sẽ làm tăng Alpha ➔ Giữ nguyên toàn bộ 12 item!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Cronbach's Alpha ví như 4 giám khảo cùng chấm 1 thí sinh: Cho điểm gần nhau nghĩa là thang đo tin cậy."</span>
+        <span class="card-badge badge-emerald">Chuẩn: Alpha $\ge 0.70$</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: DIỄN GIẢI KẾT QUẢ ALPHA (PROMPT P8) -->
+    <section class="slide-page" data-slide="13" data-title="Diễn Giải Alpha Trước Hội Đồng (Prompt P8)">
+      <div class="slide-header">
+        <span class="slide-tagline">🎤 Trình Bày & Bảo Vệ Trước Hội Đồng</span>
+        <h1 class="slide-title">ĐỌC HIỂU & DIỄN GIẢI KẾT QUẢ ALPHA</h1>
+        <p class="slide-subtitle">Không chỉ chép lại số liệu: Phải biết diễn đạt gãy gọn, tự tin trước các câu hỏi chất vấn</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">PROMPT P8 (Viết diễn giải học thuật kết quả Alpha)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP8', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP8">Dựa trên kết quả Cronbach's Alpha ở trên, hãy viết một đoạn văn giải thích học thuật ngắn gọn (khoảng 150-200 từ) để đưa vào Luận án hoặc thuyết trình trước Hội đồng:
+- Khẳng định tính nhất quán nội tại của cả 3 thang đo.
+- Giải thích vì sao không cần loại bỏ bất kỳ item nào.
+- Kết luận về tính sẵn sàng của dữ liệu để tiến hành phân tích hồi quy và kiểm định giả thuyết tiếp theo.
+Văn phong khách quan, chuẩn mực học thuật.</pre>
+            </div>
+          </div>
+
+          <div class="card-academic border-gold">
+            <span class="card-badge badge-gold">Đoạn Văn Mẫu Chuẩn Luận Án</span>
+            <h4 class="card-title">Trích đoạn báo cáo học thuật:</h4>
+            <p class="card-text" style="font-style: italic; line-height: 1.6;">
+              "Kết quả kiểm định độ tin cậy cho thấy cả ba thang đo đều đạt tính nhất quán nội tại rất cao với hệ số Cronbach’s alpha lần lượt là 0.81 (Lãnh đạo số), 0.81 (Chia sẻ tri thức) và 0.83 (Hiệu quả đổi mới), vượt xa ngưỡng khuyến nghị tối thiểu 0.70 theo Nunnally và Bernstein (1994). Hệ số tương quan biến - tổng của tất cả 12 item đều lớn hơn 0.50 và không có biến quan sát nào nếu loại bỏ làm tăng hệ số Alpha tổng thể. Do đó, toàn bộ các thang đo được giữ nguyên vẹn, đảm bảo độ tin cậy vững chắc để tiếp tục đưa vào các bước phân tích hồi quy và kiểm định giả thuyết."
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Trình bày kết quả tự tin bằng luận cứ khoa học vững vàng là chìa khóa chinh phục Hội đồng."</span>
+        <span class="card-badge badge-blue">Thuật ngữ: Internal Consistency</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: HỒI QUY TUYẾN TÍNH ĐƠN (PROMPT P9) -->
+    <section class="slide-page" data-slide="14" data-title="Hồi Quy Tuyến Tính Đơn: DL -> IP (Prompt P9)">
+      <div class="slide-header">
+        <span class="slide-tagline">🔬 Bước 5: Kiểm Định Tác Động Tổng Thể</span>
+        <h1 class="slide-title">HỒI QUY TUYẾN TÍNH ĐƠN: DL ➔ IP</h1>
+        <p class="slide-subtitle">Lãnh đạo số có đi cùng Hiệu quả đổi mới không? Giải thích ý nghĩa của hệ số Beta, $R^2$ và p-value</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">PROMPT P9 (Hồi quy tuyến tính DL lên IP)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP9', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP9">1. Tính biến đại diện (Composite variable) cho mỗi khái niệm bằng giá trị trung bình cộng của 4 item tương ứng:
+   - DL = Mean(DL1, DL2, DL3, DL4)
+   - KS = Mean(KS1, KS2, KS3, KS4)
+   - IP = Mean(IP1, IP2, IP3, IP4)
+2. Chạy mô hình hồi quy tuyến tính đơn kiểm định tác động tổng thể: Biến phụ thuộc IP theo Biến độc lập DL.
+3. Báo cáo bảng kết quả gồm: Hệ số hồi quy chưa chuẩn hóa (B), Sai số chuẩn (SE), Hệ số Beta chuẩn hóa, Giá trị thống kê t, Mức ý nghĩa p-value, Hệ số xác định $R^2$ và $R^2$ hiệu chỉnh, Thống kê kiểm định F.</pre>
+            </div>
+          </div>
+
+          <div class="card-academic border-purple">
+            <span class="card-badge badge-purple">Bảng Kết Quả Hồi Quy Tuyến Tính</span>
+            <table class="table-academic">
+              <tr>
+                <th>Chỉ số</th>
+                <th class="col-center">Giá trị</th>
+                <th>Ý nghĩa học thuật</th>
+              </tr>
+              <tr>
+                <td>Hệ số B</td>
+                <td class="col-center"><strong>0.53</strong></td>
+                <td>Hệ số hồi quy chưa chuẩn hóa (SE = 0.05)</td>
+              </tr>
+              <tr>
+                <td>Hệ số Beta</td>
+                <td class="col-center"><strong>0.51</strong></td>
+                <td>Tác động chuẩn hóa ($t \approx 10.3$)</td>
+              </tr>
+              <tr>
+                <td>Mức ý nghĩa p</td>
+                <td class="col-center"><strong>&lt; 0.001</strong></td>
+                <td>Rất có ý nghĩa thống kê (khó do may rủi)</td>
+              </tr>
+              <tr>
+                <td>Hệ số $R^2$</td>
+                <td class="col-center"><strong>0.26</strong></td>
+                <td>DL giải thích được <strong>26%</strong> biến thiên của IP</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"$R^2 = 0.26$ nghĩa là Lãnh đạo số giải thích được 26% biến động của Hiệu quả đổi mới trong doanh nghiệp."</span>
+        <span class="card-badge badge-emerald">p &lt; 0.001 (Ý nghĩa cao)</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 15: KIỂM ĐỊNH TRUNG GIAN BOOTSTRAP (PROMPT P10) -->
+    <section class="slide-page" data-slide="15" data-title="Kiểm Định Trung Gian Bootstrap 95% (Prompt P10)">
+      <div class="slide-header">
+        <span class="slide-tagline">🌉 Bước 6: Trạm Trung Chuyển Tri Thức</span>
+        <h1 class="slide-title">KIỂM ĐỊNH VAI TRÒ TRUNG GIAN (MEDIATION)</h1>
+        <p class="slide-subtitle">Phương pháp Bootstrap 95% (Preacher & Hayes): Bao nhiêu tác động đi thẳng, bao nhiêu đi qua cây cầu tri thức?</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">PROMPT P10 (Kiểm định trung gian Bootstrap 95%)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP10', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP10">Thực hiện quy trình kiểm định vai trò trung gian của Chia sẻ tri thức (KS) trong mối quan hệ giữa Lãnh đạo số (DL) và Hiệu quả đổi mới (IP) theo phương pháp Bootstrap 95% (Preacher & Hayes):
+1. Phương trình đường a: Hồi quy KS theo DL.
+2. Phương trình đường b và c': Hồi quy IP đồng thời theo cả DL và KS.
+3. So sánh Tổng tác động c với Tác động trực tiếp c'.
+4. Ước lượng Tác động gián tiếp (Indirect Effect = a * b) kèm Khoảng tin cậy Bootstrap 95% (Lower Bound - Upper Bound).
+5. Kết luận rõ ràng: Vai trò trung gian có ý nghĩa thống kê hay không? Đây là trung gian một phần (partial) hay toàn phần (full)?</pre>
+            </div>
+          </div>
+
+          <div class="card-academic border-emerald">
+            <span class="card-badge badge-emerald">Sơ Đồ Đường Dẫn & Kết Luận</span>
+            <div style="font-size: 0.92rem; color: var(--text-body); line-height: 1.5; margin-bottom: 8px;">
+              • <strong>Đường a (DL ➔ KS):</strong> $B = 0.48$ ($p < 0.001$)<br>
+              • <strong>Đường b (KS ➔ IP):</strong> $B = 0.32$ ($p < 0.001$)<br>
+              • <strong>Trực tiếp c' (DL ➔ IP):</strong> $B = 0.37$ ($p < 0.001$ - vẫn còn ý nghĩa)<br>
+              • <strong>Gián tiếp ($a \times b$):</strong> $\mathbf{0.15}$ [95% CI: 0.09 đến 0.22, <strong>KHÔNG CHỨA SỐ 0</strong>]
+            </div>
+            <div style="padding: 10px 14px; background: rgba(16, 185, 129, 0.12); border-left: 4px solid var(--brand-emerald); border-radius: 4px;">
+              <strong style="color: var(--brand-emerald);">➔ KẾT LUẬN: TRUNG GIAN MỘT PHẦN (PARTIAL MEDIATION)</strong>
+              <p style="font-size: 0.86rem; color: var(--text-main); margin-top: 4px;">
+                Chia sẻ tri thức gánh một phần quan trọng của tác động từ Lãnh đạo số sang Đổi mới. Cây cầu tri thức là có thật!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Bootstrap lấy mẫu lặp lại hàng nghìn lần: Khoảng tin cậy 95% không chứa 0 khẳng định tác động gián tiếp là thật."</span>
+        <span class="card-badge badge-emerald">Chuẩn Preacher & Hayes</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 16: KỶ LUẬT HEDGING SỐNG CÒN (PROMPT P11) -->
+    <section class="slide-page" data-slide="16" data-title="Kỷ Luật Hedging: Chống Phóng Đại Nhân Quả">
+      <div class="slide-header">
+        <span class="slide-tagline">⚠️ Cạm Bẫy Lớn Nhất Của Người Làm Nghiên Cứu</span>
+        <h1 class="slide-title">KỶ LUẬT HEDGING: CHỐNG PHÓNG ĐẠI NHÂN QUẢ</h1>
+        <p class="slide-subtitle">Dữ liệu cắt ngang (Cross-sectional) chỉ phản ánh tương quan — Tuyệt đối không quy kết nhân quả!</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="compare-container">
+          <div class="compare-box compare-pain">
+            <div class="compare-title">✕ CẤM DÙNG (Dễ bị Hội đồng đánh trượt)</div>
+            <ul class="compare-list">
+              <li>"Nghiên cứu <strong>chứng minh</strong> Lãnh đạo số <strong>gây ra / làm tăng</strong> Đổi mới sáng tạo."</li>
+              <li>"Lãnh đạo số <strong>tạo nên</strong> kết quả kinh doanh vượt trội."</li>
+              <li>"Khẳng định chắc chắn <strong>mối quan hệ nhân quả</strong> giữa các biến số."</li>
+            </ul>
+            <p style="font-size: 0.85rem; color: var(--brand-rose); margin-top: 10px;">
+              ⚠️ Dữ liệu cắt ngang đo cùng một thời điểm không thỏa mãn tính tuần tự thời gian!
+            </p>
+          </div>
+
+          <div class="compare-box compare-gain">
+            <div class="compare-title">✓ BẮT BUỘC DÙNG (Văn phong Hedging chuẩn)</div>
+            <ul class="compare-list">
+              <li>"Kết quả <strong>cho thấy mối liên hệ thuận</strong> giữa Lãnh đạo số và Đổi mới."</li>
+              <li>"Dữ liệu khảo sát <strong>ủng hộ giả thuyết</strong> về vai trò trung gian..."</li>
+              <li>"Phản ánh mối liên hệ thống kê có ý nghĩa, tuy nhiên cần kiểm chứng thêm qua thiết kế theo thời gian."</li>
+            </ul>
+            <p style="font-size: 0.85rem; color: var(--brand-emerald); margin-top: 10px;">
+              ✓ Khiêm tốn học thuật, phản ánh đúng giới hạn phương pháp luận.
+            </p>
+          </div>
+        </div>
+
+        <div class="prompt-terminal" style="margin-top: 4px;">
+          <div class="terminal-header">
+            <span class="terminal-label">PROMPT P11 (Diễn giải thảo luận kết quả áp dụng Hedging)</span>
+            <button class="btn-copy-prompt" onclick="copyPrompt('codeP11', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body" style="max-height: 80px;">
+            <pre class="terminal-code" id="codeP11">Dựa trên kết quả hồi quy và kiểm định trung gian, hãy viết đoạn thảo luận kết quả nghiên cứu áp dụng kỹ thuật Hedging: Nêu rõ mối liên hệ thuận, giải thích vai trò trung gian của KS, nhắc lại tính chất dữ liệu cắt ngang và từ chối khẳng định nhân quả tuyệt đối.</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Nhà khoa học giỏi không phải người khẳng định to nhất, mà là người biết rõ giới hạn dữ liệu của mình."</span>
+        <span class="card-badge badge-rose">Kỷ luật Hedging</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 17: BÁO CÁO ĐỊNH LƯỢNG 8 PHẦN (PROMPT P12) -->
+    <section class="slide-page" data-slide="17" data-title="Cấu Trúc Báo Cáo Định Lượng 8 Phần (Prompt P12)">
+      <div class="slide-header">
+        <span class="slide-tagline">📑 Đóng Gói Toàn Diện Kết Quả Nghiên Cứu</span>
+        <h1 class="slide-title">CẤU TRÚC BÁO CÁO ĐỊNH LƯỢNG 8 PHẦN CHUẨN APA</h1>
+        <p class="slide-subtitle">Gói tất cả kết quả vào một khuôn quen thuộc để Thầy Hướng dẫn và Hội đồng thẩm định dễ dàng</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-4" style="margin-bottom: 10px;">
+          <div class="card-academic">
+            <span class="card-badge badge-blue">Phần 1 & 2</span>
+            <p class="card-text"><strong>1. Mẫu & Dữ liệu:</strong> 320 phiếu ban đầu.<br><strong>2. Làm sạch:</strong> Loại 18 phiếu lỗi ➔ Còn 302 mẫu sạch.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-gold">Phần 3 & 4</span>
+            <p class="card-text"><strong>3. Thống kê mô tả:</strong> Tần số %, Mean/SD.<br><strong>4. Cronbach's Alpha:</strong> 3 thang đo đạt $\alpha \ge 0.81$.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-emerald">Phần 5 & 6</span>
+            <p class="card-text"><strong>5. Hồi quy & Trung gian:</strong> $R^2 = 0.26$, Bootstrap.<br><strong>6. Thảo luận:</strong> Hedging, hàm ý quản trị.</p>
+          </div>
+          <div class="card-academic">
+            <span class="card-badge badge-purple">Phần 7 & 8</span>
+            <p class="card-text"><strong>7. Hạn chế nghiên cứu:</strong> 3 điểm yếu kinh điển.<br><strong>8. Khai báo AI:</strong> Minh bạch theo chuẩn quốc tế.</p>
+          </div>
+        </div>
+
+        <div class="prompt-terminal">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="terminal-dot dot-red"></span>
+              <span class="terminal-dot dot-yellow"></span>
+              <span class="terminal-dot dot-green"></span>
+            </div>
+            <span class="terminal-label">PROMPT P12 (Đổ kết quả vào báo cáo 8 phần hoàn chỉnh)</span>
+            <button class="btn-copy-prompt" onclick="copyPrompt('codeP12', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body">
+            <pre class="terminal-code" id="codeP12">Dựa trên toàn bộ kết quả đã phân tích từ Phần 4 đến Phần 7 (Làm sạch 302 mẫu, Nhân khẩu học, Mean/SD, Cronbach's Alpha, Hồi quy, Bootstrap trung gian):
+Hãy tổng hợp và lập một Báo cáo Kết quả Phân tích Dữ liệu hoàn chỉnh theo đúng cấu trúc 8 phần học thuật chuẩn mực.
+Yêu cầu:
+- Tên file lưu tại thư mục hiện tại theo đúng Super Rule đánh số thứ tự tuần tự: 03_bao-cao-phan-tich-du-lieu.md.
+- Toàn bộ các bảng số liệu phải được điền số thật, chính xác 100% từ kết quả đã chạy.
+- Văn phong học thuật, khách quan, áp dụng triệt để kỹ thuật Hedging.</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Báo cáo khoa học không phải là nơi biểu diễn cảm xúc — Nó là bản tổng kết logic của bằng chứng thực nghiệm."</span>
+        <span class="card-badge badge-blue">File: 03_bao-cao...md</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 18: HẠN CHẾ NGHIÊN CỨU (PROMPT P13 & P14) -->
+    <section class="slide-page" data-slide="18" data-title="Viết Phần Hạn Chế Nghiên Cứu (Prompt P13 & P14)">
+      <div class="slide-header">
+        <span class="slide-tagline">🛡️ Dũng Cảm Nêu Điểm Yếu Của Đề Tài</span>
+        <h1 class="slide-title">VIẾT PHẦN HẠN CHẾ NGHIÊN CỨU TRUNG THỰC</h1>
+        <p class="slide-subtitle">Không có nghiên cứu nào hoàn hảo: Nêu rõ 3 hạn chế kinh điển trước khi bị Hội đồng chất vấn</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-3">
+          <div class="card-academic border-blue">
+            <span class="card-badge badge-blue">Hạn Chế 1</span>
+            <h3 class="card-title">Thiết Kế Cắt Ngang</h3>
+            <p class="card-text">Dữ liệu chụp tại một thời điểm (Cross-sectional). Đề xuất: Nghiên cứu tương lai nên theo dõi dọc theo thời gian (Longitudinal study) để kiểm chứng nhân quả.</p>
+          </div>
+          <div class="card-academic border-gold">
+            <span class="card-badge badge-gold">Hạn Chế 2</span>
+            <h3 class="card-title">Mẫu Thuận Tiện</h3>
+            <p class="card-text">Mẫu 302 DNNVV lấy theo phương pháp thuận tiện. Đề xuất: Mở rộng cỡ mẫu phân tầng ngẫu nhiên trên nhiều vùng kinh tế để tăng tính đại diện.</p>
+          </div>
+          <div class="card-academic border-rose">
+            <span class="card-badge badge-rose">Hạn Chế 3</span>
+            <h3 class="card-title">Sai Lệch Tự Báo Cáo</h3>
+            <p class="card-text">Dữ liệu đo bằng bảng hỏi tự đánh giá (Self-report bias). Đề xuất: Bổ sung chỉ số đo lường khách quan từ báo cáo tài chính hoặc đăng ký sáng chế.</p>
+          </div>
+        </div>
+
+        <div class="prompt-terminal">
+          <div class="terminal-header">
+            <span class="terminal-label">PROMPT P13 & P14 (Soạn phần Hạn chế & Rà soát câu chữ nói quá)</span>
+            <button class="btn-copy-prompt" onclick="copyPrompt('codeP13', this)">📋 Sao chép</button>
+          </div>
+          <div class="terminal-body" style="max-height: 80px;">
+            <pre class="terminal-code" id="codeP13">Hãy viết lại Phần 7 (Hạn chế) trong 03_bao-cao-phan-tich-du-lieu.md tập trung vào 3 hạn chế kinh điển (cắt ngang, mẫu thuận tiện, tự báo cáo) và giải pháp khắc phục. Sau đó rà soát toàn bộ báo cáo, loại bỏ mọi câu chữ nói quá (overclaiming).</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Hội đồng luôn đánh giá rất cao tác giả dũng cảm chỉ ra các điểm yếu trong thiết kế của mình."</span>
+        <span class="card-badge badge-gold">Tính tự phản biện cao</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 19: LÀM MƯỢT VĂN ĐÚNG ĐẠO ĐỨC (PROMPT P15) -->
+    <section class="slide-page" data-slide="19" data-title="Làm Mượt Văn Đúng Đạo Đức (Prompt P15)">
+      <div class="slide-header">
+        <span class="slide-tagline">⚖️ Ranh Giới Đạo Đức & Liêm Chính Học Thuật</span>
+        <h1 class="slide-title">LÀM MƯỢT VĂN HỌC THUẬT ĐÚNG ĐẠO ĐỨC</h1>
+        <p class="slide-subtitle">Công cụ này để làm rõ tiếng nói của chính bạn — Tuyệt đối không phải để giả mạo nó!</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="compare-container">
+          <div class="compare-box compare-gain">
+            <div class="compare-title">✓ DÙNG ĐÚNG ĐẠO ĐỨC (Ethical AI Use)</div>
+            <ul class="compare-list">
+              <li>Làm mượt đoạn văn <strong>do chính bạn viết</strong> còn khô cứng, lặp từ.</li>
+              <li>Chỉnh ngữ pháp, nâng cấp từ vựng học thuật cho người không phải bản ngữ.</li>
+              <li><strong>Bảo toàn nguyên vẹn 100% số liệu</strong> và luận điểm cốt lõi của bạn.</li>
+              <li><strong>Khai báo công khai và minh bạch</strong> việc có dùng AI hỗ trợ ngôn ngữ.</li>
+            </ul>
+          </div>
+
+          <div class="compare-box compare-pain">
+            <div class="compare-title">✕ DÙNG SAI & GIAN LẬN (Academic Dishonesty)</div>
+            <ul class="compare-list">
+              <li>Để AI tự nghĩ hộ toàn bộ nội dung mà bản thân không hiểu gì.</li>
+              <li>Để AI tự bịa số liệu "đẹp" mà không có khảo sát thực tế.</li>
+              <li>Dùng công cụ để qua mặt máy dò AI nhằm che giấu, lừa dối Hội đồng.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- PRACTICE COUNTDOWN TIMER -->
+        <div class="timer-banner-box" style="margin-top: 6px;">
+          <div>
+            <div class="timer-info-title">⏱️ 20 Phút Thực Hành Làm Mượt Văn & Đối Soát</div>
+            <div class="timer-info-sub">Áp dụng quy trình chinh-van-phong: Giữ nguyên 100% số liệu, tối ưu câu cú</div>
+          </div>
+          <div class="timer-clock-display">
+            <div class="timer-digits-text" id="timerDisplay">20:00</div>
+            <button class="btn-keynote btn-keynote-primary" id="btnTimerStart" onclick="toggleTimer()">Bắt đầu</button>
+            <button class="btn-keynote" onclick="resetTimer()">Đặt lại</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"AI hỗ trợ làm rõ tiếng nói của bạn — Trách nhiệm học thuật cao nhất luôn thuộc về bạn."</span>
+        <span class="card-badge badge-emerald">Quy trình: chinh-van-phong</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 20: KHAI BÁO DÙNG AI & XUẤT WORD (PROMPT P16 & P17) -->
+    <section class="slide-page" data-slide="20" data-title="Khai Báo Dùng AI & Xuất Word (Prompt P16 & P17)">
+      <div class="slide-header">
+        <span class="slide-tagline">📝 Tuyên Bố Liêm Chính & Xuất Bản Báo Cáo</span>
+        <h1 class="slide-title">KHAI BÁO DÙNG AI & XUẤT WORD CHUẨN THỂ THỨC</h1>
+        <p class="slide-subtitle">Tuân thủ thông lệ quốc tế của Elsevier, Springer Nature và thể thức luận án Nghị định 30</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <span class="terminal-label">PROMPT P16 (Tuyên bố Khai báo Sử dụng AI song ngữ)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP16', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP16">Hãy viết Tuyên bố Khai báo Sử dụng AI (AI Disclosure Statement) chuẩn mực song ngữ (Việt - Anh) và bổ sung vào Mục 8 của 03_bao-cao-phan-tich-du-lieu.md:
+- Tác giả đã dùng Claude để hỗ trợ: (1) Làm sạch dữ liệu, (2) Chạy kiểm định thống kê và lập bảng, (3) Rà soát ngữ pháp và văn phong học thuật.
+- Tác giả khẳng định dữ liệu là trung thực, đã tự đối soát kết quả và chịu 100% trách nhiệm về nội dung.</pre>
+            </div>
+          </div>
+
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <span class="terminal-label">PROMPT P17 (Xuất báo cáo sang file Word .docx)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP17', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP17">Hãy chuyển đổi file 03_bao-cao-phan-tich-du-lieu.md thành file Word (.docx) lưu tại thư mục hiện tại với tên đúng chuẩn Super Rule (04_bao-cao-ket-qua-phan-tich.docx):
+- BẮT BUỘC 100% dùng phông chữ Times New Roman.
+- Cỡ chữ 13, giãn dòng 1.3 - 1.5 lines, lề trang A4 chuẩn (Trên 2cm, Dưới 2cm, Trái 3cm, Phải 2cm).
+- Bảng biểu có viền rõ ràng, tiêu đề in đậm phía trên, ghi chú nguồn phía dưới.</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Minh bạch sử dụng AI là chuẩn mực văn minh của giới nghiên cứu học thuật hiện đại."</span>
+        <span class="card-badge badge-blue">Chuẩn: Times New Roman 13</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 21: TỰ PHẢN BIỆN & ĐỐI SOÁT BỘ SỐ (PROMPT P18) -->
+    <section class="slide-page" data-slide="21" data-title="Tự Phản Biện Hội Đồng & Bộ Số Kiểm Định">
+      <div class="slide-header">
+        <span class="slide-tagline">🎯 Đối Soát Chuẩn Xác & Sẵn Sàng Bảo Vệ</span>
+        <h1 class="slide-title">TỰ PHẢN BIỆN & BẢNG SỐ KIỂM ĐỊNH CHUẨN</h1>
+        <p class="slide-subtitle">Bộ số "chống ảo giác" để tự chấm bài và 3 câu hỏi chất vấn phương pháp luận hóc búa nhất</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="card-academic border-emerald">
+            <span class="card-badge badge-emerald">Bảng Số Kiểm Định Chuẩn (Ground Truth)</span>
+            <table class="table-academic" style="font-size: 0.86rem;">
+              <tr><th>Chỉ số</th><th class="col-center">Giá trị chuẩn</th><th>Tiêu chí đánh giá</th></tr>
+              <tr><td>Mẫu sạch</td><td class="col-center"><strong>302</strong></td><td>Loại 18 phiếu lỗi từ 320</td></tr>
+              <tr><td>Alpha DL</td><td class="col-center"><strong>0.81</strong></td><td>Đạt chuẩn ($\ge 0.70$)</td></tr>
+              <tr><td>Alpha KS</td><td class="col-center"><strong>0.81</strong></td><td>Đạt chuẩn ($\ge 0.70$)</td></tr>
+              <tr><td>Alpha IP</td><td class="col-center"><strong>0.83</strong></td><td>Đạt chuẩn ($\ge 0.70$)</td></tr>
+              <tr><td>Hồi quy DL➔IP</td><td class="col-center"><strong>Beta = 0.51</strong></td><td>$R^2 = 0.26$, $p < 0.001$</td></tr>
+              <tr><td>Trung gian a*b</td><td class="col-center"><strong>0.15</strong></td><td>Bootstrap 95% không chứa 0</td></tr>
+            </table>
+          </div>
+
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <span class="terminal-label">PROMPT P18 (Tự phản biện trước Hội đồng)</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('codeP18', this)">📋 Sao chép</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="codeP18">Hãy đóng vai một Vị Phản biện khó tính trong Hội đồng Luận án:
+1. Đặt ra 3 câu hỏi chất vấn hóc búa nhất nhắm vào các điểm yếu phương pháp luận trong báo cáo vừa rồi (về việc dùng dữ liệu cắt ngang để kiểm định trung gian, về cỡ mẫu 302, về nguy cơ sai lệch Common Method Bias).
+2. Đề xuất cho tôi câu trả lời thông minh, khiêm tốn nhưng chặt chẽ về mặt học thuật để thuyết phục Hội đồng.</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Tự chất vấn nghiên cứu của mình trước khi bước vào phòng bảo vệ là đỉnh cao của tư duy khoa học."</span>
+        <span class="card-badge badge-emerald">Bảng đối soát 100% khớp</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 22: TỔNG KẾT & BÀI TẬP VỀ NHÀ -->
+    <section class="slide-page" data-slide="22" data-title="Tổng Kết Buổi 03 & Bài Tập Về Nhà">
+      <div class="slide-header">
+        <span class="slide-tagline">🏁 Về Đích Buổi 03</span>
+        <h1 class="slide-title">TỔNG KẾT BUỔI 03 & BÀI TẬP VỀ NHÀ</h1>
+        <p class="slide-subtitle">Kiểm tra lại toàn bộ sản phẩm bạn đã tạo ra và nhiệm vụ rèn luyện chuẩn bị cho Buổi 4</p>
+      </div>
+
+      <div class="slide-content-area">
+        <div class="grid-2">
+          <div class="card-academic border-blue">
+            <span class="card-badge badge-blue">Checklist Sản Phẩm Đạt Được</span>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.92rem; color: var(--text-body);">
+              <li>✓ File <code>~/.claude/CLAUDE.md</code> Global có 5 Super Rules.</li>
+              <li>✓ Cây thư mục tự động đánh số thứ tự tuần tự (<code>01_...</code>, <code>02_...</code>).</li>
+              <li>✓ Cài đặt thành công <code>markitdown</code> tiết kiệm 80% token.</li>
+              <li>✓ Làm sạch 320 mẫu khảo sát về đúng 302 mẫu sạch.</li>
+              <li>✓ Bảng Cronbach's Alpha và Hồi quy, Trung gian Bootstrap 95%.</li>
+              <li>✓ File báo cáo <code>03_bao-cao-phan-tich-du-lieu.md</code> chuẩn APA 7.</li>
+              <li>✓ Tuyên bố khai báo sử dụng AI minh bạch theo chuẩn quốc tế.</li>
+            </ul>
+          </div>
+
+          <div class="card-academic border-gold">
+            <span class="card-badge badge-gold">Bài Tập Về Nhà (Nộp Trước Buổi 4)</span>
+            <div style="font-size: 0.92rem; color: var(--text-body); line-height: 1.5;">
+              <p style="margin-bottom: 8px;"><strong>1. Cá nhân hóa Global CLAUDE.md:</strong> Chụp ảnh màn hình cây thư mục tự động đánh số thứ tự tuần tự nộp lên nhóm.</p>
+              <p style="margin-bottom: 8px;"><strong>2. Thực hành MarkItDown:</strong> Lấy 1 bài báo khoa học PDF thật (15–30 trang), convert sang Markdown và tóm tắt Research Gap.</p>
+              <p style="margin-bottom: 8px;"><strong>3. Hoàn thiện báo cáo phân tích:</strong> Chạy lại toàn bộ quy trình trên tập dữ liệu khảo sát, đối soát khớp 100% với Bảng số kiểm định và nộp file Word <code>.docx</code>.</p>
+            </div>
+            <div style="margin-top: 8px; padding: 6px 12px; background: rgba(245, 158, 11, 0.12); border-radius: 4px;">
+              <span style="font-size: 0.85rem; color: var(--brand-gold); font-weight: bold;">Hẹn gặp lại ở Buổi 4: Hệ thống hóa & Xây dựng Research Portfolio!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer-bar">
+        <span class="footer-quote">"Chúc mừng bạn đã hoàn thành xuất sắc Buổi 3 — Nắm vững tư duy phân tích định lượng cùng AI!"</span>
+        <div class="footer-actions">
+          <span class="card-badge badge-emerald">Hoàn Thành 100%</span>
+          <span class="card-badge badge-blue">Buổi 4: Portfolio Nghiên Cứu</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- OVERVIEW MODAL MATRIX -->
+  <div class="overview-overlay" id="overviewModal">
+    <div class="overview-header">
+      <h2 class="overview-title">⊞ Tổng Quan 22 Slide — Buổi 03: Phân Tích Dữ Liệu NCKH</h2>
+      <button class="btn-keynote" onclick="toggleOverview()">✕ Đóng [ESC]</button>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <!-- SPEAKER NOTES DRAWER -->
+  <div class="speaker-drawer" id="speakerDrawer">
+    <div class="speaker-header">
+      <span class="speaker-title">📝 Ghi Chú Giảng Viên (Speaker Notes)</span>
+      <button class="btn-keynote" onclick="toggleNotes()">✕ Đóng [N]</button>
+    </div>
+    <div class="speaker-content" id="speakerContent"></div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-box" id="toastMsg">✓ Đã sao chép prompt vào Clipboard!</div>
+
+  <!-- SCRIPT CONTROLLER -->
+  <script>
+    /* SPEAKER NOTES DATABASE */
+    const speakerNotes = {
+      1: "Chào mừng lớp vào Buổi 3. Hôm nay là bước nhảy vọt: Từ việc ra lệnh đơn lẻ sang thiết lập hệ thống chuẩn mực. Chúng ta sẽ giải quyết 3 bài toán lớn: Quản lý quy tắc 2 tầng (Global vs Local), khắc phục bão token bằng MarkItDown, và chạy quy trình phân tích định lượng chuẩn mực cho 320 mẫu khảo sát.",
+      2: "Điểm qua 8 chuẩn đầu ra. Nhấn mạnh với học viên: 3 kỹ năng đắt giá nhất tối nay là Super Rule tự động đánh số file, công cụ MarkItDown tiết kiệm 80% token, và kiểm định trung gian Bootstrap 95% không phóng đại nhân quả.",
+      3: "Giải thích kỹ sự khác nhau giữa Global và Local CLAUDE.md. Dùng ví dụ ẩn dụ: Global là Hiến pháp / Nội quy chung công ty; Local là Quy chế của từng phòng ban. Nhắc học viên: Sau khi sửa file Global, bắt buộc phải mở phiên mới!",
+      4: "Phân tích 5 Super Rules. Nhấn mạnh quy tắc đánh số thứ tự file (01_..., 02_...) giúp cây thư mục luận án luôn ngăn nắp, và quy tắc cấm bịa số liệu là danh dự sống còn của người làm nghiên cứu.",
+      5: "Hướng dẫn cả lớp bấm nút sao chép Prompt P1 và dán vào Claude Code. Sau đó đóng phiên và mở phiên mới để nạp quy tắc. Tiếp tục chạy Prompt P2 để chứng kiến phép màu tự động sinh file có tiền tố 01_.",
+      6: "Vẽ lên bảng hoặc chiếu biểu đồ so sánh: Cùng 1 bài báo 25 trang, file PDF nhị phân ngốn 55.000 tokens làm tràn ngữ cảnh, trong khi file Markdown chỉ tốn 3.800 tokens. MarkItDown giúp tiết kiệm 14 lần chi phí!",
+      7: "Trình diễn trực tiếp thao tác chạy pip install markitdown trong Terminal. Hướng dẫn học viên chạy Prompt P3 để chuyển đổi tài liệu và trích xuất nội dung nghiên cứu.",
+      8: "Giới thiệu bối cảnh mô hình nghiên cứu: 3 khái niệm Lãnh đạo số (DL), Chia sẻ tri thức (KS) và Hiệu quả đổi mới (IP) với thang đo Likert 5 điểm. Nhấn mạnh bộ dữ liệu 320 mẫu có gài sẵn lỗi để luyện tập.",
+      9: "Chạy Prompt P4 để nạp dữ liệu, kiểm tra 5 dòng đầu và phân loại rạch ròi 5 biến nhân khẩu học cùng 12 item thang đo Likert.",
+      10: "Giảng viên chỉ rõ 14 ô trống và 4 giá trị ngoài thang 1-5 (R045, R110, R077, R203). Sau khi loại bỏ theo phương pháp listwise, dữ liệu còn đúng 302 quan sát sạch. Yêu cầu cả lớp kiểm tra con số 302.",
+      11: "Hướng dẫn chạy Prompt P6 để lập bảng tần số nhân khẩu học và tính Mean/SD cho 12 item. Nhắc học viên lấy tròn 2 chữ số sau dấu phẩy theo chuẩn APA 7.",
+      12: "Giải thích bản chất Cronbach's Alpha qua ví von 4 giám khảo. Chiếu bảng kết quả chuẩn: Cả 3 thang đo đều đạt Alpha từ 0.81 đến 0.83, toàn bộ 12 item đều có tương quan biến tổng > 0.50.",
+      13: "Hướng dẫn cách trả lời tự tin trước Hội đồng: Khẳng định tính nhất quán nội tại của thang đo, giải thích vì sao không cần loại bỏ bất kỳ item nào và dữ liệu sẵn sàng cho bước hồi quy.",
+      14: "Chạy Prompt P9 kiểm định hồi quy tuyến tính DL lên IP. Giải thích ý nghĩa của R-square = 0.26 (Lãnh đạo số giải thích 26% biến thiên của Đổi mới) và p < 0.001.",
+      15: "Trọng tâm phương pháp luận: Kiểm định trung gian Bootstrap 95% theo Preacher & Hayes. Tác động gián tiếp a*b = 0.15 với khoảng tin cậy 95% không chứa số 0, c' vẫn có ý nghĩa ➔ Kết luận trung gian một phần.",
+      16: "Cảnh báo đạo đức sống còn: Nhấn mạnh dữ liệu cắt ngang không chứng minh quan hệ nhân quả. Bắt buộc rèn luyện kỹ thuật Hedging, tuyệt đối không dùng từ 'gây ra', 'làm tăng' mà phải dùng 'có mối liên hệ thuận'.",
+      17: "Giới thiệu cấu trúc báo cáo 8 phần chuẩn mực. Hướng dẫn học viên chạy Prompt P12 để đổ toàn bộ kết quả vào file 03_bao-cao-phan-tich-du-lieu.md có đầy đủ số liệu thật.",
+      18: "Dạy học viên cách viết phần Hạn chế nghiên cứu trung thực: Nêu 3 điểm yếu kinh điển (thiết kế cắt ngang, mẫu thuận tiện, tự báo cáo) và đề xuất hướng nghiên cứu tiếp theo.",
+      19: "Phân biệt rõ ràng ranh giới giữa làm mượt văn đúng đạo đức (giữ nguyên 100% số liệu) và gian lận. Bấm nút bắt đầu đồng hồ đếm ngược 20 phút cho học viên thực hành tại lớp.",
+      20: "Hướng dẫn học viên bổ sung Tuyên bố Khai báo Sử dụng AI song ngữ vào Mục 8 của báo cáo theo chuẩn Elsevier/Springer. Chạy Prompt P17 xuất báo cáo sang Word chuẩn Times New Roman.",
+      21: "Đóng vai vị giám khảo khó tính hỏi 3 câu chất vấn hóc búa. Yêu cầu học viên đối soát từng con số với Bảng số kiểm định chuẩn (Ground Truth).",
+      22: "Tổng kết 8 chuẩn năng lực đạt được sau Buổi 3. Giao 3 bài tập về nhà và dặn dò chuẩn bị cho Buổi 4 (Xây dựng Research Portfolio)."
+    };
+
+    /* PRESENTATION LOGIC */
+    let currentSlide = 1;
+    const totalSlides = 22;
+
+    const slides = document.querySelectorAll('.slide-page');
+    const slideIndicator = document.getElementById('slideIndicator');
+    const topProgressFill = document.getElementById('topProgressFill');
+    const overviewModal = document.getElementById('overviewModal');
+    const overviewGrid = document.getElementById('overviewGrid');
+    const speakerDrawer = document.getElementById('speakerDrawer');
+    const speakerContent = document.getElementById('speakerContent');
+
+    // Build overview matrix cards
+    slides.forEach((s, idx) => {
+      const num = idx + 1;
+      const title = s.getAttribute('data-title') || `Slide ${num}`;
+      const thumb = document.createElement('div');
+      thumb.className = `overview-thumb ${num === 1 ? 'active' : ''}`;
+      thumb.id = `thumb-${num}`;
+      thumb.innerHTML = `
+        <span class="thumb-num">SLIDE ${num < 10 ? '0' + num : num}</span>
+        <span class="thumb-title">${title}</span>
+      `;
+      thumb.onclick = () => {
+        goToSlide(num);
+        toggleOverview();
+      };
+      overviewGrid.appendChild(thumb);
+    });
+
+    function updatePresentation() {
+      slides.forEach((s, idx) => {
+        s.classList.toggle('active', idx + 1 === currentSlide);
+      });
+
+      const padNum = currentSlide < 10 ? '0' + currentSlide : currentSlide;
+      slideIndicator.textContent = `Slide ${padNum} / ${totalSlides}`;
+      topProgressFill.style.width = `${(currentSlide / totalSlides) * 100}%`;
+
+      // Update speaker note
+      speakerContent.textContent = speakerNotes[currentSlide] || "Không có ghi chú thêm.";
+
+      // Update overview active state
+      document.querySelectorAll('.overview-thumb').forEach((t, idx) => {
+        t.classList.toggle('active', idx + 1 === currentSlide);
+      });
+    }
+
+    function goToSlide(num) {
+      if (num < 1) num = 1;
+      if (num > totalSlides) num = totalSlides;
+      currentSlide = num;
+      updatePresentation();
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        goToSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        goToSlide(currentSlide - 1);
+      }
+    }
+
+    function toggleOverview() {
+      overviewModal.classList.toggle('active');
+    }
+
+    function toggleNotes() {
+      speakerDrawer.classList.toggle('active');
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+      const btn = document.getElementById('btnTheme');
+      if (document.body.classList.contains('light-theme')) {
+        btn.textContent = '🌙 Nền tối [T]';
+      } else {
+        btn.textContent = '☀️ Nền sáng [T]';
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    /* 1-CLICK COPY PROMPT */
+    function copyPrompt(elementId, btn) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        if (btn) {
+          const original = btn.innerHTML;
+          btn.innerHTML = '✓ Đã chép!';
+          btn.style.background = 'var(--brand-emerald)';
+          btn.style.color = '#070b14';
+          setTimeout(() => {
+            btn.innerHTML = original;
+            btn.style.background = '';
+            btn.style.color = '';
+          }, 2000);
+        }
+        showToast("✓ Đã sao chép prompt vào Clipboard!");
+      }).catch(() => {
+        showToast("Vui lòng chọn văn bản và sao chép thủ công.");
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastMsg');
+      toast.textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2500);
+    }
+
+    /* PRACTICE COUNTDOWN TIMER (Slide 19) */
+    let timerSec = 20 * 60;
+    let timerRef = null;
+    const timerDisplay = document.getElementById('timerDisplay');
+    const btnTimerStart = document.getElementById('btnTimerStart');
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timerSec / 60);
+      const s = timerSec % 60;
+      timerDisplay.textContent = `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+    }
+
+    function toggleTimer() {
+      if (timerRef) {
+        clearInterval(timerRef);
+        timerRef = null;
+        btnTimerStart.textContent = 'Tiếp tục';
+        btnTimerStart.classList.remove('btn-keynote-primary');
+      } else {
+        btnTimerStart.textContent = 'Tạm dừng';
+        btnTimerStart.classList.add('btn-keynote-primary');
+        timerRef = setInterval(() => {
+          if (timerSec > 0) {
+            timerSec--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerRef);
+            timerRef = null;
+            btnTimerStart.textContent = 'Hoàn thành';
+            showToast("⏰ Đã hết 20 phút thực hành!");
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      if (timerRef) {
+        clearInterval(timerRef);
+        timerRef = null;
+      }
+      timerSec = 20 * 60;
+      updateTimerDisplay();
+      btnTimerStart.textContent = 'Bắt đầu';
+      btnTimerStart.classList.add('btn-keynote-primary');
+    }
+
+    /* KEYBOARD SHORTCUTS */
+    document.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        toggleOverview();
+      } else if (e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        toggleTheme();
+      } else if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        goToSlide(1);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        goToSlide(totalSlides);
+      } else if (e.key === 'Escape') {
+        if (overviewModal.classList.contains('active')) toggleOverview();
+        if (speakerDrawer.classList.contains('active')) toggleNotes();
+      }
+    });
+
+    /* BUTTON LISTENERS */
+    document.getElementById('btnNext').addEventListener('click', nextSlide);
+    document.getElementById('btnPrev').addEventListener('click', prevSlide);
+    document.getElementById('btnOverview').addEventListener('click', toggleOverview);
+    document.getElementById('btnNotes').addEventListener('click', toggleNotes);
+    document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+    document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+
+    // Initial load
+    goToSlide(1);
+  </script>
+</body>
+</html>
