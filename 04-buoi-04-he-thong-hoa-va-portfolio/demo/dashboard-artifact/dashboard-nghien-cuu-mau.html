@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Điều Khiển Phân Tích Dữ Liệu Nghiên Cứu Khảo Sát (Research Data Dashboard Artifact)</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-navy: #1B365D;
+            --primary-dark: #0F2038;
+            --accent-blue: #2A6F97;
+            --bg-light: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text-main: #212529;
+            --text-muted: #6C757D;
+            --border-color: #E2E8F0;
+            --success-color: #198754;
+            --warning-color: #D97706;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 24px;
+        }
+
+        .dashboard-container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header.academic-header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-navy));
+            color: #FFFFFF;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .header-title p {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        .header-actions button {
+            background-color: #FFFFFF;
+            color: var(--primary-navy);
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .header-actions button:hover {
+            background-color: #E2E8F0;
+        }
+
+        /* Filter bar */
+        .filter-section {
+            background: var(--card-bg);
+            padding: 16px 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            font-size: 15px;
+            color: var(--primary-navy);
+        }
+
+        .filter-btn {
+            background: #F1F5F9;
+            border: 1px solid #CBD5E1;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: var(--primary-navy);
+            color: #FFFFFF;
+            border-color: var(--primary-navy);
+            font-weight: bold;
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            border-left: 5px solid var(--primary-navy);
+        }
+
+        .kpi-card.success { border-left-color: var(--success-color); }
+        .kpi-card.accent { border-left-color: var(--accent-blue); }
+        .kpi-card.warning { border-left-color: var(--warning-color); }
+
+        .kpi-title {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin-bottom: 4px;
+        }
+
+        .kpi-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Charts Layout */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .charts-row { grid-template-columns: 1fr; }
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+
+        .chart-card h3 {
+            font-size: 17px;
+            color: var(--primary-navy);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #EDF2F7;
+            text-transform: uppercase;
+        }
+
+        /* Path Diagram Section */
+        .path-diagram-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+
+        .path-diagram-card h3 {
+            font-size: 17px;
+            color: var(--primary-navy);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #EDF2F7;
+            text-transform: uppercase;
+        }
+
+        .diagram-svg-container {
+            width: 100%;
+            overflow-x: auto;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        /* Academic Table */
+        .table-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+
+        .table-card h3 {
+            font-size: 17px;
+            color: var(--primary-navy);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #EDF2F7;
+            text-transform: uppercase;
+        }
+
+        table.academic-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        table.academic-table th {
+            background: #F1F5F9;
+            color: var(--primary-navy);
+            font-weight: bold;
+            text-align: center;
+            padding: 12px;
+            border-top: 2px solid var(--primary-navy);
+            border-bottom: 2px solid var(--primary-navy);
+        }
+
+        table.academic-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        table.academic-table tr:last-child td {
+            border-bottom: 2px solid var(--primary-navy);
+        }
+
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+
+        .badge-supported {
+            background: #DCFCE7;
+            color: #15803D;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        /* Footer */
+        footer.academic-footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 20px 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        @media print {
+            body { padding: 0; background: #FFFFFF; }
+            .filter-section, .header-actions { display: none; }
+            .kpi-card, .chart-card, .table-card { box-shadow: none; border: 1px solid #000000; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <header class="academic-header">
+        <div class="header-title">
+            <h1>Báo Cáo Dữ Liệu Thực Nghiệm & Kiểm Định Mô Hình</h1>
+            <p>Đề tài: Tác động của Chuyển đổi số đến Hiệu quả hoạt động qua Đổi mới sáng tạo tại các DNNVV</p>
+        </div>
+        <div class="header-actions">
+            <button onclick="window.print()">🖨️ In Báo Cáo / Xuất PDF</button>
+        </div>
+    </header>
+
+    <!-- Bộ lọc tương tác -->
+    <div class="filter-section">
+        <span class="filter-label">🔍 Lọc dữ liệu theo Nhóm ngành:</span>
+        <button class="filter-btn active" onclick="filterData('all', this)">Toàn bộ mẫu (N = 302)</button>
+        <button class="filter-btn" onclick="filterData('manufacturing', this)">Sản xuất & Chế tạo (N = 126)</button>
+        <button class="filter-btn" onclick="filterData('services', this)">Dịch vụ & Thương mại (N = 118)</button>
+        <button class="filter-btn" onclick="filterData('tech', this)">Công nghệ & Viễn thông (N = 58)</button>
+    </div>
+
+    <!-- 4 Thẻ Chỉ Số Vàng (KPIs) -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-title">Cỡ mẫu hợp lệ (Listwise)</div>
+            <div class="kpi-value" id="kpi-sample">302</div>
+            <div class="kpi-desc">Tổng thu: 320 | Đạt chuẩn: 94.4%</div>
+        </div>
+        <div class="kpi-card success">
+            <div class="kpi-title">Cronbach's Alpha Trung Bình</div>
+            <div class="kpi-value" id="kpi-alpha">0.844</div>
+            <div class="kpi-desc">4/4 thang đo đạt chuẩn ≥ 0.70</div>
+        </div>
+        <div class="kpi-card accent">
+            <div class="kpi-title">Hệ số giải thích (R²)</div>
+            <div class="kpi-value" id="kpi-r2">0.418</div>
+            <div class="kpi-desc">Mô hình giải thích 41.8% phương sai</div>
+        </div>
+        <div class="kpi-card warning">
+            <div class="kpi-title">Tác động trung gian (Mediation)</div>
+            <div class="kpi-value" id="kpi-med">β = 0.185</div>
+            <div class="kpi-desc">Bootstrap 95% CI: [0.112, 0.264]</div>
+        </div>
+    </div>
+
+    <!-- Hàng 1: Biểu đồ Cơ cấu mẫu & Biểu đồ Alpha -->
+    <div class="charts-row">
+        <div class="chart-card">
+            <h3>1. Phân Bổ Mẫu Khảo Sát Theo Nhóm Ngành</h3>
+            <div style="height: 280px; position: relative;">
+                <canvas id="demographicsChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>2. Kiểm Định Độ Tin Cậy Thang Đo (Cronbach's Alpha)</h3>
+            <div style="height: 280px; position: relative;">
+                <canvas id="alphaChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hàng 2: Sơ đồ Đường Dẫn Mô Hình Nghiên Cứu (Path Model Diagram) -->
+    <div class="path-diagram-card">
+        <h3>3. Sơ Đồ Đường Dẫn Hồi Quy Tuyến Tính & Kiểm Định Trung Gian</h3>
+        <div class="diagram-svg-container">
+            <svg width="780" height="240" viewBox="0 0 780 240" style="max-width: 100%;">
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#1B365D" />
+                    </marker>
+                    <marker id="arrow-dashed" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#D97706" />
+                    </marker>
+                </defs>
+
+                <!-- Box 1: Biến Độc lập (Chuyển đổi số - DL) -->
+                <rect x="30" y="80" width="180" height="70" rx="6" fill="#F1F5F9" stroke="#1B365D" stroke-width="2" />
+                <text x="120" y="110" font-size="15" font-weight="bold" fill="#1B365D" text-anchor="middle">CHUYỂN ĐỔI SỐ (DL)</text>
+                <text x="120" y="130" font-size="13" fill="#6C757D" text-anchor="middle">4 quan sát | α = 0.865</text>
+
+                <!-- Box 2: Biến Trung gian (Đổi mới sáng tạo - IP) -->
+                <rect x="300" y="15" width="200" height="70" rx="6" fill="#F1F5F9" stroke="#1B365D" stroke-width="2" />
+                <text x="400" y="45" font-size="15" font-weight="bold" fill="#1B365D" text-anchor="middle">ĐỔI MỚI SÁNG TẠO (IP)</text>
+                <text x="400" y="65" font-size="13" fill="#6C757D" text-anchor="middle">4 quan sát | α = 0.842 | R² = 0.418</text>
+
+                <!-- Box 3: Biến Phụ thuộc (Hiệu quả hoạt động - FP) -->
+                <rect x="570" y="80" width="180" height="70" rx="6" fill="#F1F5F9" stroke="#1B365D" stroke-width="2" />
+                <text x="660" y="110" font-size="15" font-weight="bold" fill="#1B365D" text-anchor="middle">HIỆU QUẢ HOẠT ĐỘNG (FP)</text>
+                <text x="660" y="130" font-size="13" fill="#6C757D" text-anchor="middle">4 quan sát | α = 0.851</text>
+
+                <!-- Mũi tên 1: DL -> IP (H1) -->
+                <path d="M 180 80 Q 240 40 300 45" fill="none" stroke="#1B365D" stroke-width="2" marker-end="url(#arrow)" />
+                <text x="235" y="45" font-size="13" font-weight="bold" fill="#1B365D">H1: β = 0.428***</text>
+
+                <!-- Mũi tên 2: IP -> FP (H2) -->
+                <path d="M 500 45 Q 560 40 600 80" fill="none" stroke="#1B365D" stroke-width="2" marker-end="url(#arrow)" />
+                <text x="525" y="45" font-size="13" font-weight="bold" fill="#1B365D">H2: β = 0.385***</text>
+
+                <!-- Mũi tên 3: DL -> FP Trực tiếp (H3) -->
+                <line x1="210" y1="125" x2="570" y2="125" stroke="#6C757D" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow)" />
+                <text x="390" y="145" font-size="13" font-weight="bold" fill="#6C757D" text-anchor="middle">Tác động trực tiếp: β = 0.214* (p = 0.021)</text>
+
+                <!-- Đường chỉ tác động trung gian gián tiếp -->
+                <rect x="250" y="180" width="300" height="40" rx="4" fill="#FEF3C7" stroke="#D97706" stroke-width="1" />
+                <text x="400" y="205" font-size="13" font-weight="bold" fill="#B45309" text-anchor="middle">H3 (Trung gian): β = 0.185*** (Bootstrap CI 95%: 0.112 - 0.264)</text>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Hàng 3: Bảng Kiểm Định Giả Thuyết Chuẩn APA 7 -->
+    <div class="table-card">
+        <h3>4. Bảng Tóm Tắt Kết Quả Kiểm Định Giả Thuyết Nghiên Cứu</h3>
+        <table class="academic-table">
+            <thead>
+                <tr>
+                    <th>Mã GT</th>
+                    <th class="text-left">Mối quan hệ giả thuyết</th>
+                    <th>Hệ số hồi quy (β)</th>
+                    <th>Sai số chuẩn (SE)</th>
+                    <th>Giá trị t</th>
+                    <th>Mức ý nghĩa (p)</th>
+                    <th>Kết luận</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-center"><b>H1</b></td>
+                    <td class="text-left">Chuyển đổi số (DL) ➔ Đổi mới sáng tạo (IP)</td>
+                    <td class="text-center">0.428</td>
+                    <td class="text-center">0.052</td>
+                    <td class="text-center">8.231</td>
+                    <td class="text-center">&lt; 0.001</td>
+                    <td class="text-center"><span class="badge-supported">Chấp nhận H1</span></td>
+                </tr>
+                <tr>
+                    <td class="text-center"><b>H2</b></td>
+                    <td class="text-left">Đổi mới sáng tạo (IP) ➔ Hiệu quả hoạt động (FP)</td>
+                    <td class="text-center">0.385</td>
+                    <td class="text-center">0.058</td>
+                    <td class="text-center">6.638</td>
+                    <td class="text-center">&lt; 0.001</td>
+                    <td class="text-center"><span class="badge-supported">Chấp nhận H2</span></td>
+                </tr>
+                <tr>
+                    <td class="text-center"><b>H3</b></td>
+                    <td class="text-left">Chuyển đổi số ➔ ĐMST ➔ Hiệu quả hoạt động (Mediation)</td>
+                    <td class="text-center">0.185</td>
+                    <td class="text-center">0.038</td>
+                    <td class="text-center">4.868</td>
+                    <td class="text-center">&lt; 0.001</td>
+                    <td class="text-center"><span class="badge-supported">Trung gian một phần</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="font-size: 13px; color: #6C757D; margin-top: 10px; font-style: italic;">
+            * Ghi chú: Cỡ mẫu N = 302 sau khi làm sạch listwise. Kiểm định trung gian thực hiện theo phương pháp Bootstrap 5,000 lần (Preacher & Hayes, 2008). Toàn bộ dữ liệu được xử lý tự động qua Claude Code Agent.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="academic-footer">
+        <p>Bảng điều khiển phân tích dữ liệu nghiên cứu (Research Dashboard Artifact) — Khóa K3 AI Cho Nghiên Cứu Khoa Học & Luận Án Tiến Sĩ</p>
+        <p>© CES Global · Thiết kế theo chuẩn mực học thuật quốc tế (APA 7th & TCVN 6909:2001)</p>
+    </footer>
+</div>
+
+<script>
+    // Dữ liệu ban đầu
+    const dataset = {
+        all: { sample: 302, alpha: 0.844, r2: 0.418, med: 'β = 0.185', alphas: [0.865, 0.842, 0.819, 0.851] },
+        manufacturing: { sample: 126, alpha: 0.852, r2: 0.435, med: 'β = 0.198', alphas: [0.872, 0.851, 0.825, 0.860] },
+        services: { sample: 118, alpha: 0.838, r2: 0.402, med: 'β = 0.174', alphas: [0.858, 0.835, 0.812, 0.846] },
+        tech: { sample: 58, alpha: 0.861, r2: 0.456, med: 'β = 0.210', alphas: [0.884, 0.860, 0.838, 0.862] }
+    };
+
+    // 1. Khởi tạo Biểu đồ Cơ cấu mẫu
+    const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
+    const demoChart = new Chart(ctxDemo, {
+        type: 'doughnut',
+        data: {
+            labels: ['Sản xuất & Chế tạo', 'Dịch vụ & Thương mại', 'Công nghệ & Viễn thông'],
+            datasets: [{
+                data: [126, 118, 58],
+                backgroundColor: ['#1B365D', '#2A6F97', '#D97706'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { family: 'Times New Roman', size: 13 } } }
+            }
+        }
+    });
+
+    // 2. Khởi tạo Biểu đồ Cronbach Alpha
+    const ctxAlpha = document.getElementById('alphaChart').getContext('2d');
+    const alphaChart = new Chart(ctxAlpha, {
+        type: 'bar',
+        data: {
+            labels: ['Chuyển đổi số (DL)', 'Đổi mới sáng tạo (IP)', 'Năng lực động (DC)', 'Hiệu quả hoạt động (FP)'],
+            datasets: [{
+                label: "Hệ số Cronbach's Alpha",
+                data: [0.865, 0.842, 0.819, 0.851],
+                backgroundColor: '#1B365D',
+                borderColor: '#0F2038',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    min: 0.6,
+                    max: 1.0,
+                    ticks: { font: { family: 'Times New Roman' } },
+                    grid: { color: '#E2E8F0' }
+                },
+                y: { ticks: { font: { family: 'Times New Roman', size: 13 } } }
+            },
+            plugins: {
+                legend: { display: false },
+                annotation: {
+                    // Ngưỡng 0.70
+                }
+            }
+        }
+    });
+
+    // Hàm Lọc Tương Tác
+    function filterData(category, btn) {
+        // Cập nhật nút active
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Cập nhật số liệu KPI
+        const d = dataset[category];
+        document.getElementById('kpi-sample').innerText = d.sample;
+        document.getElementById('kpi-alpha').innerText = d.alpha;
+        document.getElementById('kpi-r2').innerText = d.r2;
+        document.getElementById('kpi-med').innerText = d.med;
+
+        // Cập nhật biểu đồ Alpha
+        alphaChart.data.datasets[0].data = d.alphas;
+        alphaChart.update();
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khóa Học AI Cho Nghiên Cứu (K3) - Buổi 04: Subagents, Humanizer & Dashboard Luận Án | CES Global</title>
+  
+  <style>
+    /* ==========================================================================
+       FONT MANDATE: 100% Times New Roman theo quy chuẩn toàn cục bắt buộc
+       Monospace chỉ áp dụng cho khối Code, Terminal, Prompt và Timer.
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Times New Roman', Times, serif !important;
+    }
+
+    code, pre, .font-mono, .terminal-code, .timer-digits-text {
+      font-family: Consolas, 'Courier New', 'JetBrains Mono', monospace !important;
+    }
+
+    :root {
+      /* Theme Canvas (Executive Academic Dark) */
+      --canvas-bg: #070b14;
+      --surface-base: #0d1527;
+      --surface-card: rgba(18, 29, 53, 0.88);
+      --surface-card-hover: rgba(26, 42, 77, 0.98);
+      --surface-glass: rgba(15, 23, 42, 0.85);
+      --terminal-bg: #050811;
+
+      /* Borders & Shadows */
+      --border-subtle: #1e2c4f;
+      --border-medium: #314878;
+      --border-highlight: #38bdf8;
+      --shadow-elevation: 0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 24px rgba(56, 189, 248, 0.08);
+      --shadow-card: 0 6px 20px -2px rgba(0, 0, 0, 0.4);
+
+      /* Typography Colors */
+      --text-main: #f8fafc;
+      --text-body: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --text-white: #ffffff;
+
+      /* Vibrant Academic Accent Colors */
+      --brand-blue: #38bdf8;
+      --brand-blue-glow: rgba(56, 189, 248, 0.25);
+      --brand-blue-deep: #0284c7;
+      --brand-gold: #f59e0b;
+      --brand-gold-glow: rgba(245, 158, 11, 0.25);
+      --brand-emerald: #10b981;
+      --brand-rose: #f43f5e;
+      --brand-purple: #c084fc;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Light Theme Switcher */
+    body.light-theme {
+      --canvas-bg: #f8fafc;
+      --surface-base: #ffffff;
+      --surface-card: rgba(255, 255, 255, 0.95);
+      --surface-card-hover: #ffffff;
+      --surface-glass: rgba(255, 255, 255, 0.9);
+      --terminal-bg: #0f172a;
+
+      --border-subtle: #e2e8f0;
+      --border-medium: #cbd5e1;
+      --border-highlight: #0284c7;
+      --shadow-elevation: 0 16px 36px -8px rgba(15, 23, 42, 0.12);
+      --shadow-card: 0 4px 14px -2px rgba(15, 23, 42, 0.06);
+
+      --text-main: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --text-white: #ffffff;
+
+      --brand-blue: #0284c7;
+      --brand-blue-glow: rgba(2, 132, 199, 0.15);
+      --brand-blue-deep: #0369a1;
+      --brand-gold: #d97706;
+      --brand-gold-glow: rgba(217, 119, 6, 0.15);
+      --brand-emerald: #059669;
+      --brand-rose: #e11d48;
+      --brand-purple: #7c3aed;
+    }
+
+    body {
+      background-color: var(--canvas-bg);
+      color: var(--text-main);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    /* Ambient Dynamic Mesh Canvas */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 85% 20%, rgba(192, 132, 252, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.06) 0%, transparent 55%),
+        linear-gradient(180deg, rgba(7, 11, 20, 0.95) 0%, var(--canvas-bg) 100%);
+      transition: background 0.4s ease;
+    }
+
+    body.light-theme .ambient-canvas {
+      background: 
+        radial-gradient(circle at 15% 15%, rgba(2, 132, 199, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 85% 20%, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 50% 85%, rgba(217, 119, 6, 0.04) 0%, transparent 55%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    /* TOP FLOATING NAVIGATION BAR */
+    .top-navbar {
+      position: relative;
+      z-index: 50;
+      height: 56px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ces-logo-badge {
+      background: linear-gradient(135deg, #0284c7 0%, #6366f1 100%);
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: bold;
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.08em;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+    }
+
+    .course-breadcrumb {
+      font-size: 0.96rem;
+      font-weight: bold;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .session-chip {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--brand-blue);
+      font-size: 0.82rem;
+      font-weight: bold;
+      padding: 2px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-highlight);
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slide-badge {
+      background: var(--surface-base);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-weight: bold;
+      font-size: 0.88rem;
+      padding: 4px 14px;
+      border-radius: 999px;
+    }
+
+    .nav-buttons-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-icon-keynote {
+      background: var(--surface-base);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-body);
+      font-size: 0.88rem;
+      font-weight: bold;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn-icon-keynote:hover {
+      background: var(--border-subtle);
+      color: var(--brand-blue);
+      border-color: var(--border-highlight);
+    }
+
+    .btn-keynote-primary {
+      background: var(--brand-blue-deep);
+      color: #ffffff;
+      border: 1px solid var(--brand-blue);
+    }
+
+    .btn-keynote-primary:hover {
+      background: var(--brand-blue);
+      color: #070b14;
+    }
+
+    /* SLIDE STACK & PRESENTATION STAGE */
+    .presentation-stage {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 40px;
+      perspective: 1200px;
+    }
+
+    .slide-deck {
+      position: relative;
+      width: 100%;
+      max-width: 1400px;
+      height: 100%;
+      max-height: 820px;
+      display: flex;
+    }
+
+    .slide-panel {
+      position: absolute;
+      inset: 0;
+      background: var(--surface-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 40px 48px;
+      box-shadow: var(--shadow-elevation);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px) scale(0.985);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .slide-panel.active-slide {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+    }
+
+    /* SLIDE HEADER & TYPOGRAPHY */
+    .slide-header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .slide-tag {
+      font-size: 0.82rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--brand-blue);
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .slide-tag.gold { color: var(--brand-gold); }
+    .slide-tag.emerald { color: var(--brand-emerald); }
+    .slide-tag.rose { color: var(--brand-rose); }
+    .slide-tag.purple { color: var(--brand-purple); }
+
+    .slide-title {
+      font-size: 2.0rem;
+      font-weight: bold;
+      color: var(--text-main);
+      line-height: 1.25;
+    }
+
+    .slide-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .slide-content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* GRID LAYOUTS */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .grid-4col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    /* EXECUTIVE CARDS */
+    .academic-card {
+      background: var(--surface-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .academic-card:hover {
+      border-color: var(--border-medium);
+      box-shadow: var(--shadow-card);
+      transform: translateY(-2px);
+    }
+
+    .card-badge {
+      align-self: flex-start;
+      font-size: 0.76rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--brand-blue); }
+    .badge-gold { background: rgba(245, 158, 11, 0.15); color: var(--brand-gold); }
+    .badge-emerald { background: rgba(16, 185, 129, 0.15); color: var(--brand-emerald); }
+    .badge-rose { background: rgba(244, 63, 94, 0.15); color: var(--brand-rose); }
+    .badge-purple { background: rgba(192, 132, 252, 0.15); color: var(--brand-purple); }
+
+    .card-title {
+      font-size: 1.18rem;
+      font-weight: bold;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .card-text {
+      font-size: 0.94rem;
+      color: var(--text-body);
+      line-height: 1.5;
+    }
+
+    /* ACADEMIC DATA TABLES */
+    .table-academic {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      margin: 6px 0;
+    }
+
+    .table-academic th, .table-academic td {
+      padding: 9px 12px;
+      border: 1px solid var(--border-subtle);
+      text-align: left;
+    }
+
+    .table-academic th {
+      background: rgba(30, 44, 79, 0.6);
+      color: var(--brand-blue);
+      font-weight: bold;
+      font-size: 0.92rem;
+    }
+
+    body.light-theme .table-academic th {
+      background: #eff6ff;
+      color: #0369a1;
+    }
+
+    .table-academic tr:hover td {
+      background: rgba(56, 189, 248, 0.04);
+    }
+
+    .table-academic .col-center { text-align: center; }
+    .table-academic .col-right { text-align: right; }
+
+    /* PROMPT TERMINAL BOX WITH 1-CLICK COPY */
+    .prompt-terminal {
+      background: var(--terminal-bg);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .terminal-header {
+      background: rgba(15, 23, 42, 0.95);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .terminal-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: bold;
+    }
+
+    .btn-copy-prompt {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid var(--border-highlight);
+      color: var(--brand-blue);
+      font-size: 0.78rem;
+      font-weight: bold;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-copy-prompt:hover {
+      background: var(--brand-blue);
+      color: #070b14;
+    }
+
+    .terminal-body {
+      padding: 14px 18px;
+      overflow-x: auto;
+      max-height: 240px;
+    }
+
+    .terminal-code {
+      font-size: 0.88rem;
+      color: #38bdf8;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    body.light-theme .terminal-code {
+      color: #0284c7;
+    }
+
+    /* COMPARE BOX (BEFORE / AFTER) */
+    .compare-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .compare-box {
+      border-radius: var(--radius-md);
+      padding: 18px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .compare-bad {
+      background: rgba(244, 63, 94, 0.05);
+      border-color: rgba(244, 63, 94, 0.3);
+    }
+
+    .compare-good {
+      background: rgba(16, 185, 129, 0.05);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .compare-header {
+      font-size: 0.96rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .compare-bad .compare-header { color: var(--brand-rose); }
+    .compare-good .compare-header { color: var(--brand-emerald); }
+
+    /* PRACTICAL COUNTDOWN TIMER */
+    .timer-container {
+      background: var(--surface-base);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .timer-digits-text {
+      font-size: 4.2rem;
+      font-weight: bold;
+      color: var(--brand-gold);
+      letter-spacing: 0.08em;
+      text-shadow: 0 0 24px var(--brand-gold-glow);
+    }
+
+    /* BOTTOM PROGRESS BAR */
+    .bottom-bar {
+      height: 4px;
+      background: var(--border-subtle);
+      width: 100%;
+      position: relative;
+      z-index: 50;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #f59e0b 100%);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* OVERVIEW MODAL */
+    .overview-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 17, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 100;
+      padding: 40px;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .overview-modal.active { display: flex; }
+
+    .overview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .overview-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .overview-card:hover {
+      border-color: var(--brand-blue);
+      transform: scale(1.02);
+    }
+
+    .overview-card.current {
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 16px var(--brand-blue-glow);
+    }
+
+    .overview-num {
+      font-size: 0.78rem;
+      font-weight: bold;
+      color: var(--brand-blue);
+    }
+
+    .overview-title {
+      font-size: 0.92rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    /* SPEAKER NOTES DRAWER */
+    .speaker-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 240px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(24px);
+      border-top: 1px solid var(--border-highlight);
+      z-index: 80;
+      padding: 20px 40px;
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.6);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .speaker-drawer.active { transform: translateY(0); }
+
+    .speaker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.92rem;
+      font-weight: bold;
+      color: var(--brand-blue);
+    }
+
+    .speaker-body {
+      font-size: 0.94rem;
+      color: var(--text-body);
+      line-height: 1.6;
+      overflow-y: auto;
+    }
+
+    /* TOAST NOTIFICATION */
+    .toast-notification {
+      position: fixed;
+      bottom: 24px;
+      right: 32px;
+      background: var(--surface-card);
+      border: 1px solid var(--brand-blue);
+      color: var(--brand-blue);
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: bold;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-canvas"></div>
+
+  <!-- TOP NAVBAR -->
+  <header class="top-navbar">
+    <div class="brand-section">
+      <span class="ces-logo-badge">CES GLOBAL</span>
+      <span class="course-breadcrumb">K3 NCKH & Luận Án Tiến Sĩ <span style="color: var(--text-dim)">/</span></span>
+      <span class="session-chip">Buổi 04: Subagents & Dashboard Artifact</span>
+    </div>
+
+    <div class="nav-status">
+      <span class="slide-badge" id="slideBadge">Slide 01 / 24</span>
+      <div class="nav-buttons-group">
+        <button class="btn-icon-keynote" id="btnPrev" title="Slide trước (Phím Mũi tên trái)">◀ Trước</button>
+        <button class="btn-icon-keynote btn-keynote-primary" id="btnNext" title="Slide tiếp theo (Phím Mũi tên phải)">Tiếp ▶</button>
+        <button class="btn-icon-keynote" id="btnOverview" title="Tổng quan slide (Phím O)">📑 Mục Lục [O]</button>
+        <button class="btn-icon-keynote" id="btnNotes" title="Ghi chú Giảng viên (Phím N)">🎙️ Ghi Chú [N]</button>
+        <button class="btn-icon-keynote" id="btnTheme" title="Đổi màu nền Sáng/Tối (Phím T)">🌓 [T]</button>
+        <button class="btn-icon-keynote" id="btnFullscreen" title="Toàn màn hình (Phím F)">⛶ [F]</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PRESENTATION STAGE -->
+  <main class="presentation-stage">
+    <div class="slide-deck">
+
+      <!-- SLIDE 01: COVER -->
+      <section class="slide-panel active-slide" data-slide="1" data-notes="Chào mừng Thầy Cô và các bạn học viên đến với Buổi 04 - Buổi chốt hạ và đỉnh cao nhất của khóa K3. Hôm nay chúng ta chuyển từ tư duy chat đơn lẻ sang kiến trúc Multi-Agent (Master - Worker), bóc tách và khử sạch văn phong robot bằng skill humanizer, tẩy rác ký tự ẩn, sinh Dashboard dữ liệu tương tác để bảo vệ luận án!">
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 20px;">
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <span class="card-badge badge-blue">Chương Trình Đào Tạo Đỉnh Cao</span>
+            <span class="card-badge badge-gold">K3 NCKH & Luận Án Tiến Sĩ</span>
+          </div>
+          <h1 style="font-size: 2.8rem; font-weight: bold; color: var(--text-white); max-width: 1000px; line-height: 1.2;">
+            KIẾN TRÚC ĐA TÁC NHÂN (SUBAGENTS), KHỬ DẤU VẾT AI & TRỰC QUAN HÓA DỮ LIỆU LUẬN ÁN
+          </h1>
+          <p style="font-size: 1.25rem; color: var(--brand-blue); max-width: 850px;">
+            Làm chủ Agentic Workflow trong Claude Code · Khử 25 mẫu văn phong máy móc · Giải mã Watermark ẩn · Sinh Interactive Research Data Dashboard Artifact
+          </p>
+          <div style="margin-top: 24px; padding: 12px 28px; background: rgba(56, 189, 248, 0.08); border: 1px solid var(--border-medium); border-radius: var(--radius-md); font-size: 0.96rem; color: var(--text-body);">
+            Giảng viên: <b>Lưu Tuấn Anh</b> · CES Global — Trung Tâm Đào Tạo & Ứng Dụng Công Nghệ
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 02: BẢN ĐỒ 4 BUỔI HỌC -->
+      <section class="slide-panel" data-slide="2" data-notes="Nhìn lại lộ trình 4 buổi để học viên thấy được mình đã đi qua những mốc son nào: B1 dựng xưởng, B2 đọc tài liệu, B3 làm sạch dữ liệu và hồi quy, và B4 là đỉnh cao tích hợp đa tác nhân, tinh chỉnh ngôn từ và trực quan hóa số liệu.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag">Tổng Quan Lộ Trình</span>
+            <h2 class="slide-title">Bản Đồ 4 Buổi Học Thực Chiến: Hành Trình Làm Chủ AI Luận Án</h2>
+          </div>
+          <span class="slide-badge">Buổi 4: Về Đích</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-4col" style="height: 100%;">
+            <div class="academic-card">
+              <span class="card-badge badge-blue">Buổi 01 · Đã xong</span>
+              <h3 class="card-title">Thiết Lập Dự Án & 8 Kỹ Năng Cốt Lõi</h3>
+              <p class="card-text">Dựng Workspace chuẩn quốc tế, tạo <code>CLAUDE.md</code> Local và nạp bộ 8 skill học thuật chuyên sâu.</p>
+            </div>
+            <div class="academic-card">
+              <span class="card-badge badge-blue">Buổi 02 · Đã xong</span>
+              <h3 class="card-title">Tổng Quan Tài Liệu & Research Gap</h3>
+              <p class="card-text">Hỏi đáp sâu trên kho tài liệu với NotebookLM, bóc tách khoảng trống nghiên cứu, viết có trích dẫn APA 7th.</p>
+            </div>
+            <div class="academic-card">
+              <span class="card-badge badge-blue">Buổi 03 · Đã xong</span>
+              <h3 class="card-title">CLAUDE.md Global & Phân Tích Dữ Liệu</h3>
+              <p class="card-text">5 Super Rules, MarkItDown tiết kiệm 80% token, làm sạch 320 mẫu, Cronbach Alpha, Hồi quy và Mediation Bootstrap 95%.</p>
+            </div>
+            <div class="academic-card" style="border-color: var(--brand-gold); box-shadow: 0 0 20px var(--brand-gold-glow);">
+              <span class="card-badge badge-gold">Buổi 04 · Hôm Nay</span>
+              <h3 class="card-title" style="color: var(--brand-gold);">Subagents, Humanizer & Dashboard Artifact</h3>
+              <p class="card-text">Master-Worker đa nhiệm, khử 25 mẫu văn phong AI, quét sạch Unicode ẩn, sinh Dashboard dữ liệu sống và bảo vệ luận án.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 03: NHỊP BUỔI HỌC 150 PHÚT -->
+      <section class="slide-panel" data-slide="3" data-notes="Giải thích nhịp 4 khối của buổi học hôm nay. Không còn học làm website cá nhân hay deploy Vercel rườm rà nữa, mà toàn bộ 150 phút tập trung vào các vũ khí sắc bén nhất cho Luận án tiến sĩ và Bài báo Scopus.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag gold">Kế Hoạch Giảng Dạy</span>
+            <h2 class="slide-title">Nhịp Buổi Học 150 Phút: Tập Trung Tuyệt Đối Cho Luận Án</h2>
+          </div>
+          <span class="slide-badge">150 Phút Thực Chiến</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-4col">
+            <div class="academic-card">
+              <span class="card-badge badge-blue">Khối 1 · 40 Phút</span>
+              <h3 class="card-title">Kiến Trúc Agent & Subagents</h3>
+              <ul class="card-text" style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
+                <li>Workflow vs Agent vs Subagent</li>
+                <li>Ranh giới Context & Cách ly 100%</li>
+                <li>Tờ giấy giao việc & Log tự hủy</li>
+                <li>P1A trích xuất 5 bài báo · P1B kiểm toán CSV</li>
+              </ul>
+            </div>
+            <div class="academic-card">
+              <span class="card-badge badge-purple">Khối 2 · 40 Phút</span>
+              <h3 class="card-title">Humanizer & Watermark Remover</h3>
+              <ul class="card-text" style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
+                <li>Bóc tách 25 mẫu câu sáo rỗng</li>
+                <li>Khử vết tích AI bằng skill</li>
+                <li>Giải mã Zero-width Unicode</li>
+                <li>Tẩy sạch ký tự rác ẩn file</li>
+              </ul>
+            </div>
+            <div class="academic-card" style="border-color: var(--brand-emerald);">
+              <span class="card-badge badge-emerald">Khối 3 · 50 Phút</span>
+              <h3 class="card-title">Dashboard Artifact Tương Tác</h3>
+              <ul class="card-text" style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
+                <li>Tư duy Dashboard học thuật</li>
+                <li>Claude sinh file HTML độc lập</li>
+                <li>Chart.js, Path Model, KPI</li>
+                <li>Bộ lọc dữ liệu tương tác sống</li>
+              </ul>
+            </div>
+            <div class="academic-card">
+              <span class="card-badge badge-rose">Khối 4 · 20 Phút</span>
+              <h3 class="card-title">Diễn Tập Bảo Vệ & Tổng Kết</h3>
+              <ul class="card-text" style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
+                <li>Skill defense-prep tạo 15 slide</li>
+                <li>Dự đoán 15 câu hỏi Hội đồng</li>
+                <li>Kịch bản trả lời đanh thép</li>
+                <li>Nghiệm thu toàn bộ khóa học</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 04: GIẢI PHẪU 3 CẤP ĐỘ AI: WORKFLOW VS AGENT VS SUBAGENT -->
+      <section class="slide-panel" data-slide="4" data-notes="Phân biệt 3 cấp độ: Workflow, Agent và Subagent theo tài liệu chuẩn 'Building Effective Agents' của Anthropic. Làm rõ vì sao luận án tiến sĩ không thể dùng Workflow cứng hay Prompt đơn lẻ, mà bắt buộc phải hiểu cơ chế Vòng lặp tự chủ (Autonomous Loop) và Tác nhân cách ly.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag">Chuẩn Mực Anthropic · Building Effective Agents</span>
+            <h2 class="slide-title">Giải Phẫu 3 Cấp Độ Tự Động Hóa: Workflow vs Agent vs Subagent</h2>
+          </div>
+          <span class="slide-badge">Khối 1: Kiến Trúc Subagents</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-3col">
+            <div class="academic-card" style="border-top: 4px solid var(--text-dim);">
+              <span class="card-badge">1. Workflow (Cố Định)</span>
+              <h3 class="card-title">Dây Chuyền Tuyến Tính</h3>
+              <div style="background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: var(--brand-blue); margin: 8px 0;">
+                Input ➔ Bước A ➔ Bước B ➔ Output
+              </div>
+              <p class="card-text">
+                Hệ thống chuỗi lệnh hoặc prompt chaining cố định. Giống dây chuyền đóng gói: chỉ đi theo đường ray có sẵn, <b>không có khả năng tự xoay xở</b> khi gặp kết quả hồi quy dị biệt hay lỗi file. Thất bại trước độ phức tạp 150 trang của luận án.
+              </p>
+            </div>
+
+            <div class="academic-card" style="border-top: 4px solid var(--brand-blue); background: rgba(56, 189, 248, 0.04);">
+              <span class="card-badge badge-blue">2. Agent (Tự Trị)</span>
+              <h3 class="card-title">Vòng Lặp Tự Chủ (Loop)</h3>
+              <div style="background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: var(--brand-emerald); margin: 8px 0;">
+                Goal ➔ Reason ➔ Tool ➔ Observe ➔ Loop
+              </div>
+              <p class="card-text">
+                Hệ thống mà <b>LLM tự điều khiển vòng lặp hành động</b>. Bạn chỉ giao mục tiêu lớn, Agent tự suy nghĩ, tự chọn công cụ (đọc file, chạy code Python, sửa lỗi) cho đến khi đạt đích. <b>Claude Code chính là một Agent</b> đang pair-programming cùng bạn.
+              </p>
+            </div>
+
+            <div class="academic-card" style="border-top: 4px solid var(--brand-purple); background: rgba(168, 85, 247, 0.04);">
+              <span class="card-badge badge-purple">3. Subagent (Cách Ly)</span>
+              <h3 class="card-title">Trợ Lý Chuyên Trách</h3>
+              <div style="background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: var(--brand-purple); margin: 8px 0;">
+                Main ➔ "Tờ Giấy" ➔ Subagent ➔ Kết Quả
+              </div>
+              <p class="card-text">
+                Một <b>phiên bản Claude độc lập</b> do Agent chính sinh ra để giải quyết một tác vụ con có phạm vi xác định. Chạy trong <b>Context Window hoàn toàn riêng biệt</b>, cày xới dữ liệu thô khổng lồ, nộp báo cáo rồi tự giải phóng bộ nhớ!
+              </p>
+            </div>
+          </div>
+
+          <div class="academic-card" style="margin-top: 14px; background: rgba(245, 158, 11, 0.06); border-color: var(--brand-gold);">
+            <b style="color: var(--brand-gold); font-size: 0.98rem;">🎯 Kết Luận Bản Chất Dành Cho Nghiên Cứu Sinh:</b>
+            <span class="card-text" style="font-size: 0.94rem;">
+              Không dùng LLM như một công cụ gõ chữ (Workflow), hãy nâng cấp lên tư duy <b>Tổng Chỉ Huy Luận Án</b>: Bạn giao mục tiêu cho Main Agent, và Main Agent điều phối các Subagents cày cuốc tài liệu độc lập!
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 05: RANH GIỚI CONTEXT & KÊNH GIAO TIẾP 1 CHIỀU -->
+      <section class="slide-panel" data-slide="5" data-notes="Điểm mấu chốt kỹ thuật: Context Window Bloat trong Luận án 150 trang. Giải thích cơ chế cô lập 100%, kênh giao tiếp 1 chiều qua 'tờ giấy giao việc' (Task Prompt), và cơ chế tự hủy của logs dữ liệu trung gian.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag rose">Bản Chất Kỹ Thuật Lõi</span>
+            <h2 class="slide-title">Ranh Giới Context Window & Kênh Giao Tiếp 1 Chiều</h2>
+          </div>
+          <span class="slide-badge">Bảo Vệ Bộ Nhớ 150 Trang</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-3col">
+            <div class="academic-card" style="border-left: 4px solid var(--brand-rose);">
+              <span class="card-badge badge-rose">Cơn Ác Mộng Cũ</span>
+              <h3 class="card-title">Mù Sương Ngữ Cảnh (Saturation)</h3>
+              <p class="card-text">
+                Khi dồn hàng chục bài báo và dữ liệu khảo sát vào 1 chat duy nhất, context phình to &gt;100k tokens. AI bị loãng trí nhớ, quên các chỉ thị gốc trong <code>CLAUDE.md</code>, nhầm lẫn các biến số mô hình và bắt đầu sinh ảo giác (bịa số liệu).
+              </p>
+            </div>
+
+            <div class="academic-card" style="border-left: 4px solid var(--brand-blue);">
+              <span class="card-badge badge-blue">Sự Cô Lập 100%</span>
+              <h3 class="card-title">Context Window Tinh Sạch</h3>
+              <p class="card-text">
+                Subagent được sinh ra với một không gian bộ nhớ <b>mới tinh 100%</b>: Không thấy lịch sử chat trước đó, không biết các file cha từng mở. Bắt đầu với một cái đầu hoàn toàn trong sạch, dồn 100% trí lực phân tích cho một bài toán duy nhất.
+              </p>
+            </div>
+
+            <div class="academic-card" style="border-left: 4px solid var(--brand-emerald);">
+              <span class="card-badge badge-emerald">Kỳ Diệu Của Subagent</span>
+              <h3 class="card-title">Dữ Liệu Trung Gian Tự Hủy</h3>
+              <p class="card-text">
+                Subagent có thể đọc 50.000 từ tài liệu thô, chạy hàng chục script thử sai, sinh ra hàng ngàn dòng log... <b>TẤT CẢ TỰ HỦY HOÀN TOÀN</b> khi xong việc. Chỉ duy nhất 1 bảng kết luận sạch (500 từ) được chuyển về bàn làm việc chính!
+              </p>
+            </div>
+          </div>
+
+          <div class="academic-card" style="margin-top: 14px; background: rgba(56, 189, 248, 0.05); border-color: var(--brand-blue);">
+            <div style="display: flex; gap: 16px; align-items: center;">
+              <div style="font-size: 2.2rem;">📝</div>
+              <div>
+                <b style="color: var(--brand-blue); font-size: 1.05rem;">"Tờ Giấy Giao Việc" (Task Prompt) Là Cầu Nối Duy Nhất</b>
+                <p class="card-text" style="font-size: 0.93rem; margin-top: 2px;">
+                  Agent chính và Subagent không dùng chung não bộ. Kênh giao tiếp duy nhất là nội dung prompt giao việc. Mọi chỉ dẫn (đường dẫn file chính xác, tiêu chí lọc, cấu trúc bảng đầu ra) bắt buộc phải ghi rõ trên "tờ giấy giao việc".
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 06: ẨN DỤ SƯ PHẠM & 2 GIỚI HẠN CỨNG CỦA ANTHROPIC -->
+      <section class="slide-panel" data-slide="6" data-notes="Ẩn dụ sư phạm rất trực quan: Chủ nhiệm đề tài và Trợ lý nghiên cứu qua khe cửa. Nhấn mạnh 2 giới hạn kỹ thuật cứng của Anthropic mà học viên cần biết để không ra lệnh sai: Không có Subagent lồng nhau và Không hỏi người dùng giữa chừng.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag gold">Tư Duy Điều Hành & Giới Hạn Kỹ Thuật</span>
+            <h2 class="slide-title">Ẩn Dụ Sư Phạm: "Chủ Nhiệm Đề Tài" & 2 Giới Hạn Cứng</h2>
+          </div>
+          <span class="slide-badge">Quy Tắc Vận Hành</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-2col">
+            <div class="academic-card" style="border-left: 5px solid var(--brand-gold);">
+              <span class="card-badge badge-gold">Ẩn Dụ Sư Phạm Kinh Điển</span>
+              <h3 class="card-title">Chủ Nhiệm Đề Tài & Trợ Lý Qua Khe Cửa</h3>
+              <ul class="card-text" style="padding-left: 18px; display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+                <li><b>Bạn (NCS):</b> Chủ nhiệm đề tài (PI), định hướng chiến lược.</li>
+                <li><b>Claude Code:</b> Thư ký trưởng (Main Agent), quản lý đề cương và hiến pháp <code>CLAUDE.md</code>.</li>
+                <li><b>Subagent:</b> Trợ lý nghiên cứu ngồi ở phòng lưu trữ kế bên. Cậu ấy không nghe được hai Thầy trò trao đổi từ sáng đến giờ.</li>
+                <li><b>Vận hành:</b> Thư ký trưởng đẩy "tờ giấy giao việc" qua khe cửa. Trợ lý cày nát 5 tệp tài liệu, ghi lại 1 trang tóm tắt, đẩy ngược lại qua khe cửa. Phòng của Chủ nhiệm luôn thoáng đãng, tinh tươm!</li>
+              </ul>
+            </div>
+
+            <div class="academic-card" style="border-left: 5px solid var(--brand-rose); background: rgba(244, 63, 94, 0.03);">
+              <span class="card-badge badge-rose">2 Giới Hạn Cứng Chuẩn Anthropic</span>
+              <h3 class="card-title">Không Thể Phá Vỡ Của Subagent</h3>
+              <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
+                <div style="background: rgba(0,0,0,0.25); padding: 10px 14px; border-radius: 6px;">
+                  <b style="color: var(--brand-rose);">1. KHÔNG THỂ có Subagent lồng nhau (No Nested Subagents):</b>
+                  <p class="card-text" style="font-size: 0.9rem; margin-top: 2px;">
+                    Không có ủy quyền đa cấp (ông giao cha, cha giao con, con giao cháu). Subagent chỉ là cấp thi hành cuối cùng, không thể tự sinh thêm subagent con.
+                  </p>
+                </div>
+                <div style="background: rgba(0,0,0,0.25); padding: 10px 14px; border-radius: 6px;">
+                  <b style="color: var(--brand-rose);">2. KHÔNG THỂ hỏi người dùng giữa chừng:</b>
+                  <p class="card-text" style="font-size: 0.9rem; margin-top: 2px;">
+                    Subagent chạy tự chủ hoàn toàn và <b>tự động từ chối mọi thao tác cần xin quyền phê duyệt (permission)</b>. Tờ giấy giao việc phải độc lập, đủ thông tin và đủ đường dẫn ngay từ đầu!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 07: QUY TẮC NGÓN TAY CÁI & BẢNG PHÂN BỔ 4 SUBAGENTS -->
+      <section class="slide-panel" data-slide="7" data-notes="Quy tắc ngón tay cái giúp học viên quyết định tức thì: việc nào nên ném cho Subagent, việc nào giữ lại ở Main Agent. Đi kèm bảng phân bổ 4 Subagents chuyên trách chuẩn mực cho Luận án tiến sĩ.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag">Chiến Lược Phân Quyền</span>
+            <h2 class="slide-title">Quy Tắc Ngón Tay Cái Anthropic & Bảng Phân Bổ 4 Subagents</h2>
+          </div>
+          <span class="slide-badge">Hệ Thống Hóa</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="academic-card" style="background: rgba(16, 185, 129, 0.05); border-color: var(--brand-emerald); margin-bottom: 12px; padding: 12px 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <b style="color: var(--brand-emerald); font-size: 1rem;">👉 QUY TẮC NGÓN TAY CÁI (RULE OF THUMB):</b>
+                <span class="card-text" style="font-size: 0.92rem; margin-left: 8px;">
+                  "Nếu mô tả việc là: <b>'Đi tìm/đọc X rồi báo tôi đáp án'</b> ➔ <b>DÙNG SUBAGENT</b> (Input lớn, Output gọn, giữ context sạch).
+                  Nếu cần bàn bạc qua lại nhiều vòng, duyệt sửa file ➔ <b>GIỮ Ở MAIN AGENT</b>."
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <table class="table-academic">
+            <thead>
+              <tr>
+                <th style="width: 20%;">Tên Subagent</th>
+                <th style="width: 17%;">Skill Đi Kèm</th>
+                <th style="width: 35%;">Trọng Tâm Công Việc Cho Luận Án</th>
+                <th style="width: 28%;">Sản Phẩm Đầu Ra Tinh Sạch</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>1. Literature Screener</b></td>
+                <td><code>literature-review</code></td>
+                <td>Đọc 5-10 bài báo toàn văn (~50k từ), bóc tách trường phái lý thuyết, biến số và phát hiện thực nghiệm.</td>
+                <td>Bảng Ma Trận Tổng Hợp Lý Thuyết 1 trang + 3 Research Gaps.</td>
+              </tr>
+              <tr>
+                <td><b>2. Data & Method Auditor</b></td>
+                <td><code>data-analysis</code></td>
+                <td>Đối soát chéo dữ liệu thô CSV (320 mẫu) với báo cáo, rà soát Hedging tuyệt đối chống quy kết nhân quả.</td>
+                <td>Biên bản kiểm toán số liệu + Danh sách câu cần sửa Hedging.</td>
+              </tr>
+              <tr>
+                <td><b>3. Critical Reviewer</b></td>
+                <td><code>critical-review</code></td>
+                <td>Đóng vai Thầy Cô phản biện độc lập, săm soi thiết kế chọn mẫu, nguy cơ thiên lệch CMV và hạn chế mô hình.</td>
+                <td>Báo cáo phản biện độc lập + 3 khuyến nghị củng cố luận án.</td>
+              </tr>
+              <tr>
+                <td><b>4. Tone & Humanizer</b></td>
+                <td><code>humanizer</code></td>
+                <td>Khử 25 mẫu văn phong máy móc, gọt giũa câu cú tự nhiên nhưng bảo toàn 100% số liệu và trích dẫn APA 7th.</td>
+                <td>Bản thảo học thuật sắc sảo chuẩn văn phong tác giả con người.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SLIDE 08: THAO TÁC P1A - TRÍCH XUẤT 5 BÀI BÁO TOÀN VĂN -->
+      <section class="slide-panel" data-slide="8" data-notes="Thực hành thao tác P1A: Cho Subagent đọc và trích xuất độc lập 5 bài báo toàn văn trong demo/bai-bao-toan-van/ (~50,000 từ). Học viên copy prompt và xem Subagent đốt cháy 50k tokens trong phòng cách ly và chỉ trả về 1 bảng Markdown sạch sẽ.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag emerald">Thực Hành Thao Tác P1A</span>
+            <h2 class="slide-title">P1A: Cho Subagent Trích Xuất 5 Bài Báo Toàn Văn Thành Ma Trận 1 Trang</h2>
+          </div>
+          <span class="slide-badge">Prompt Thực Chiến P1A</span>
+        </div>
+        <div class="slide-content-area">
+          <div style="margin-bottom: 10px;">
+            <p class="card-text" style="font-size: 0.94rem;">
+              📌 <b>Bối cảnh thực tế:</b> Thư mục <code>04-buoi-04-he-thong-hoa-va-portfolio/demo/01-bai-bao-pdf/</code> chứa 5 bài báo toàn văn định dạng PDF (~50,000 từ). Nếu Main Agent tự đọc, context window sẽ bị ngốn trọn 80%. Ta giao cho Subagent xử lý độc lập khối tài liệu lớn này!
+            </p>
+          </div>
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">Prompt P1A: "Tờ Giấy Giao Việc" Chuẩn 3 Thành Phần Cho Subagent</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('promptP1A')">📋 Copy Prompt P1A</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="promptP1A">Hãy dùng một subagent độc lập để thực hiện nhiệm vụ bóc tách tài liệu tổng quan sau:
+
+1. NGUỒN TÀI LIỆU CẦN ĐỌC:
+Đọc toàn bộ 5 bài báo toàn văn PDF trong thư mục:
+"04-buoi-04-he-thong-hoa-va-portfolio/demo/01-bai-bao-pdf/*.pdf" (hoặc *.md)
+
+2. TIÊU CHÍ BÓC TÁCH CHUYÊN MÔN:
+Với mỗi bài báo, hãy trích xuất chính xác 6 thông tin cốt lõi:
+- Tác giả & Năm xuất bản
+- Lý thuyết nền tảng được sử dụng (Theory)
+- Cỡ mẫu khảo sát & Đối tượng nghiên cứu (Sample)
+- Các biến số chính trong mô hình
+- Phát hiện thực nghiệm quan trọng nhất
+- Hạn chế nghiên cứu & Khoảng trống tác giả thừa nhận (Research Gap)
+
+3. ĐỊNH DẠNG ĐẦU RA BẮT BUỘC:
+- Trả về DUY NHẤT một bảng Ma Trận Tổng Hợp Lý Thuyết (Literature Synthesis Matrix) bằng Markdown gồm đúng 6 cột trên.
+- Phía dưới bảng, tóm tắt đúng 3 khoảng trống nghiên cứu (Gaps) chung mà 5 bài báo trên chưa giải quyết được.
+
+RÀNG BUỘC KỸ THUẬT: Chỉ trả về bảng kết quả và tóm tắt gap. TUYỆT ĐỐI KHÔNG đổ nguyên văn nội dung 5 bài báo vào cuộc trò chuyện chính để giữ context sạch sẽ!</pre>
+            </div>
+          </div>
+          <p style="font-size: 0.92rem; color: var(--brand-emerald); margin-top: 6px; font-weight: 500;">
+            ✓ Giá trị kỹ thuật: Toàn bộ 50,000 tokens đọc thô và logs trung gian tự hủy khi Subagent kết thúc. Bàn làm việc của bạn chỉ nhận 500 từ kết luận tinh sạch!
+          </p>
+        </div>
+      </section>
+
+      <!-- SLIDE 09: THAO TÁC P1B - KIỂM TOÁN CHÉO DỮ LIỆU CSV & HEDGING -->
+      <section class="slide-panel" data-slide="9" data-notes="Thực hành thao tác P1B: Cho Subagent kiểm toán chéo dữ liệu khảo sát 320 mẫu và rà soát nguyên tắc Hedging trong báo cáo. Đảm bảo tính liêm chính và sự đanh thép của công trình.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag emerald">Thực Hành Thao Tác P1B</span>
+            <h2 class="slide-title">P1B: Cho Subagent Kiểm Toán Chéo Dữ Liệu CSV & Rà Soát Hedging</h2>
+          </div>
+          <span class="slide-badge">Prompt Thực Chiến P1B</span>
+        </div>
+        <div class="slide-content-area">
+          <div style="margin-bottom: 10px;">
+            <p class="card-text" style="font-size: 0.94rem;">
+              📌 <b>Bối cảnh thực tế:</b> File CSV khảo sát thực tế và báo cáo phân tích PDF đã được đặt sẵn tại <code>04-buoi-04-he-thong-hoa-va-portfolio/demo/02-du-lieu-va-bao-cao-kiem-toan/</code>. Subagent đối soát độc lập, cực kỳ khách quan!
+            </p>
+          </div>
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">Prompt P1B: Kiểm Toán Số Liệu & Rà Soát Kỷ Luật Hedging</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('promptP1B')">📋 Copy Prompt P1B</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="promptP1B">Hãy khởi tạo một subagent đóng vai trò Kiểm Toán Viên Dữ Liệu Độc Lập (Data Auditor):
+
+1. NGUỒN DỮ LIỆU:
+- Đọc file báo cáo phân tích: "04-buoi-04-he-thong-hoa-va-portfolio/demo/02-du-lieu-va-bao-cao-kiem-toan/bao-cao-phan-tich-du-lieu.md" (hoặc .pdf).
+- Đọc file dữ liệu khảo sát gốc: "04-buoi-04-he-thong-hoa-va-portfolio/demo/02-du-lieu-va-bao-cao-kiem-toan/khao-sat-doi-moi-dnnvv.csv".
+
+2. NHIỆM VỤ KIỂM TOÁN:
+- Đối soát chéo: Con số cỡ mẫu sạch N = 302, hệ số Cronbach Alpha của 4 thang đo (DL, IP, DC, FP) và hệ số hồi quy Beta trong bài viết có khớp 100% với dữ liệu phân tích không?
+- Kiểm tra kỷ luật Hedging: Có câu văn nào trong báo cáo vi phạm nguyên tắc nghiên cứu cắt ngang (dùng từ quy kết nhân quả tuyệt đối như "chứng minh chuyển đổi số gây ra thành công", "chắc chắn dẫn đến") không?
+
+3. ĐẦU RA BẮT BUỘC:
+- Trả về đúng 1 Bảng Biên Bản Kiểm Toán gồm 4 cột: Hạng mục kiểm tra, Trạng thái (Đạt / Cảnh báo), Chi tiết phát hiện và Đề xuất câu sửa đổi chuẩn mực.</pre>
+            </div>
+          </div>
+          <p style="font-size: 0.92rem; color: var(--brand-emerald); margin-top: 6px; font-weight: 500;">
+            ✓ Giá trị kỹ thuật: Dữ liệu lớn của file CSV không làm ô nhiễm context của cuộc thảo luận. Bạn có ngay trợ lý kiểm toán độc lập, khắt khe phát hiện lỗ hổng trước Hội đồng!
+          </p>
+        </div>
+      </section>
+
+      <!-- SLIDE 10: VÌ SAO VĂN BẢN AI ĐỌC LÊN LÀ BỊ BẮT BÀI? -->
+      <section class="slide-panel" data-slide="10" data-notes="Chuyển sang Khối 2: Tinh chỉnh văn học thuật. Giải thích bản chất vì sao văn bản do AI sinh ra đọc lên là người có kinh nghiệm nhận ra ngay lập tức.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag purple">Khối 2: Tinh Chỉnh Văn Học Thuật</span>
+            <h2 class="slide-title">Vì Sao Văn Bản AI Sinh Ra Đọc Lên Là "Bị Bắt Bài" Ngay?</h2>
+          </div>
+          <span class="slide-badge">Bóc Tách Vết Tích AI</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-3col">
+            <div class="academic-card">
+              <span class="card-badge badge-purple">Cơ Chế Xác Suất</span>
+              <h3 class="card-title">Lựa Chọn Token An Toàn Nhất</h3>
+              <p class="card-text">
+                Mô hình LLM luôn đoán từ tiếp theo có xác suất thống kê cao nhất. Kết quả là tạo ra câu văn phục vụ số đông độc giả trung bình, đánh mất hoàn toàn cá tính học thuật và sự đanh thép của một chuyên gia nghiên cứu.
+              </p>
+            </div>
+            <div class="academic-card">
+              <span class="card-badge badge-rose">Từ Ngữ "Kể Công" Sáo Rỗng</span>
+              <h3 class="card-title">Lạm Dụng Tính Từ Hoa Mỹ</h3>
+              <p class="card-text">
+                Rất thích dùng: <i>delve into, testament to, pivotal role, multifaceted, vibrant landscape...</i> (Tiếng Việt: <i>bức tranh toàn cảnh, minh chứng sống động, đóng vai trò then chốt, thấu suốt...</i>) nghe rất kịch tính nhưng sáo rỗng.
+              </p>
+            </div>
+            <div class="academic-card">
+              <span class="card-badge badge-gold">Cấu Trúc Cân Đối Giả Tạo</span>
+              <h3 class="card-title">Nhịp Điệu Robot Rập Khuôn</h3>
+              <p class="card-text">
+                Luôn ép cụm 3 vế (*Forced Triads*): "toàn diện, sâu sắc và bền vững". Luôn dùng câu đối lập: "Không chỉ đơn thuần là... mà còn là...". Luôn đặt câu chốt một dòng ở cuối đoạn.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 11: 25 MẪU VĂN PHONG MÁY MÓC CỦA AI -->
+      <section class="slide-panel" data-slide="11" data-notes="Trình bày 4 nhóm lỗi kinh điển dựa trên Wikipedia Signs of AI writing và chuẩn mực quốc tế.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag">Tiêu Chuẩn Quốc Tế</span>
+            <h2 class="slide-title">Nhận Diện 25 Mẫu "Vết Tích AI" Trong Bản Thảo Khoa Học</h2>
+          </div>
+          <span class="slide-badge">Wikipedia Standards</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-2col">
+            <div class="academic-card">
+              <b style="color: var(--brand-rose); font-size: 1.05rem;">Nhóm A: Làm màu thay vì khẳng định trực diện</b>
+              <ul class="card-text" style="padding-left: 18px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                <li><b>Not X but Y:</b> "Không chỉ là chuyển đổi số, mà là cuộc cách mạng..."</li>
+                <li><b>Câu chốt kịch tính:</b> "Và đó mới là chìa khóa thành công."</li>
+                <li><b>Châm ngôn triết lý:</b> "Dữ liệu chính là dòng máu doanh nghiệp..."</li>
+                <li><b>Dẫn dắt rườm rà:</b> "Hãy cùng đi sâu vào...", "Có thể nói rằng..."</li>
+              </ul>
+            </div>
+            <div class="academic-card">
+              <b style="color: var(--brand-gold); font-size: 1.05rem;">Nhóm B: Phóng đại ý nghĩa & Vay mượn uy tín</b>
+              <ul class="card-text" style="padding-left: 18px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                <li><b>Từ vựng AI quen mặt:</b> delve, testament, multifaceted, pivotal...</li>
+                <li><b>Thổi phồng tầm quan trọng:</b> "Đánh dấu bước ngoặt lịch sử..."</li>
+                <li><b>Đuôi phân từ (-ing) hời hợt:</b> "...thể hiện tiềm năng to lớn..."</li>
+                <li><b>Dẫn nguồn vô danh:</b> "Các chuyên gia hàng đầu tin rằng..." (không trích dẫn tác giả năm nào).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 12: SKILL HUMANIZER: 3 VÒNG TINH CHỈNH -->
+      <section class="slide-panel" data-slide="12" data-notes="Giải thích cơ chế 3-Pass Editing Pipeline của skill humanizer. Quan trọng nhất: Bảo toàn 100% số liệu và trích dẫn APA.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag emerald">Quy Trình Tinh Chỉnh</span>
+            <h2 class="slide-title">Skill Humanizer: Quy Trình 3 Vòng Làm Mượt Văn Học Thuật</h2>
+          </div>
+          <span class="slide-badge">3-Pass Pipeline</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-3col">
+            <div class="academic-card" style="border-top: 4px solid var(--brand-rose);">
+              <span class="card-badge badge-rose">VÒNG 1</span>
+              <h3 class="card-title">Bóc Tách Vết Tích AI</h3>
+              <p class="card-text">
+                Quét sạch các từ sáo rỗng (testament, then chốt), cắt bỏ cụm 3 vế gượng gạo, xóa các câu cảm thán một dòng và toàn bộ emoji trang trí.
+              </p>
+            </div>
+            <div class="academic-card" style="border-top: 4px solid var(--brand-blue);">
+              <span class="card-badge badge-blue">VÒNG 2</span>
+              <h3 class="card-title">Tái Lập Cấu Trúc Logic</h3>
+              <p class="card-text">
+                Xây lại câu chủ đề (Topic Sentence), kết nối mạch lạc giữa các đoạn, đan xen câu ngắn và câu phức, áp dụng đúng mức độ Hedging cẩn trọng.
+              </p>
+            </div>
+            <div class="academic-card" style="border-top: 4px solid var(--brand-emerald);">
+              <span class="card-badge badge-emerald">VÒNG 3</span>
+              <h3 class="card-title">Đối Soát Số Liệu & Nguồn</h3>
+              <p class="card-text">
+                Bảo toàn 100% các giá trị Beta, p-value, R², cỡ mẫu N và danh mục tài liệu trích dẫn APA 7th. Tuyệt đối không thay đổi sự thật khoa học.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 13: SO SÁNH TRƯỚC VÀ SAU KHI HUMANIZE -->
+      <section class="slide-panel" data-slide="13" data-notes="Cho học viên thấy tận mắt một đoạn văn trước và sau khi được humanize để cảm nhận sự khác biệt giữa văn phong robot và văn phong học thuật đẳng cấp.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag">Đối Chiếu Thực Tế</span>
+            <h2 class="slide-title">So Sánh Thực Nghiệm: Đoạn Thảo Luận Trước & Sau Humanize</h2>
+          </div>
+          <span class="slide-badge">Case Study</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="compare-container">
+            <div class="compare-box compare-bad">
+              <div class="compare-header">❌ Trước (Bản thảo AI thô — Đậm mùi máy móc)</div>
+              <p style="font-size: 0.92rem; color: var(--text-body); line-height: 1.6;">
+                "Nghiên cứu này là một <b>minh chứng sống động</b> cho thấy chuyển đổi số <b>đóng vai trò then chốt</b> trong việc mở ra một <b>kỷ nguyên mới</b> cho doanh nghiệp. Đây không chỉ đơn thuần là việc áp dụng công nghệ, mà là một bước nhảy vọt giúp thúc đẩy đổi mới một cách <b>toàn diện, sâu sắc và bền vững</b>. Kết quả này chứng minh rằng công nghệ luôn mang lại thành công rực rỡ."
+              </p>
+            </div>
+            <div class="compare-box compare-good">
+              <div class="compare-header">✓ Sau (Qua Skill Humanizer — Chuẩn mực khoa học)</div>
+              <p style="font-size: 0.92rem; color: var(--text-body); line-height: 1.6;">
+                "Kết quả thực nghiệm chỉ ra mối tương quan thuận chiều có ý nghĩa thống kê giữa chuyển đổi số và đổi mới sáng tạo (β = 0.428, p &lt; 0.001). Phát hiện này củng cố quan điểm của lý thuyết năng lực động (Teece, 2007), cho thấy việc tích hợp công cụ số hỗ trợ các doanh nghiệp vừa và nhỏ tối ưu hóa quy trình cải tiến sản phẩm trong bối cảnh thị trường cạnh tranh."
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 14: GIẢI MÃ CÔNG NGHỆ AI WATERMARK -->
+      <section class="slide-panel" data-slide="14" data-notes="Phân tích sâu về mặt kỹ thuật: AI Watermark là gì? Zero-width space là gì? Vì sao mắt thường không thấy nhưng máy phát hiện được.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag purple">Bóc Tách Kỹ Thuật</span>
+            <h2 class="slide-title">Giải Mã Công Nghệ AI Watermark: 2 Tầng Dấu Vết Ẩn</h2>
+          </div>
+          <span class="slide-badge">Watermarks-Remover</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-2col">
+            <div class="academic-card" style="border-left: 5px solid var(--brand-purple);">
+              <span class="card-badge badge-purple">Layer A: Watermark Kỹ Thuật (Deterministic)</span>
+              <h3 class="card-title">Ký Tự Unicode Vô Hình (Zero-Width)</h3>
+              <ul class="card-text" style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
+                <li><code>\u200B</code>: Zero-Width Space (khoảng trắng 0 độ rộng).</li>
+                <li><code>\u200C</code> / <code>\u200D</code>: Ký tự nối vô hình (Joiners).</li>
+                <li><code>\u2060</code>: Word Joiner (chống ngắt dòng ẩn).</li>
+                <li>Mắt người nhìn vào chuỗi chữ hoàn toàn bình thường, nhưng máy đọc thấy các byte ẩn xen kẽ!</li>
+              </ul>
+            </div>
+            <div class="academic-card" style="border-left: 5px solid var(--brand-blue);">
+              <span class="card-badge badge-blue">Layer B: Watermark Thống Kê (Statistical)</span>
+              <h3 class="card-title">Phân Phối Token & Danh Sách Xanh (Green-List)</h3>
+              <ul class="card-text" style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
+                <li>Mô hình AI bị ép chọn từ trong "Green-list" do thuật toán quy định.</li>
+                <li>Tạo ra một mẫu phân phối xác suất từ rất đặc trưng.</li>
+                <li>Các công cụ phát hiện AI (AI Detectors) dựa vào chỉ số <i>Perplexity</i> (độ ngạc nhiên) và <i>Burstiness</i> để chấm điểm % AI.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 15: NGUY CƠ KHI ĐỂ SÓT KÝ TỰ ẨN TRONG LUẬN ÁN -->
+      <section class="slide-panel" data-slide="15" data-notes="Cảnh báo hậu quả nghiêm trọng về mặt kỹ thuật nếu để sót các ký tự zero-width trong tài liệu luận án khi nộp bài.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag rose">Cảnh Báo Kỹ Thuật</span>
+            <h2 class="slide-title">Nguy Cơ Tai Hại Khi Để Sót Ký Tự Ẩn Trong File Luận Án</h2>
+          </div>
+          <span class="slide-badge">Hiểm Họa Thực Tế</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-3col">
+            <div class="academic-card" style="border-color: rgba(244, 63, 94, 0.4);">
+              <span class="card-badge badge-rose">Lỗi Microsoft Word</span>
+              <h3 class="card-title">Lỗi Ngắt Dòng & Tìm Kiếm</h3>
+              <p class="card-text">
+                Ký tự <code>\u200B</code> làm ngắt dòng giữa chừng ngay trong một từ tiếng Việt. Căn đều 2 bên (Justify) bị khoảng trắng khổng lồ. Nhấn <code>Ctrl+F</code> không thể tìm thấy từ khóa vì vướng mã ẩn.
+              </p>
+            </div>
+            <div class="academic-card" style="border-color: rgba(245, 158, 11, 0.4);">
+              <span class="card-badge badge-gold">Lỗi Biên Dịch LaTeX</span>
+              <h3 class="card-title">Crash Trình Biên Dịch</h3>
+              <p class="card-text">
+                Khi biên dịch sang PDF bằng Overleaf/LaTeX, hệ thống báo lỗi nghiêm trọng: <code>! Package utf8 Error: Unicode character (U+200B) not set up</code> khiến bài viết không thể xuất bản.
+              </p>
+            </div>
+            <div class="academic-card" style="border-color: rgba(56, 189, 248, 0.4);">
+              <span class="card-badge badge-blue">Cổng Nộp Bài Điện Tử</span>
+              <h3 class="card-title">Từ Chối Nhận Luận Án</h3>
+              <p class="card-text">
+                Cổng quản lý đào tạo sau đại học của các trường tự động quét file và từ chối xử lý khi phát hiện chuỗi ký tự lạ vi phạm chuẩn mã hóa TCVN 6909:2001.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 16: THAO TÁC P2 & P3: TẨY WATERMARK & LIÊM CHÍNH -->
+      <section class="slide-panel" data-slide="16" data-notes="Giới thiệu script Python dọn rác ký tự ẩn và nhấn mạnh nguyên tắc Liêm chính học thuật (AI Disclosure Statement).">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag emerald">Công Cụ Tự Động</span>
+            <h2 class="slide-title">Thao Tác P2 & P3: Quét Sạch Ký Tự Ẩn & Liêm Chính Học Thuật</h2>
+          </div>
+          <span class="slide-badge">clean_unicode_watermarks.py</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-2col">
+            <div class="prompt-terminal">
+              <div class="terminal-header">
+                <span class="terminal-label">Lệnh P3: Quét & Làm Sạch Unicode Ẩn</span>
+                <button class="btn-copy-prompt" onclick="copyPrompt('cmdP3')">📋 Copy</button>
+              </div>
+              <div class="terminal-body">
+                <pre class="terminal-code" id="cmdP3">python 04-buoi-04-he-thong-hoa-va-portfolio/demo/watermark-tool/clean_unicode_watermarks.py [ten-file-luan-an.md]</pre>
+              </div>
+            </div>
+            <div class="academic-card" style="border-left: 5px solid var(--brand-gold);">
+              <span class="card-badge badge-gold">Đạo Đức Học Thuật Bắt Buộc</span>
+              <h3 class="card-title">Tuyên Bố Khai Báo Sử Dụng AI (AI Disclosure)</h3>
+              <p class="card-text" style="font-size: 0.9rem;">
+                <i>"Tác giả đã sử dụng Claude Code như một công cụ hỗ trợ rà soát chính tả, định dạng bảng biểu và gợi ý cách diễn đạt. Toàn bộ số liệu thực nghiệm, thiết kế mô hình và kết luận khoa học được tác giả kiểm chứng độc lập và chịu trách nhiệm 100% trước Hội đồng."</i>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 17: KHỐI 3: TƯ DUY DASHBOARD HỌC THUẬT -->
+      <section class="slide-panel" data-slide="17" data-notes="Bước sang Khối 3: Trực quan hóa dữ liệu bằng Dashboard Artifact. Giải thích lý do vì sao một Bảng điều khiển tương tác vượt trội hoàn toàn so với việc chép bảng số liệu đen trắng.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag emerald">Khối 3: Trực Quan Hóa Dữ Liệu</span>
+            <h2 class="slide-title">Tư Duy Dashboard Học Thuật: Biến Bảng Số Khô Thành Công Cụ Sống</h2>
+          </div>
+          <span class="slide-badge">Interactive Artifact</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-2col">
+            <div class="academic-card" style="border-color: rgba(244, 63, 94, 0.4);">
+              <span class="card-badge badge-rose">Cách Cũ Truyền Thống</span>
+              <h3 class="card-title">Bảng Số SPSS Đen Trắng Rối Rắm</h3>
+              <p class="card-text">
+                Sao chép hàng chục bảng số liệu dày đặc từ SPSS/SmartPLS vào Word. Thầy Cô Hội đồng rất khó nắm bắt bức tranh toàn cảnh. Khi Hội đồng hỏi: <i>"Nhóm doanh nghiệp sản xuất thì thế nào?"</i>, tác giả hoàn toàn bất lực không thể minh họa ngay.
+              </p>
+            </div>
+            <div class="academic-card" style="border-color: var(--brand-emerald); box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);">
+              <span class="card-badge badge-emerald">Giải Pháp Hiện Đại</span>
+              <h3 class="card-title">Bảng Điều Khiển Nghiên Cứu Tương Tác</h3>
+              <p class="card-text">
+                Claude Code sinh ra 1 file <code>.html</code> duy nhất: Tự chạy ngay trên trình duyệt, có 4 thẻ KPI lớn, biểu đồ kiểm định Cronbach Alpha, sơ đồ hồi quy Path Model và thanh <b>Bộ lọc động</b> để bấm lọc số liệu tức thì trước mắt Hội đồng!
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 18: CẤU TRÚC 5 THÀNH PHẦN CỦA DASHBOARD -->
+      <section class="slide-panel" data-slide="18" data-notes="Mô tả cấu trúc của file dashboard-nghien-cuu-mau.html vừa được tạo trong demo.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag">Kiến Trúc Giao Diện</span>
+            <h2 class="slide-title">Cấu Trúc 5 Thành Phần Của Research Data Dashboard Artifact</h2>
+          </div>
+          <span class="slide-badge">Single-File HTML</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-3col">
+            <div class="academic-card">
+              <b style="color: var(--brand-blue);">1. Khối 4 Thẻ Chỉ Số Vàng (KPIs)</b>
+              <p class="card-text">Cỡ mẫu hợp lệ ($N=302$), Cronbach Alpha TB ($0.844$), Hệ số $R^2 = 0.418$, Tác động trung gian $\beta = 0.185$.</p>
+            </div>
+            <div class="academic-card">
+              <b style="color: var(--brand-purple);">2. Biểu Đồ Cơ Cấu Mẫu (Donut)</b>
+              <p class="card-text">Trực quan hóa tỷ lệ phần trăm theo ngành nghề: Sản xuất (41.7%), Dịch vụ (39.1%), Công nghệ (19.2%).</p>
+            </div>
+            <div class="academic-card">
+              <b style="color: var(--brand-emerald);">3. Biểu Đồ Cronbach's Alpha</b>
+              <p class="card-text">Biểu đồ cột ngang hiển thị hệ số Alpha từng thang đo (DL, IP, DC, FP) kèm vạch ngưỡng chuẩn $0.70$.</p>
+            </div>
+          </div>
+          <div class="grid-2col" style="margin-top: 6px;">
+            <div class="academic-card">
+              <b style="color: var(--brand-gold);">4. Sơ Đồ Đường Dẫn Mô Hình (SVG Path Model)</b>
+              <p class="card-text">Vẽ các khối biến và mũi tên tác động $DL \to IP \to FP$ kèm trọng số $\beta$ và dấu ý nghĩa ($***$).</p>
+            </div>
+            <div class="academic-card">
+              <b style="color: var(--brand-rose);">5. Bộ Lọc Động & Nút In Ấn A4</b>
+              <p class="card-text">Bấm chuột lọc dữ liệu theo nhóm ngành, cập nhật số liệu thời gian thực và xuất PDF A4 chuẩn mực.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 19: THAO TÁC P4: SINH DASHBOARD ARTIFACT -->
+      <section class="slide-panel" data-slide="19" data-notes="Cung cấp prompt P4 để học viên copy vào Claude Code và chạy sinh file dashboard ngay tại chỗ.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag emerald">Thực Hành Thao Tác</span>
+            <h2 class="slide-title">Thao Tác P4: Ra Lệnh Claude Code Sinh Dashboard Artifact</h2>
+          </div>
+          <span class="slide-badge">Prompt Sinh Dashboard</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">Prompt P4: Sinh file HTML Dashboard Artifact độc lập</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('promptP4')">📋 Copy Prompt</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="promptP4">Dựa trên kết quả phân tích 302 mẫu khảo sát sạch từ Buổi 3 (Cronbach Alpha DL = 0.865, IP = 0.842, DC = 0.819, FP = 0.851; Hồi quy Beta = 0.428, p &lt; 0.001; Trung gian Bootstrap 95% = 0.185):
+
+Hãy lập trình tạo một file Dashboard Artifact HTML độc lập tên là "04_dashboard-du-lieu-nghien-cuu.html" ngay tại thư mục hiện tại:
+1. Thiết kế học thuật sang trọng: Phông chữ 100% Times New Roman, tông màu chủ đạo Xanh Navy (#1B365D), có nút "In Báo Cáo / Xuất PDF".
+2. Khối 4 thẻ KPI chỉ số vàng: Cỡ mẫu N=302, Cronbach Alpha TB 0.844, R2 = 0.418, Tác động trung gian Beta = 0.185.
+3. Biểu đồ Chart.js:
+   - Biểu đồ phân bổ cơ cấu mẫu theo ngành.
+   - Biểu đồ thanh ngang kiểm định Cronbach Alpha từng nhân tố có vạch chuẩn 0.70.
+4. Sơ đồ đường dẫn mô hình (SVG Path Diagram): Hiển thị mối quan hệ Chuyển đổi số -> ĐMST -> Hiệu quả kèm trọng số Beta và dấu ý nghĩa ***.
+5. Bảng tóm tắt kết quả kiểm định giả thuyết H1, H2, H3 chuẩn APA 7.
+6. Thanh bộ lọc tương tác: Cho phép lọc theo nhóm ngành (Sản xuất, Dịch vụ, Công nghệ) và cập nhật số liệu tương ứng.</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 20: THAO TÁC P5: TRẢI NGHIỆM BỘ LỌC ĐỘNG -->
+      <section class="slide-panel" data-slide="20" data-notes="Hướng dẫn học viên mở file bằng trình duyệt và thao tác lọc dữ liệu sống động.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag">Trải Nghiệm Trực Quan</span>
+            <h2 class="slide-title">Thao Tác P5: Khai Thác Sức Mạnh Của Dashboard Artifact</h2>
+          </div>
+          <span class="slide-badge">Hướng Dẫn Vận Hành</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-3col">
+            <div class="academic-card">
+              <span class="card-badge badge-blue">Bước 1: Mở Trực Tiếp</span>
+              <h3 class="card-title">Mở Bằng Trình Duyệt</h3>
+              <p class="card-text">
+                Trong VS Code, chuột phải vào file <code>04_dashboard-du-lieu-nghien-cuu.html</code> ➔ Chọn <b>Reveal in File Explorer</b> ➔ Bấm đúp để mở bằng Google Chrome hoặc Edge.
+              </p>
+            </div>
+            <div class="academic-card">
+              <span class="card-badge badge-emerald">Bước 2: Bấm Lọc Sống</span>
+              <h3 class="card-title">Chứng Minh Tính Vững</h3>
+              <p class="card-text">
+                Bấm vào các nút: <i>"Sản xuất"</i>, <i>"Dịch vụ"</i>, <i>"Công nghệ"</i>. Thẻ KPI và biểu đồ tự động cập nhật số liệu riêng của phân khúc, chứng minh mô hình vững chắc trên mọi nhóm mẫu.
+              </p>
+            </div>
+            <div class="academic-card">
+              <span class="card-badge badge-gold">Bước 3: In Khổ A4</span>
+              <h3 class="card-title">Kẹp Vào Phụ Lục</h3>
+              <p class="card-text">
+                Nhấn nút <b>"In Báo Cáo / Xuất PDF"</b> (hoặc <code>Ctrl + P</code>). Dashboard tự động ẩn các nút bấm, định dạng co giãn hoàn hảo trên trang giấy A4 Landscape.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 21: THỰC HÀNH 25 PHÚT + ĐỒNG HỒ ĐẾM NGƯỢC -->
+      <section class="slide-panel" data-slide="21" data-notes="Dành 25 phút để học viên tự tay tạo file dashboard của riêng mình. Có đồng hồ đếm ngược trực quan.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag gold">Thực Hành Tại Chỗ</span>
+            <h2 class="slide-title">Thực Hành 25 Phút: Sinh Dashboard Nghiên Cứu Riêng Của Bạn</h2>
+          </div>
+          <span class="slide-badge">Tác Vụ Trọng Tâm</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-2col" style="align-items: center;">
+            <div class="timer-container">
+              <span class="card-badge badge-gold">Đồng Hồ Thực Hành</span>
+              <div class="timer-digits-text" id="timerDisplay">25:00</div>
+              <div style="display: flex; gap: 10px;">
+                <button class="btn-icon-keynote btn-keynote-primary" id="btnTimerStart" onclick="toggleTimer()">Bắt đầu</button>
+                <button class="btn-icon-keynote" onclick="resetTimer()">Đặt lại</button>
+              </div>
+            </div>
+            <div class="academic-card">
+              <h3 class="card-title" style="color: var(--brand-blue);">Checklist Nghiệm Thu Tại Lớp:</h3>
+              <ul class="card-text" style="padding-left: 20px; display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                <li>[ ] Đã chạy lệnh Claude Code sinh file HTML Dashboard thành công.</li>
+                <li>[ ] Mở được file trong trình duyệt, thấy rõ 4 thẻ KPI số liệu.</li>
+                <li>[ ] Biểu đồ Donut và biểu đồ thanh Cronbach Alpha hiển thị sắc nét.</li>
+                <li>[ ] Bấm nút lọc dữ liệu hoạt động mượt mà, số liệu nhảy chuẩn xác.</li>
+                <li>[ ] Sẵn sàng giơ tay để Giảng viên hỗ trợ gỡ kẹt tại chỗ!</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 22: KHỐI 4: DIỄN TẬP BẢO VỆ VỚI DEFENSE-PREP -->
+      <section class="slide-panel" data-slide="22" data-notes="Chuyển sang Khối 4: Diễn tập bảo vệ. Dùng skill defense-prep để soạn 15 slide và 15 câu hỏi phản biện.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag rose">Khối 4: Bảo Vệ Luận Án</span>
+            <h2 class="slide-title">Diễn Tập Bảo Vệ Luận Án Với Skill Defense-Prep</h2>
+          </div>
+          <span class="slide-badge">Về Đích Vang Dội</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-2col">
+            <div class="academic-card" style="border-left: 5px solid var(--brand-blue);">
+              <span class="card-badge badge-blue">Tác Vụ 1: Khung 15 Slide Chuẩn</span>
+              <h3 class="card-title">Cấu Trúc Slide Thuyết Trình 20 Phút</h3>
+              <ul class="card-text" style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
+                <li>Slide 1-3: Lý do chọn đề tài, tính cấp thiết, mục tiêu nghiên cứu.</li>
+                <li>Slide 4-6: Khung lý thuyết, khoảng trống (Gap) và mô hình đề xuất.</li>
+                <li>Slide 7-9: Phương pháp nghiên cứu, chọn mẫu, quy trình làm sạch.</li>
+                <li>Slide 10-13: Kết quả Cronbach Alpha, Hồi quy, Kiểm định trung gian.</li>
+                <li>Slide 14-15: Đóng góp lý luận, hàm ý quản trị và hạn chế đề tài.</li>
+              </ul>
+            </div>
+            <div class="academic-card" style="border-left: 5px solid var(--brand-rose);">
+              <span class="card-badge badge-rose">Tác Vụ 2: 15 Câu Hỏi Hội Đồng</span>
+              <h3 class="card-title">Dự Đoán Chất Vấn Của Các Thầy Cô Khó Tính</h3>
+              <ul class="card-text" style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
+                <li>Chất vấn về tính đại diện của 302 mẫu doanh nghiệp.</li>
+                <li>Chất vấn về hiện tượng thiên lệch phương pháp chung (CMV).</li>
+                <li>Chất vấn về cơ chế truyền dẫn của biến trung gian (Mediation).</li>
+                <li>Chất vấn về giới hạn của thiết kế nghiên cứu cắt ngang.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 23: THAO TÁC P6 & P7: PROMPT ĐỐI ĐÁP HỘI ĐỒNG -->
+      <section class="slide-panel" data-slide="23" data-notes="Prompt P6 & P7 kích hoạt skill defense-prep để sinh slide và kịch bản trả lời mẫu mực.">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag emerald">Thực Hành Thao Tác</span>
+            <h2 class="slide-title">Thao Tác P6 & P7: Kích Hoạt Defense-Prep Diễn Tập Phản Biện</h2>
+          </div>
+          <span class="slide-badge">Diễn Tập Hội Đồng</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="prompt-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-label">Prompt P7: Kịch Bản Đối Đáp 15 Câu Hỏi Xoáy</span>
+              <button class="btn-copy-prompt" onclick="copyPrompt('promptP7')">📋 Copy Prompt</button>
+            </div>
+            <div class="terminal-body">
+              <pre class="terminal-code" id="promptP7">Dùng skill defense-prep trong bo-skill/defense-prep/.
+Hãy đóng vai Chủ tịch Hội đồng chấm Luận án Tiến sĩ chuyên ngành Kinh tế/Quản trị:
+1. Đặt ra 15 câu hỏi chất vấn hóc búa nhất xoay quanh đề tài nghiên cứu mẫu N = 302.
+2. Với 5 câu hỏi nguy hiểm nhất (về tính đại diện của mẫu, thiên lệch CMV và kiểm định trung gian Bootstrap), hãy soạn sẵn câu trả lời mẫu mực:
+   - Thái độ: Khiêm tốn, cầu thị, cảm ơn ý kiến đóng góp.
+   - Luận điểm: Đanh thép về mặt phương pháp luận, dẫn chứng chính xác con số p-value và trích dẫn lý thuyết kinh điển để bảo vệ kết quả.</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 24: NGHIỆM THU TOÀN KHÓA & BÀN GIAO TÀI SẢN -->
+      <section class="slide-panel" data-slide="24" data-notes="Tổng kết toàn bộ 4 buổi học. Chúc mừng học viên đã tốt nghiệp xuất sắc và trang bị trọn đời bộ kỹ năng AI nghiên cứu khoa học đỉnh cao!">
+        <div class="slide-header">
+          <div>
+            <span class="slide-tag gold">Tổng Kết Khóa Học</span>
+            <h2 class="slide-title">Nghiệm Thu Toàn Khóa: Bộ Tài Sản Nghiên Cứu Trọn Đời</h2>
+          </div>
+          <span class="slide-badge">Tốt Nghiệp K3</span>
+        </div>
+        <div class="slide-content-area">
+          <div class="grid-2col">
+            <div class="academic-card" style="border-color: var(--brand-emerald);">
+              <h3 class="card-title" style="color: var(--brand-emerald);">7 Năng Lực Cốt Lõi Đã Làm Chủ:</h3>
+              <ul class="card-text" style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                <li>✓ <b>Workspace chuẩn mực:</b> <code>CLAUDE.md</code> Global 5 Super Rules.</li>
+                <li>✓ <b>Tổng quan không ảo giác:</b> Bóc tách Gap, APA 7th trích dẫn thật.</li>
+                <li>✓ <b>Tối ưu Token:</b> MarkItDown tiết kiệm 80% dung lượng.</li>
+                <li>✓ <b>Phân tích số liệu:</b> Alpha, Hồi quy, Mediation Bootstrap 95%.</li>
+                <li>✓ <b>Kiến trúc Đa tác nhân:</b> Điều phối Subagents chạy song song.</li>
+                <li>✓ <b>Văn phong tự nhiên:</b> Khử sạch vết tích AI & rác Unicode ẩn.</li>
+                <li>✓ <b>Dashboard sống:</b> Trực quan hóa dữ liệu thuyết trình ấn tượng.</li>
+              </ul>
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 16px; background: rgba(56, 189, 248, 0.05); border-radius: var(--radius-md); padding: 24px; border: 1px solid var(--border-medium);">
+              <h4 style="font-size: 1.5rem; color: var(--brand-blue);">🎓 CHÚC MỪNG CÁC TÂN TIẾN SĨ & NHÀ KHOA HỌC!</h4>
+              <p style="font-size: 0.96rem; color: var(--text-body); max-width: 450px;">
+                AI không thay thế nhà nghiên cứu. Nhưng nhà nghiên cứu biết làm chủ Agentic AI chắc chắn sẽ dẫn đầu và hoàn thành xuất sắc Luận án!
+              </p>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">
+                CES Global hân hạnh đồng hành cùng sự nghiệp học thuật của Thầy Cô!
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- BOTTOM PROGRESS BAR -->
+  <div class="bottom-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <!-- OVERVIEW MODAL -->
+  <div class="overview-modal" id="overviewModal">
+    <div class="overview-header">
+      <h3 style="color: var(--brand-blue); font-size: 1.4rem;">Mục Lục Các Slide Bài Giảng (Nhấn phím O để đóng)</h3>
+      <button class="btn-icon-keynote" onclick="toggleOverview()">✕ Đóng</button>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <!-- SPEAKER NOTES DRAWER -->
+  <div class="speaker-drawer" id="speakerDrawer">
+    <div class="speaker-header">
+      <span>🎙️ GHI CHÚ GIẢNG VIÊN (Nhấn phím N để đóng/mở)</span>
+      <button class="btn-icon-keynote" onclick="toggleNotes()">✕</button>
+    </div>
+    <div class="speaker-body" id="speakerNotesContent"></div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-notification" id="toastMsg">✓ Đã sao chép prompt vào Clipboard!</div>
+
+  <!-- JAVASCRIPT SLIDE ENGINE -->
+  <script>
+    let currentSlide = 1;
+    const slides = document.querySelectorAll('.slide-panel');
+    const totalSlides = slides.length;
+
+    const slideBadge = document.getElementById('slideBadge');
+    const progressFill = document.getElementById('progressFill');
+    const overviewModal = document.getElementById('overviewModal');
+    const overviewGrid = document.getElementById('overviewGrid');
+    const speakerDrawer = document.getElementById('speakerDrawer');
+    const speakerNotesContent = document.getElementById('speakerNotesContent');
+
+    // Build Overview Grid
+    slides.forEach((slide, idx) => {
+      const num = idx + 1;
+      const titleEl = slide.querySelector('.slide-title');
+      const title = titleEl ? titleEl.textContent : (slide.querySelector('h1') ? slide.querySelector('h1').textContent : `Slide ${num}`);
+      
+      const card = document.createElement('div');
+      card.className = `overview-card ${num === 1 ? 'current' : ''}`;
+      card.id = `ovCard-${num}`;
+      card.onclick = () => {
+        goToSlide(num);
+        toggleOverview();
+      };
+      card.innerHTML = `
+        <span class="overview-num">SLIDE ${num < 10 ? '0' + num : num}</span>
+        <div class="overview-title">${title}</div>
+      `;
+      overviewGrid.appendChild(card);
+    });
+
+    function updateUI() {
+      slides.forEach((s, idx) => {
+        s.classList.toggle('active-slide', idx + 1 === currentSlide);
+      });
+
+      slideBadge.textContent = `Slide ${currentSlide < 10 ? '0' + currentSlide : currentSlide} / ${totalSlides < 10 ? '0' + totalSlides : totalSlides}`;
+      progressFill.style.width = `${((currentSlide - 1) / (totalSlides - 1)) * 100}%`;
+
+      document.querySelectorAll('.overview-card').forEach((c, idx) => {
+        c.classList.toggle('current', idx + 1 === currentSlide);
+      });
+
+      // Update speaker notes
+      const activeEl = document.querySelector(`.slide-panel[data-slide="${currentSlide}"]`);
+      if (activeEl && activeEl.dataset.notes) {
+        speakerNotesContent.textContent = activeEl.dataset.notes;
+      } else {
+        speakerNotesContent.textContent = "Không có ghi chú riêng cho slide này.";
+      }
+    }
+
+    function goToSlide(n) {
+      if (n < 1) n = 1;
+      if (n > totalSlides) n = totalSlides;
+      currentSlide = n;
+      updateUI();
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        goToSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        goToSlide(currentSlide - 1);
+      }
+    }
+
+    function toggleOverview() {
+      overviewModal.classList.toggle('active');
+    }
+
+    function toggleNotes() {
+      speakerDrawer.classList.toggle('active');
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+      showToast("🌓 Đã chuyển đổi chế độ Sáng / Tối");
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log(err);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    function copyPrompt(elementId) {
+      const el = document.getElementById(elementId);
+      if (el) {
+        navigator.clipboard.writeText(el.textContent).then(() => {
+          showToast("✓ Đã sao chép prompt vào Clipboard!");
+        });
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastMsg');
+      toast.textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2500);
+    }
+
+    /* PRACTICE COUNTDOWN TIMER (Slide 19) */
+    let timerSec = 25 * 60;
+    let timerRef = null;
+    const timerDisplay = document.getElementById('timerDisplay');
+    const btnTimerStart = document.getElementById('btnTimerStart');
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timerSec / 60);
+      const s = timerSec % 60;
+      timerDisplay.textContent = `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+    }
+
+    function toggleTimer() {
+      if (timerRef) {
+        clearInterval(timerRef);
+        timerRef = null;
+        btnTimerStart.textContent = 'Tiếp tục';
+        btnTimerStart.classList.remove('btn-keynote-primary');
+      } else {
+        btnTimerStart.textContent = 'Tạm dừng';
+        btnTimerStart.classList.add('btn-keynote-primary');
+        timerRef = setInterval(() => {
+          if (timerSec > 0) {
+            timerSec--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerRef);
+            timerRef = null;
+            btnTimerStart.textContent = 'Hoàn thành';
+            showToast("⏰ Đã hết 25 phút thực hành!");
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      if (timerRef) {
+        clearInterval(timerRef);
+        timerRef = null;
+      }
+      timerSec = 25 * 60;
+      updateTimerDisplay();
+      btnTimerStart.textContent = 'Bắt đầu';
+      btnTimerStart.classList.add('btn-keynote-primary');
+    }
+
+    /* KEYBOARD SHORTCUTS */
+    document.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        toggleOverview();
+      } else if (e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        toggleTheme();
+      } else if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        goToSlide(1);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        goToSlide(totalSlides);
+      } else if (e.key === 'Escape') {
+        if (overviewModal.classList.contains('active')) toggleOverview();
+        if (speakerDrawer.classList.contains('active')) toggleNotes();
+      }
+    });
+
+    /* BUTTON LISTENERS */
+    document.getElementById('btnNext').addEventListener('click', nextSlide);
+    document.getElementById('btnPrev').addEventListener('click', prevSlide);
+    document.getElementById('btnOverview').addEventListener('click', toggleOverview);
+    document.getElementById('btnNotes').addEventListener('click', toggleNotes);
+    document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+    document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+
+    // Initial load
+    goToSlide(1);
+  </script>
+</body>
+</html>

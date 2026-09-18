@@ -8,7 +8,7 @@
   <img alt="Tiếng Việt" src="https://img.shields.io/badge/Ng%C3%B4n%20ng%E1%BB%AF-100%25%20Ti%E1%BA%BFng%20Vi%E1%BB%87t-brightgreen">
   <img alt="Đối tượng" src="https://img.shields.io/badge/%C4%90%E1%BB%91i%20t%C6%B0%E1%BB%A3ng-Nghi%C3%AAn%20C%E1%BB%A9u%20Sinh%20%7C%20Gi%E1%BA%A3ng%20Vi%C3%AAn-blue">
   <img alt="Khóa" src="https://img.shields.io/badge/Kh%C3%B3a-K3%20NCKH-orange">
-  <img alt="Skill" src="https://img.shields.io/badge/Skill-8%20k%E1%BB%B9%20n%C4%83ng%20AI-purple">
+  <img alt="Skill" src="https://img.shields.io/badge/Skill-10%20k%E1%BB%B9%20n%C4%83ng%20AI-purple">
 </p>
 
 ---
@@ -22,7 +22,7 @@ Mỗi buổi học được đóng gói thành một **Module hoàn chỉnh và 
 | **01** | **[Thiết Lập Dự Án Luận Án](01-buoi-01-thiet-lap-du-an-luan-an/)** | [`buoi-01-thiet-lap-du-an-luan-an.md`](01-buoi-01-thiet-lap-du-an-luan-an/buoi-01-thiet-lap-du-an-luan-an.md) | [`buoi-01-slide-thiet-lap-du-an-luan-an.html`](01-buoi-01-thiet-lap-du-an-luan-an/buoi-01-slide-thiet-lap-du-an-luan-an.html) | Mẫu `CLAUDE.md`, cây thư mục chuẩn |
 | **02** | **[Tổng Quan Tài Liệu & Skill](02-buoi-02-tong-quan-tai-lieu-va-skill/)** | [`buoi-02-lam-theo-tung-buoc.md`](02-buoi-02-tong-quan-tai-lieu-va-skill/buoi-02-lam-theo-tung-buoc.md) | [`buoi-02-slide-tong-quan-tai-lieu-va-skill.html`](02-buoi-02-tong-quan-tai-lieu-va-skill/buoi-02-slide-tong-quan-tai-lieu-va-skill.html) | 10 abstracts, 5 bài báo Word/MD, Workbook Buổi 2 |
 | **03** | **[CLAUDE.md Global, MarkItDown & Dữ Liệu](03-buoi-03-phan-tich-du-lieu-va-bao-cao/)** | [`buoi-03-phan-tich-du-lieu-va-bao-cao.md`](03-buoi-03-phan-tich-du-lieu-va-bao-cao/buoi-03-phan-tich-du-lieu-va-bao-cao.md) | [`buoi-03-slide-phan-tich-du-lieu-va-bao-cao.html`](03-buoi-03-phan-tich-du-lieu-va-bao-cao/buoi-03-slide-phan-tich-du-lieu-va-bao-cao.html) | File CSV 320 mẫu, báo cáo mẫu, template APA 7 |
-| **04** | **[Hệ Thống Hóa & Portfolio](04-buoi-04-he-thong-hoa-va-portfolio/)** | [`buoi-04-he-thong-hoa-va-portfolio.md`](04-buoi-04-he-thong-hoa-va-portfolio/buoi-04-he-thong-hoa-va-portfolio.md) | Đang cập nhật slide Buổi 4 | Brief Capstone, Cheat Sheet, Hướng dẫn Ebook |
+| **04** | **[Subagents, Humanizer & Dashboard Artifact](04-buoi-04-he-thong-hoa-va-portfolio/)** | [`buoi-04-he-thong-hoa-va-portfolio.md`](04-buoi-04-he-thong-hoa-va-portfolio/buoi-04-he-thong-hoa-va-portfolio.md) | [`buoi-04-slide-subagents-humanizer-dashboard.html`](04-buoi-04-he-thong-hoa-va-portfolio/buoi-04-slide-subagents-humanizer-dashboard.html) | Dashboard Artifact HTML tương tác, Bộ đôi Humanizer & Watermark Remover, Kịch bản Subagents, Mẫu bảo vệ luận án |
 
 ---
 
@@ -30,7 +30,7 @@ Mỗi buổi học được đóng gói thành một **Module hoàn chỉnh và 
 
 ```
 ai-agent-for-research-hocvien/
-├── 01-buoi-01-thiet-lap-du-an-luan-an/         (Module Buổi 1: Khởi tạo dự án & 8 Skill)
+├── 01-buoi-01-thiet-lap-du-an-luan-an/         (Module Buổi 1: Khởi tạo dự án & CLAUDE.md)
 │   ├── buoi-01-thiet-lap-du-an-luan-an.md
 │   ├── buoi-01-slide-thiet-lap-du-an-luan-an.html
 │   └── demo/                                  (Template CLAUDE.md, cấu trúc thư mục)
@@ -52,21 +52,24 @@ ai-agent-for-research-hocvien/
 │       ├── san-pham-mau/                      (Báo cáo phân tích .md, .pdf, dashboard.html, print.html)
 │       └── mau-tai-lieu/                      (Mẫu báo cáo dữ liệu 8 phần, Mẫu khai báo AI)
 │
-├── 04-buoi-04-he-thong-hoa-va-portfolio/       (Module Buổi 4: Hệ thống hóa & Portfolio)
+├── 04-buoi-04-he-thong-hoa-va-portfolio/       (Module Buổi 4: Subagents, Humanizer & Dashboard Artifact)
 │   ├── buoi-04-he-thong-hoa-va-portfolio.md
+│   ├── buoi-04-slide-subagents-humanizer-dashboard.html
 │   └── demo/
-│       ├── brief-capstone/                    (Brief đồ án Capstone Portfolio)
+│       ├── dashboard-artifact/                (Dashboard HTML tương tác Chart.js & Hướng dẫn)
+│       ├── watermark-tool/                    (Script quét và làm sạch ký tự Unicode ẩn)
+│       ├── brief-capstone/                    (Brief đồ án Capstone)
 │       ├── cheat-sheet/                       (Cheat sheet hệ sinh thái AI nghiên cứu)
 │       └── huong-dan-ebook/                   (Hướng dẫn viết sách/ebook học thuật)
 │
-├── bo-skill/                                  (Bộ 8 Skill AI chuyên sâu cho NCKH)
+├── bo-skill/                                  (Bộ 10 Skill AI chuyên sâu cho NCKH)
 ├── README.md                                  (Bản đồ chỉ dẫn toàn khóa học)
 └── _backup/                                   (Lưu trữ an toàn 100% dữ liệu lịch sử)
 ```
 
 ---
 
-## 🧰 3. Bộ 8 Skill AI Nghiên Cứu Trong `bo-skill/`
+## 🧰 3. Bộ 10 Skill AI Nghiên Cứu Trong `bo-skill/`
 
 ```mermaid
 flowchart LR
@@ -74,7 +77,9 @@ flowchart LR
     RF --> MD["🔬 methodology-design<br/>Phương pháp"]
     MD --> DA["📊 data-analysis<br/>Phân tích dữ liệu"]
     DA --> AW["✍️ academic-writing<br/>Viết học thuật"]
-    AW --> CM["🔖 citation-manager<br/>Quản lý trích dẫn"]
+    AW --> HZ["✨ humanizer<br/>Khử văn phong AI"]
+    HZ --> WR["🧼 watermarks-remover<br/>Làm sạch Watermark"]
+    WR --> CM["🔖 citation-manager<br/>Quản lý trích dẫn"]
     CM --> CR["🧐 critical-review<br/>Phản biện"]
     CR --> DP["🎓 defense-prep<br/>Chuẩn bị bảo vệ"]
 ```
@@ -86,9 +91,11 @@ flowchart LR
 | 3 | [`methodology-design`](bo-skill/methodology-design/) | Thiết kế phương pháp, chọn mẫu, thang đo và bảng câu hỏi |
 | 4 | [`data-analysis`](bo-skill/data-analysis/) | Làm sạch dữ liệu, kiểm định Cronbach Alpha, hồi quy và trung gian |
 | 5 | [`academic-writing`](bo-skill/academic-writing/) | Viết và chỉnh sửa văn phong học thuật chuẩn mực, làm mượt câu chữ |
-| 6 | [`citation-manager`](bo-skill/citation-manager/) | Chuẩn hóa trích dẫn APA 7th, kiểm tra đối soát DOI và danh mục tài liệu |
-| 7 | [`critical-review`](bo-skill/critical-review/) | Phản biện độc lập, tìm điểm yếu phương pháp luận và rà soát Hedging |
-| 8 | [`defense-prep`](bo-skill/defense-prep/) | Soạn slide bảo vệ, dự đoán câu hỏi của Hội đồng và luyện trả lời |
+| 6 | [`humanizer`](bo-skill/humanizer/) | Khử 25 mẫu văn phong máy móc của AI, đưa về văn phong học thuật tự nhiên |
+| 7 | [`watermarks-remover`](bo-skill/watermarks-remover/) | Giải mã và quét sạch ký tự Unicode ẩn (Zero-width) tránh lỗi in ấn/LaTeX |
+| 8 | [`citation-manager`](bo-skill/citation-manager/) | Chuẩn hóa trích dẫn APA 7th, kiểm tra đối soát DOI và danh mục tài liệu |
+| 9 | [`critical-review`](bo-skill/critical-review/) | Phản biện độc lập, tìm điểm yếu phương pháp luận và rà soát Hedging |
+| 10 | [`defense-prep`](bo-skill/defense-prep/) | Soạn slide bảo vệ, dự đoán câu hỏi của Hội đồng và luyện trả lời |
 
 ---
 
