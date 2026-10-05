@@ -1,0 +1,2667 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buổi 03: Phân tích dữ liệu NCKH</title>
+<style>
+/* ===========================================================
+   MORPH-SLIDES BASE
+   Stage 1920x1080 scaled by JS (idea from frontend-slides
+   viewport-base.css, MIT). Actors = persistent shapes that
+   morph between poses; slides = per-slide content layer.
+   =========================================================== */
+
+:root {
+  --morph-dur: 1.2s;
+  --morph-ease: cubic-bezier(0.16, 1, 0.3, 1);   /* ease-out-expo */
+  --fade-dur: 0.35s;
+  --reveal-base: 0.45s;   /* content waits for actors to start moving */
+  --reveal-step: 0.09s;
+  --stage-bg: #000;
+}
+
+html, body {
+  width: 100%; height: 100%; margin: 0;
+  overflow: hidden;
+  background: var(--stage-bg);
+}
+*, *::before, *::after { box-sizing: border-box; }
+
+.deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg); }
+
+.deck-stage {
+  position: absolute; left: 0; top: 0;
+  width: 1920px; height: 1080px;
+  overflow: hidden;
+  transform-origin: 0 0;
+  background-color: var(--bg, #fff);
+  color: var(--fg, #111);
+  font-family: var(--font-body, system-ui, sans-serif);
+  transition: background-color var(--morph-dur) var(--morph-ease),
+              color var(--morph-dur) var(--morph-ease);
+}
+
+/* ---------- ACTORS ----------
+   Pose = CSS variables set by style files per layout/pose:
+   --x --y --w --h (px, --h defaults to --w), --r (deg), --s (scale),
+   --o (opacity), --bw (outline width, centered on the edge like
+   PowerPoint lines). Width/height animate so borders keep thickness. */
+.actors { position: absolute; inset: 0; pointer-events: none; }
+.actors.back  { z-index: 0; }
+.actors.front { z-index: 20; }
+
+.actor {
+  position: absolute; left: 0; top: 0;
+  width: calc(var(--w, 200px) + var(--bw, 0px));
+  height: calc(var(--h, var(--w, 200px)) + var(--bw, 0px));
+  transform: translate(calc(var(--x, -400px) - var(--bw, 0px) / 2), calc(var(--y, -400px) - var(--bw, 0px) / 2))
+             rotate(var(--r, 0deg)) scale(var(--s, 1));
+  opacity: var(--o, 1);
+  transition-property: transform, width, height, opacity, background-color,
+                       border-color, border-width, border-radius, box-shadow, filter, color;
+  transition-duration: var(--morph-dur);
+  transition-timing-function: var(--morph-ease);
+  /* no will-change: it caused 1px seams on large panels when the stage is scaled down */
+}
+.actor > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* ---------- SLIDES (content layer) ---------- */
+.slide {
+  position: absolute; inset: 0; z-index: 10;
+  width: 1920px; height: 1080px;
+  overflow: hidden;
+  visibility: hidden; opacity: 0; pointer-events: none;
+  transition: opacity var(--fade-dur) ease, visibility 0s linear var(--fade-dur);
+}
+.slide.active {
+  visibility: visible; opacity: 1; pointer-events: auto;
+  transition: opacity var(--fade-dur) ease, visibility 0s;
+}
+
+/* Reveal: hidden until slide is active, staggered by --i (set by engine) */
+.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur {
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease, filter 0.3s ease;
+}
+.reveal       { transform: translateY(40px); }
+.reveal-left  { transform: translateX(-60px); }
+.reveal-right { transform: translateX(60px); }
+.reveal-scale { transform: scale(0.85); }
+.reveal-blur  { filter: blur(12px); }
+/* repeated layouts enter differently: variant 2 slides in from the left, variant 3 zooms in */
+.slide[data-variant="2"] .reveal { transform: translateX(-56px); }
+.slide[data-variant="3"] .reveal { transform: scale(0.92); }
+
+.slide.active :is(.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur) {
+  opacity: 1; transform: none; filter: none;
+  transition-duration: 0.8s;
+  transition-timing-function: var(--morph-ease);
+  transition-delay: calc(var(--reveal-base) + var(--i, 0) * var(--reveal-step));
+}
+
+/* FLIP: element shared between two slides (data-morph-id) */
+.slide .flip-run {
+  opacity: 1 !important; filter: none !important;
+  transform-origin: 0 0;
+  transition: transform var(--morph-dur) var(--morph-ease) !important;
+}
+.slide .flip-src { opacity: 0 !important; transition: none !important; }
+
+/* ---------- UI chrome (outside design) ---------- */
+.deck-progress {
+  position: fixed; left: 0; bottom: 0; height: 4px; width: 0;
+  background: var(--accent, #3b82f6); z-index: 1000;
+  /* dark + light hairline so the bar stays visible on any background colour */
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35), 0 -2px 0 rgba(255, 255, 255, 0.35);
+  transition: width 0.6s var(--morph-ease);
+}
+/* edge buttons: a thin strip on each side, almost invisible until the mouse comes near */
+.deck-edge {
+  position: fixed; top: 0; bottom: 0; z-index: 1001; width: 64px; padding: 0; border: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; color: #fff; cursor: pointer; opacity: .18;
+  transition: opacity .25s ease, background .25s ease;
+}
+.deck-edge.prev { left: 0; }
+.deck-edge.next { right: 0; }
+.deck-edge span {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  font: 400 34px/1 system-ui, sans-serif; background: rgba(0, 0, 0, .45); padding-bottom: 4px;
+}
+.deck-edge:hover, .deck-edge:focus-visible { opacity: 1; }
+.deck-edge.prev:hover { background: linear-gradient(90deg, rgba(0, 0, 0, .28), transparent); }
+.deck-edge.next:hover { background: linear-gradient(270deg, rgba(0, 0, 0, .28), transparent); }
+.deck-counter {
+  position: fixed; right: 18px; bottom: 12px; z-index: 1000;
+  font: 600 13px/1 system-ui, sans-serif; letter-spacing: 0.08em;
+  color: #fff; mix-blend-mode: difference; opacity: 0.55;
+}
+
+/* Reduced motion (often from Windows "Animation effects" = off):
+   keep a short, gentle morph because motion IS the deck's content. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --morph-dur: 0.7s; --reveal-base: 0.2s; --reveal-step: 0.04s; }
+  .reveal-blur { filter: none; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; }
+}
+
+</style>
+<style>
+/* ===========================================================
+   MORPH-SLIDES LAYOUTS: 9 slide types that FILL their zone.
+   - Inner slides: title row + body zone (--body-top..--body-bottom)
+   - Engine sets data-density="lg|md|sm" from item count,
+     so few items => bigger type, many items => smaller type.
+   Tokens: --fg --muted --accent --card-bg --card-fg --font-display
+           --font-body --title-weight --title-case --title-tracking
+   =========================================================== */
+
+.slide {
+  --body-top: 270px; --body-bottom: 90px; --pad-x: 120px;
+  color: var(--fg); font-family: var(--font-body); font-size: 32px; line-height: 1.45;
+}
+.slide h1, .slide h2, .slide h3, .slide p, .slide ul, .slide ol, .slide blockquote { margin: 0; }
+.slide ul, .slide ol { padding: 0; list-style: none; }
+
+.title, .num, .stat-num, .quote, .hl-big, .when {
+  font-family: var(--font-display); font-weight: var(--title-weight, 800);
+  letter-spacing: var(--title-tracking, -0.01em); font-style: var(--title-style, normal);
+}
+.title { text-transform: var(--title-case, none); line-height: 1.1; }
+.kicker { font-size: 22px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); }
+.subtitle { font-size: 34px; color: var(--muted); }
+.meta { font-size: 24px; color: var(--muted); }
+.accent { color: var(--accent); }
+b, strong { font-weight: 700; }
+
+/* body zone shared by inner layouts */
+.slide > .title:first-child { position: absolute; left: var(--pad-x); top: 90px; width: var(--title-w, 1500px); font-size: 64px; }
+.slide:is([data-layout="cover"], [data-layout="closing"], [data-layout="section"], [data-layout="quote"]) > .title:first-child { position: static; width: auto; }
+.body-zone, .bullets, .cols, .stats, .timeline, .agenda-list, .highlight {
+  position: absolute; top: var(--body-top); bottom: var(--body-bottom);
+}
+
+/* ---------- 1. cover / 9. closing ---------- */
+.slide:is([data-layout="cover"], [data-layout="closing"]) {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 28px; padding: 0 300px; text-align: center;
+}
+.slide:is([data-layout="cover"], [data-layout="closing"]) .title { font-size: 92px; }
+.slide[data-layout="closing"] .title { font-size: 120px; }
+
+/* ---------- 2. agenda: 2 columns of tiles filling the zone ---------- */
+.agenda-list {
+  left: var(--pad-x); right: var(--pad-x);
+  display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--agenda-gap, 640px);
+  grid-template-rows: repeat(var(--rows, 4), 1fr); grid-auto-flow: column;
+}
+.agenda-list li { display: flex; align-items: center; gap: 28px; border-top: var(--tile-line, none); }
+.agenda-list li.is-right { flex-direction: row-reverse; text-align: right; }
+.agenda-list .num { line-height: 1; color: var(--accent); min-width: 1.3em; }
+.agenda-list li.is-right .num { text-align: right; }
+.agenda-list h3 { font-family: var(--font-display); line-height: 1.15; }
+.agenda-list p { color: var(--muted); margin-top: 6px; }
+[data-density="lg"] .agenda-list { --n-num: 120px; --n-h: 52px; --n-p: 30px; }
+[data-density="md"] .agenda-list { --n-num: 88px;  --n-h: 40px; --n-p: 26px; }
+[data-density="sm"] .agenda-list { --n-num: 64px;  --n-h: 32px; --n-p: 22px; }
+.agenda-list .num { font-size: var(--n-num); }
+.agenda-list h3 { font-size: var(--n-h); }
+.agenda-list p { font-size: var(--n-p); }
+
+/* ---------- 3. section ---------- */
+.slide[data-layout="section"] { display: flex; flex-direction: column; justify-content: center; gap: 24px; padding: 0 900px 0 160px; }
+.slide[data-layout="section"] .num { font-size: 220px; line-height: 0.9; color: var(--accent); }
+.slide[data-layout="section"] .title { font-size: 84px; }
+
+/* ---------- 4. content: bullets left + highlight right ---------- */
+.bullets { left: var(--pad-x); width: var(--bullets-w, 1040px); display: flex; flex-direction: column; justify-content: center; gap: var(--b-gap); }
+.bullets li { position: relative; padding-left: 1.4em; font-size: var(--b-fs); line-height: 1.35; }
+.bullets li::before {
+  content: ""; position: absolute; left: 0; top: 0.45em;
+  width: 0.45em; height: 0.45em; border-radius: var(--bullet-radius, 50%); background: var(--accent);
+}
+[data-density="lg"] .bullets { --b-fs: 44px; --b-gap: 52px; }
+[data-density="md"] .bullets { --b-fs: 36px; --b-gap: 40px; }
+[data-density="sm"] .bullets { --b-fs: 30px; --b-gap: 20px; }
+
+/* highlight = the real point of the slide shown big (number, icon, short claim) */
+.highlight {
+  left: var(--hl-left, 1260px); right: var(--hl-right, 120px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center;
+}
+.hl-big { font-size: 160px; line-height: 1; color: var(--accent); }
+.hl-icon { width: 200px; height: 200px; color: var(--accent); }
+.hl-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.hl-text { font-family: var(--font-display); font-size: 34px; font-weight: 700; line-height: 1.25; }
+
+/* ---------- 5. two-col: cards stretch full height ---------- */
+.cols { left: var(--pad-x); right: var(--pad-x); display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+.slide:has(.takeaway) .cols { bottom: 240px; }
+.col { display: flex; flex-direction: column; padding: 48px 56px; border-radius: var(--card-radius, 24px); background: var(--card-bg, transparent); color: var(--card-fg, var(--fg)); }
+.col h3 { font-family: var(--font-display); font-size: var(--c-h); line-height: 1.15; color: var(--accent); }
+.col ul { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; }
+.col p, .col li { font-size: var(--c-fs); line-height: 1.35; }
+.col li { position: relative; padding-left: 1.2em; }
+.col li::before { content: ""; position: absolute; left: 0; top: 0.5em; width: 0.4em; height: 0.4em; border-radius: var(--bullet-radius, 50%); background: var(--accent); }
+[data-density="lg"] .cols { --c-h: 52px; --c-fs: 36px; }
+[data-density="md"] .cols { --c-h: 46px; --c-fs: 32px; }
+[data-density="sm"] .cols { --c-h: 40px; --c-fs: 28px; }
+.takeaway {
+  position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: var(--body-bottom); min-height: 110px;
+  display: flex; align-items: center; padding: 20px 36px; border-left: 10px solid var(--accent);
+  font-family: var(--font-display); font-size: 36px; font-weight: 700; line-height: 1.25;
+}
+
+/* ---------- 6. stats: numbers centred in the zone ---------- */
+.stats { left: var(--pad-x); right: var(--pad-x); display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 48px; align-content: center; }
+.stat { text-align: center; }
+.stat-num { display: block; line-height: 1; color: var(--accent); font-size: var(--s-num); }
+.stat-label { display: block; margin-top: 22px; color: var(--muted); font-size: var(--s-fs); line-height: 1.35; }
+[data-density="lg"] .stats { --s-num: 220px; --s-fs: 36px; }
+[data-density="md"] .stats { --s-num: 150px; --s-fs: 30px; }
+[data-density="sm"] .stats { --s-num: 110px; --s-fs: 26px; }
+
+/* ---------- 7. timeline: zig-zag around a centred axis ---------- */
+.timeline {
+  left: var(--pad-x); right: var(--pad-x);
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; grid-template-rows: 1fr 1fr; column-gap: 32px;
+}
+.timeline::before { content: ""; position: absolute; left: 0; right: 0; top: calc(50% - 2px); height: 4px; background: var(--accent); opacity: 0.35; }
+.step { position: relative; }
+/* each step owns a column, odd above / even below the axis */
+.step:nth-child(1) { grid-column: 1; } .step:nth-child(2) { grid-column: 2; } .step:nth-child(3) { grid-column: 3; } .step:nth-child(4) { grid-column: 4; } .step:nth-child(5) { grid-column: 5; } .step:nth-child(6) { grid-column: 6; } .step:nth-child(7) { grid-column: 7; } .step:nth-child(8) { grid-column: 8; }
+.step:nth-child(odd)  { grid-row: 1; align-self: end; padding-bottom: 52px; }
+.step:nth-child(even) { grid-row: 2; align-self: start; padding-top: 52px; }
+.step::before { content: ""; position: absolute; left: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); }
+.step:nth-child(odd)::before  { bottom: -16px; }
+.step:nth-child(even)::before { top: -16px; }
+.step .when { font-size: var(--t-when); line-height: 1; color: var(--accent); }
+.step h3 { font-family: var(--font-display); font-size: var(--t-h); line-height: 1.2; margin: 10px 0 6px; }
+.step p { font-size: var(--t-fs); color: var(--muted); line-height: 1.35; }
+[data-density="lg"] .timeline { --t-when: 76px; --t-h: 50px; --t-fs: 32px; }
+[data-density="md"] .timeline { --t-when: 64px; --t-h: 42px; --t-fs: 29px; }
+[data-density="sm"] .timeline { --t-when: 50px; --t-h: 34px; --t-fs: 25px; }
+
+/* ---------- 8. quote ---------- */
+.slide[data-layout="quote"] { display: flex; flex-direction: column; justify-content: center; padding: 0 280px; gap: 36px; }
+.quote { font-size: 64px; line-height: 1.25; }
+.cite { font-size: 28px; color: var(--muted); }
+
+/* audit mode: measure final positions (no reveal offsets, actors jump straight to each pose) */
+.deck-stage.auditing, .deck-stage.auditing * { transition: none !important; }
+.deck-stage.auditing :is(.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur) {
+  transform: none !important; filter: none !important; transition: none !important;
+}
+
+</style>
+<style>
+/* ===========================================================
+   STYLE: SIGNAL (adapted from frontend-slides bold template
+   "signal", MIT). Deep editorial navy and warm bone paper, one
+   antique-gold accent, hairline rules, near-invisible 80px grid
+   on dark surfaces. Institutional, sober, literary.
+   Surfaces alternate by layout: a bone "paper" sheet slides,
+   widens and folds over the navy stage; a gold seal (ring) hangs
+   on a plumb line; hairline rules frame the title row.
+   Actors: paper (bone sheet), grid (80px texture), rule-top,
+           rule-foot (hairlines), spine (divider / plumb line),
+           ring (gold seal), gold (gold rule), mark (quote glyph).
+           DOM order = z-order (paper first).
+   Fonts: DM Sans -> Be Vietnam Pro (no Vietnamese in DM Sans).
+   =========================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=Be+Vietnam+Pro:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+.deck-stage {
+  --actors: "paper grid rule-top rule-foot spine ring gold mark";
+  --font-display: 'Source Serif 4', Georgia, serif;
+  --font-body: 'Be Vietnam Pro', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --navy: #1C2644; --cream: #F0ECE3; --gold: #C8A870;
+  --bg: var(--navy); --fg: #E2DCD0; --muted: #8E9AAC; --accent: var(--gold);
+  --rule: #34446A;
+  --card-bg: transparent; --card-fg: var(--fg); --card-radius: 0px;
+  --title-weight: 600; --title-tracking: -0.01em; --bullet-radius: 0;
+}
+/* bone surfaces: ink text, deeper gold so small figures stay legible */
+.deck-stage:is([data-layout="agenda"], [data-layout="content"], [data-layout="two-col"], [data-layout="timeline"], [data-layout="closing"]) {
+  --fg: #1A2030; --muted: #5A6270; --accent: #93733A; --rule: #CAC4B4;
+}
+.deck-stage[data-layout="content"][data-parity="even"] { --fg: #E2DCD0; --muted: #8E9AAC; --accent: var(--gold); --rule: #34446A; }
+
+/* ---------- actor looks + off-stage defaults ---------- */
+[data-actor="paper"] { background: var(--cream); --x: 1920px; --y: 0px; --w: 0px; --h: 1080px; }
+[data-actor="grid"] {
+  --x: 0px; --y: 0px; --w: 1920px; --h: 1080px; --o: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+[data-actor="rule-top"]  { background: var(--rule); --x: 120px; --y: 210px; --w: 0px; --h: 2px; }
+[data-actor="rule-foot"] { background: var(--rule); --x: 120px; --y: 1010px; --w: 0px; --h: 2px; }
+[data-actor="spine"]     { background: var(--rule); --x: 960px; --y: 630px; --w: 2px; --h: 0px; }
+[data-actor="ring"]      { border: 2px solid var(--gold); border-radius: 50%; --x: 1920px; --y: 540px; --w: 0px; --o: 0; }
+[data-actor="gold"]      { background: var(--gold); --x: 120px; --y: 209px; --w: 0px; --h: 3px; }
+[data-actor="mark"]      { color: var(--gold); --x: -400px; --y: 120px; --w: 280px; --h: 280px; --o: 0; --s: 0.4; }
+[data-actor="mark"]::before {
+  content: "\201C"; position: absolute; left: 0; top: 0; width: 100%;
+  font: 300 420px/0.9 'Source Serif 4', serif; text-align: center;
+}
+
+/* ---------- 1. cover: navy + grid, bone column on the right, seal on a plumb line ---------- */
+[data-layout="cover"] [data-actor="paper"]     { --x: 1400px; --w: 520px; }
+[data-layout="cover"] [data-actor="grid"]      { --o: 1; --w: 1400px; }
+[data-layout="cover"] [data-actor="rule-top"]  { --x: 160px; --y: 120px; --w: 1080px; }
+[data-layout="cover"] [data-actor="rule-foot"] { --x: 160px; --y: 960px; --w: 1080px; }
+[data-layout="cover"] [data-actor="spine"]     { --x: 1659px; --y: 0px; --h: 340px; }
+[data-layout="cover"] [data-actor="ring"]      { --x: 1460px; --y: 340px; --w: 400px; --o: 1; }
+[data-layout="cover"] [data-actor="gold"]      { --x: 1397px; --y: 0px; --w: 3px; --h: 1080px; }
+
+/* ---------- 2. agenda: bone sheet covers the stage, divider between columns ---------- */
+[data-layout="agenda"] [data-actor="paper"]     { --x: 0px; --w: 1920px; }
+[data-layout="agenda"] [data-actor="rule-top"]  { --w: 1680px; }
+[data-layout="agenda"] [data-actor="rule-foot"] { --w: 1680px; }
+[data-layout="agenda"] [data-actor="spine"]     { --x: 959px; --y: 290px; --h: 680px; }
+[data-layout="agenda"] [data-actor="ring"]      { --x: 1730px; --y: 100px; --w: 70px; --o: 1; }
+[data-layout="agenda"] [data-actor="gold"]      { --w: 160px; }
+
+/* ---------- 3. section: navy chapter, bone slab right, seal with crosshair ---------- */
+[data-layout="section"] [data-actor="paper"]     { --x: 1180px; --w: 740px; }
+[data-layout="section"] [data-actor="grid"]      { --o: 1; --w: 1180px; }
+[data-layout="section"] [data-actor="rule-top"]  { --x: 160px; --y: 120px; --w: 860px; }
+[data-layout="section"] [data-actor="rule-foot"] { --x: 160px; --y: 960px; --w: 860px; }
+[data-layout="section"] [data-actor="spine"]     { --x: 1180px; --y: 539px; --w: 740px; --h: 2px; }
+[data-layout="section"] [data-actor="ring"]      { --x: 1330px; --y: 320px; --w: 440px; --o: 1; }
+[data-layout="section"] [data-actor="gold"]      { --x: 1177px; --y: 0px; --w: 3px; --h: 1080px; }
+
+/* ---------- 4. content (odd): bone page left, navy panel holds the highlight ---------- */
+[data-layout="content"] [data-actor="paper"]     { --x: 0px; --w: 1220px; }
+[data-layout="content"] [data-actor="grid"]      { --o: 1; --x: 1220px; --w: 700px; }
+[data-layout="content"] [data-actor="rule-top"]  { --w: 1040px; }
+[data-layout="content"] [data-actor="rule-foot"] { --w: 1040px; }
+[data-layout="content"] [data-actor="spine"]     { --x: 1300px; --y: 210px; --w: 540px; --h: 2px; background: #34446A; }
+[data-layout="content"] [data-actor="ring"]      { --x: 1770px; --y: 100px; --w: 70px; --o: 1; }
+[data-layout="content"] [data-actor="gold"]      { --w: 160px; }
+/* even: page folds into a bone card on the right, navy takes the bullets */
+[data-layout="content"][data-parity="even"] [data-actor="paper"]     { --x: 1260px; --y: 270px; --w: 540px; --h: 720px; }
+[data-layout="content"][data-parity="even"] [data-actor="grid"]      { --x: 0px; --w: 1920px; }
+[data-layout="content"][data-parity="even"] [data-actor="rule-top"]  { --w: 1680px; }
+[data-layout="content"][data-parity="even"] [data-actor="rule-foot"] { --w: 1680px; }
+[data-layout="content"][data-parity="even"] [data-actor="spine"]     { --x: 1199px; --y: 270px; --w: 2px; --h: 720px; }
+[data-layout="content"][data-parity="even"] [data-actor="ring"]      { --x: 1740px; --y: -150px; --w: 300px; }
+[data-layout="content"][data-parity="even"] [data-actor="gold"]      { --x: 1260px; --y: 270px; --w: 540px; --h: 4px; }
+
+/* ---------- 5. two-col: bone sheet, hairline compare divider, seal node on top ---------- */
+[data-layout="two-col"] [data-actor="paper"]     { --x: 0px; --w: 1920px; }
+[data-layout="two-col"] [data-actor="rule-top"]  { --w: 1680px; }
+[data-layout="two-col"] [data-actor="rule-foot"] { --w: 1680px; }
+[data-layout="two-col"] [data-actor="spine"]     { --x: 959px; --y: 290px; --h: 700px; }
+[data-layout="two-col"] [data-actor="ring"]      { --x: 950px; --y: 270px; --w: 20px; --o: 1; }
+[data-layout="two-col"] [data-actor="gold"]      { --w: 160px; }
+.deck-stage[data-layout="two-col"]:has(.slide.active .takeaway) [data-actor="spine"]     { --h: 550px; }
+.deck-stage[data-layout="two-col"]:has(.slide.active .takeaway) [data-actor="rule-foot"] { --y: 860px; }
+.deck-stage[data-layout="two-col"]:has(.slide.active .takeaway) [data-actor="gold"]      { --y: 880px; --w: 4px; --h: 110px; }
+
+/* ---------- 6. stats: navy + grid, bone sheet shrinks to a left edge, small seal ---------- */
+[data-layout="stats"] [data-actor="paper"]     { --x: 0px; --w: 40px; }
+[data-layout="stats"] [data-actor="grid"]      { --o: 1; }
+[data-layout="stats"] [data-actor="rule-top"]  { --w: 1680px; }
+[data-layout="stats"] [data-actor="rule-foot"] { --w: 1680px; }
+[data-layout="stats"] [data-actor="spine"]     { --x: 1764px; --y: 0px; --h: 100px; }
+[data-layout="stats"] [data-actor="ring"]      { --x: 1730px; --y: 100px; --w: 70px; --o: 1; }
+[data-layout="stats"] [data-actor="gold"]      { --x: 40px; --y: 0px; --w: 3px; --h: 1080px; }
+
+/* ---------- 7. timeline: bone sheet, gold rule becomes the axis, seal at the end ---------- */
+[data-layout="timeline"] [data-actor="paper"]     { --x: 0px; --w: 1920px; }
+[data-layout="timeline"] [data-actor="rule-top"]  { --w: 1680px; }
+[data-layout="timeline"] [data-actor="rule-foot"] { --w: 1680px; }
+[data-layout="timeline"] [data-actor="spine"]     { --x: 1799px; --y: 596px; --h: 68px; }
+[data-layout="timeline"] [data-actor="ring"]      { --x: 1782px; --y: 612px; --w: 36px; --o: 1; }
+[data-layout="timeline"] [data-actor="gold"]      { --y: 629px; --w: 1680px; --h: 2px; }
+
+/* ---------- 8. quote: sheet slides away, navy + grid, gold quote mark ---------- */
+[data-layout="quote"] [data-actor="paper"]     { --x: 1920px; --w: 0px; }
+[data-layout="quote"] [data-actor="grid"]      { --o: 1; }
+[data-layout="quote"] [data-actor="rule-top"]  { --x: 280px; --y: 150px; --w: 1360px; }
+[data-layout="quote"] [data-actor="rule-foot"] { --x: 280px; --y: 930px; --w: 1360px; }
+[data-layout="quote"] [data-actor="spine"]     { --x: 1640px; --y: 150px; --h: 0px; }
+[data-layout="quote"] [data-actor="ring"]      { --x: 180px; --y: 180px; --w: 0px; }
+[data-layout="quote"] [data-actor="gold"]      { --x: 236px; --y: 400px; --w: 3px; --h: 280px; }
+[data-layout="quote"] [data-actor="mark"]      { --x: 130px; --y: 170px; --o: 1; --s: 1; }
+
+/* ---------- 9. closing: bone sheet, great seal around the thanks, horizon rules ---------- */
+[data-layout="closing"] [data-actor="paper"]     { --x: 0px; --w: 1920px; }
+[data-layout="closing"] [data-actor="rule-top"]  { --x: 120px; --y: 539px; --w: 300px; }
+[data-layout="closing"] [data-actor="rule-foot"] { --x: 1500px; --y: 539px; --w: 300px; }
+[data-layout="closing"] [data-actor="spine"]     { --x: 959px; --y: 0px; --h: 40px; }
+[data-layout="closing"] [data-actor="ring"]      { --x: 460px; --y: 40px; --w: 1000px; --o: 1; }
+[data-layout="closing"] [data-actor="gold"]      { --x: 959px; --y: 1040px; --w: 3px; --h: 40px; }
+
+/* ---------- content tweaks: serif voice, sans substance, mono metadata ---------- */
+.slide .kicker, .slide .cite, .slide .meta { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; }
+.slide .kicker { font-size: 22px; }
+.slide .meta, .slide .cite { font-size: 22px; letter-spacing: 0.14em; }
+.slide .subtitle { font-size: 32px; line-height: 1.5; }
+.slide b, .slide strong { font-family: var(--font-display); font-style: italic; font-weight: 600; color: var(--accent); }
+/* short gold rule separates kicker from headline */
+.slide:is([data-layout="cover"], [data-layout="closing"]) .kicker::after { content: ""; display: block; width: 72px; height: 2px; margin-top: 22px; background: var(--gold); }
+.slide[data-layout="closing"] .kicker::after { margin: 22px auto 0; }
+.slide[data-layout="cover"] { align-items: flex-start; text-align: left; padding: 0 680px 0 160px; }
+.slide[data-layout="cover"] .title { font-size: 92px; font-weight: 700; line-height: 1.06; letter-spacing: -0.02em; }
+.slide[data-layout="closing"] .title { font-size: 128px; line-height: 1.05; }
+.slide[data-layout="section"] { padding: 0 900px 0 160px; }
+.slide[data-layout="section"] .num { font-size: 200px; font-weight: 400; font-style: italic; }
+.slide[data-layout="section"] .num::after { content: ""; display: block; width: 72px; height: 3px; margin-top: 36px; background: var(--gold); }
+.slide[data-layout="section"] .title { font-size: 80px; line-height: 1.1; }
+/* em-dash style bullets: short gold mono rule */
+.bullets li::before, .col li::before { top: 0.66em; width: 0.7em; height: 2px; }
+.bullets li { padding-left: 1.5em; }
+.agenda-list { --agenda-gap: 200px; --tile-line: 1px solid var(--rule); }
+.agenda-list li { align-items: flex-start; padding-top: 28px; }
+.agenda-list li.is-right { flex-direction: row; text-align: left; }
+.agenda-list li.is-right .num { text-align: left; }
+.agenda-list .num { font-style: italic; font-weight: 400; }
+.agenda-list h3 { font-weight: 600; }
+/* content: odd = highlight on navy panel, even = highlight on bone card */
+.slide[data-layout="content"] { --title-w: 1040px; --hl-left: 1300px; --hl-right: 80px; }
+.slide[data-layout="content"] .highlight { color: #E2DCD0; --accent: var(--gold); }
+.slide[data-layout="content"][data-parity="even"] { --hl-left: 1290px; --hl-right: 150px; }
+.slide[data-layout="content"][data-parity="even"] .highlight { color: #1A2030; --accent: #93733A; }
+.hl-big { font-weight: 600; letter-spacing: -0.02em; }
+.hl-text { font-weight: 600; }
+.col { padding: 36px 56px 36px 0; }
+.col + .col { padding: 36px 0 36px 56px; }
+.col h3 { font-weight: 600; }
+.takeaway { border-left: 0; padding-left: 44px; font-weight: 600; }
+.stat { text-align: left; border-top: 2px solid var(--rule); padding-top: 40px; }
+.stat-num { font-weight: 600; letter-spacing: -0.02em; }
+.slide[data-layout="stats"] .stat-label { color: #B4BCC8; }
+.timeline::before { opacity: 0; }
+.step::before { width: 18px; height: 18px; left: 0; }
+.step:nth-child(odd)::before { bottom: -9px; }
+.step:nth-child(even)::before { top: -9px; }
+.step .when { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.02em; }
+.step h3 { font-weight: 600; }
+.slide[data-layout="quote"] { padding: 0 280px; }
+.slide[data-layout="quote"] .quote { font-size: 66px; font-weight: 400; line-height: 1.28; }
+
+</style>
+<style>
+/* ===========================================================
+   MORPH-SLIDES MOTION: effects named by the VERB the content
+   says (grow, draw, sort, gather, warn, stamp...). Load after
+   morph-layouts.css. Guide: references/hieu-ung-va-so-do.md
+   Rules:
+   - final look = the element's normal style, so frozen
+     screenshots and deck.audit() see the finished slide;
+   - an effect plays when its slide is active and it is not
+     waiting for a click (.pending, set by morph-steps.js);
+   - --d = extra delay in seconds. Inside a [data-step] block
+     delays count from the click, not from the slide change.
+   =========================================================== */
+/* shared tokens for motion + diagrams; a style may override any of them */
+:where(.deck-stage) {
+  --viz-ink: var(--fg); --viz-paper: var(--bg); --viz-muted: var(--muted);
+  --viz-hot: #E5484D;   /* wrong, missing, about to break */
+  --viz-fill: color-mix(in srgb, var(--fg) 8%, transparent);
+  --viz-faint: color-mix(in srgb, var(--fg) 20%, transparent);
+  --viz-mono: var(--font-mono, ui-monospace, Consolas, monospace);
+}
+[data-step] { --t0: 0s; }
+
+/* ---------- entrances ---------- */
+.fx { opacity: 0; transition: opacity .5s ease, transform .9s var(--morph-ease), clip-path .9s ease, filter .7s ease; }
+.slide.active .fx:not(.pending, .pending .fx) {
+  opacity: 1; transform: rotate(var(--rot, 0deg)); clip-path: inset(-400px); filter: none;
+  transition-delay: calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s);
+}
+.fx-up    { transform: translateY(50px); }
+.fx-left  { transform: translateX(-120px); }
+.fx-right { transform: translateX(120px); }
+.fx-pop   { transform: scale(.5); }
+.fx-blur  { filter: blur(16px); transform: scale(1.06); }
+.fx-from  { transform: var(--from); }                       /* fly in from a named spot (sorting) */
+.fx-drop  { transform: translateY(-260px) rotate(-8deg); }    /* falls with a bounce */
+.slide.active :is(.fx-pop, .fx-drop):not(.pending, .pending .fx) { transition-timing-function: ease, cubic-bezier(.34, 1.56, .64, 1), ease, ease; }
+.fx-growx { opacity: 1; clip-path: inset(0 100% 0 0); transition: clip-path .9s var(--morph-ease); }   /* grow / stretch */
+.fx-growy { opacity: 1; clip-path: inset(100% 0 0 0); transition: clip-path 1s var(--morph-ease); }
+.fx-type  { opacity: 1; clip-path: inset(0 100% 0 0); transition: clip-path 1s steps(30, end); }
+
+/* containers that wait for a click (no .fx of their own) */
+[data-step]:not(.fx) { transition: opacity .4s ease; }
+[data-step].pending:not(.fx, .keep) { opacity: 0; }
+
+/* ---------- draw: SVG strokes (give the shape pathLength="1") ---------- */
+.draw { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.3s cubic-bezier(.6, 0, .2, 1); }
+.slide.active .draw:not(.pending, .pending .draw) { stroke-dashoffset: 0; transition-delay: calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s); }
+
+/* ---------- count: numbers run up to --to ---------- */
+@property --n { syntax: '<integer>'; inherits: false; initial-value: 0; }
+.count { --n: 0; counter-reset: n var(--n); transition: --n 1.6s cubic-bezier(.2, .7, .2, 1); }
+.count::before { content: counter(n); }
+.slide.active .count:not(.pending, .pending .count) { --n: var(--to); transition-delay: calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s); }
+
+/* ---------- stamp: slams down and settles ---------- */
+@keyframes sf-slam {
+  0%   { opacity: 0; transform: rotate(var(--rot, -8deg)) scale(2.6); }
+  65%  { opacity: 1; transform: rotate(var(--rot, -8deg)) scale(.9); }
+  100% { opacity: 1; transform: rotate(var(--rot, -8deg)) scale(1); }
+}
+.slam { transform: rotate(var(--rot, -8deg)); }
+.slide:not(.active) .slam, .slam.pending { opacity: 0; }
+.slide.active .slam:not(.pending, .pending .slam) { animation: sf-slam .7s ease-out both; animation-delay: calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s); }
+
+/* ---------- warn: shake twice after appearing ---------- */
+@keyframes sf-shake { 0%, 100% { translate: 0; } 20%, 60% { translate: -9px 0; } 40%, 80% { translate: 9px 0; } }
+.slide.active .shake:not(.pending, .pending .shake) { animation: sf-shake .45s ease 2; animation-delay: calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s + .5s); }
+
+/* ---------- strike: a line crosses the element out ---------- */
+.strike { position: relative; }
+.strike::after { content: ""; position: absolute; left: -4%; right: -4%; top: 52%; height: 4px; background: var(--viz-hot); transform: scaleX(0); transform-origin: left; transition: transform .45s ease; }
+.slide.active .strike:not(.pending, .pending .strike)::after { transform: scaleX(1); transition-delay: calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s); }
+
+/* ---------- ping: a ring keeps calling attention ---------- */
+@keyframes sf-ping { from { transform: scale(.6); opacity: .9; } to { transform: scale(1.9); opacity: 0; } }
+.ping { position: relative; }
+.ping::after { content: ""; position: absolute; inset: 0; border: 2px solid currentColor; border-radius: inherit; opacity: 0; }
+.slide.active .ping:not(.pending, .pending .ping)::after { animation: sf-ping 1.6s ease-out infinite; animation-delay: calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s); }
+
+/* ---------- travel: a dot runs along an offset-path forever ---------- */
+@keyframes sf-travel { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+.travel { offset-rotate: 0deg; opacity: 0; }
+.slide.active .travel:not(.pending, .pending .travel) { opacity: 1; animation: sf-travel var(--dur, 4s) linear infinite; animation-delay: calc(var(--reveal-base) + var(--d, 0) * 1s); transition: opacity .3s ease calc(var(--reveal-base) + var(--d, 0) * 1s); }
+
+/* ---------- gather: pieces fly to one point when their step comes ---------- */
+.gather { transition: transform .9s cubic-bezier(.7, 0, .2, 1), opacity .4s ease; transition-delay: calc(var(--i, 0) * .03s); }
+.slide.active [data-step]:not(.pending) .gather { transform: var(--to); opacity: 0; transition-delay: calc(var(--i, 0) * .03s), calc(.6s + var(--i, 0) * .03s); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx, .fx-growx, .fx-growy, .fx-type, .draw, .gather { transition-duration: .3s !important; }
+  .travel { animation: none !important; }
+}
+
+/* deck.audit() measures every slide finished, all steps shown */
+.deck-stage.auditing :is(.fx, .pending) { opacity: 1 !important; transform: rotate(var(--rot, 0deg)); clip-path: none; filter: none; transition: none; }
+
+</style>
+<style>
+/* ===========================================================
+   MORPH-SLIDES DIAGRAMS: looks for the 8 kinds drawn by
+   morph-viz.js + morph-viz-diagrams.js. Colours come from the
+   --viz-* tokens in morph-motion.css (they follow the style's
+   --fg/--bg, so light and dark styles both work).
+   Place each .viz with inline left/top/width/height (or right/bottom).
+   Click states use the slide's data-at and reset transition-delay,
+   otherwise they would wait for the entrance delay.
+   =========================================================== */
+.viz { position: absolute; color: var(--viz-ink); }
+.viz svg { overflow: visible; }
+
+/* ---------- span: proportional bar (time, budget) ---------- */
+.viz .bar { position: absolute; left: 0; right: 0; top: calc(50% - var(--bar-h, 180px) / 2); height: var(--bar-h, 180px); }
+.viz .seg { position: absolute; top: 0; bottom: 0; background: var(--viz-ink); color: var(--viz-paper); border-right: 3px solid var(--viz-paper); display: grid; place-items: center; }
+.viz .seg b { position: relative; font: 400 72px/1 var(--font-display); }
+.viz .seg .morph-src { position: absolute; inset: 0; }
+.slide:not([data-at="0"]) .viz .seg.hot { background: var(--viz-hot); transition: background .4s; transition-delay: 0s !important; }
+.viz .note { position: absolute; display: flex; flex-direction: column; gap: 6px; font-size: 31px; line-height: 1.25; padding-left: 16px; border-left: 1.5px solid var(--viz-ink); }
+.viz .note.flip { padding: 0 16px 0 0; border-left: 0; border-right: 1.5px solid var(--viz-ink); text-align: right; }
+.viz .note.above { bottom: calc(50% + var(--bar-h, 180px) / 2); padding-bottom: 24px; }
+.viz .note.below { top: calc(50% + var(--bar-h, 180px) / 2); padding-top: 24px; }
+.viz .note .mono { font: 500 22px/1.2 var(--viz-mono); letter-spacing: .04em; color: var(--viz-muted); }
+
+/* ---------- donut ---------- */
+.viz .arc { fill: none; stroke: var(--viz-ink); stroke-width: 80; stroke-dasharray: 0 100; stroke-dashoffset: var(--off); transform: rotate(-90deg); transform-origin: center; transform-box: fill-box; transition: stroke-dasharray 1s cubic-bezier(.6, 0, .2, 1); }
+.viz .arc:nth-child(4n+3) { stroke: color-mix(in srgb, var(--viz-ink) 65%, var(--viz-paper)); }
+.slide.active .viz .arc { stroke-dasharray: var(--v) 100; transition-delay: calc(var(--reveal-base) + var(--d) * 1s); }
+.viz .arc-n { fill: var(--viz-ink); font: 500 28px/1 var(--viz-mono); text-anchor: middle; dominant-baseline: middle; }
+
+/* ---------- plan: outline + dimension chains ---------- */
+.viz .wall { fill: var(--viz-fill); stroke: var(--viz-ink); stroke-width: 3; }
+.viz .part { fill: var(--viz-ink); }
+.viz .dim { fill: none; stroke: var(--viz-ink); stroke-width: 2; }
+.viz .tick { fill: none; stroke: var(--viz-ink); stroke-width: 2.5; }
+.viz :is(.dim, .tick).hot { stroke: var(--viz-hot); }
+.viz .lens circle { fill: var(--viz-paper); stroke: var(--viz-hot); stroke-width: 3; }
+.viz .lens :is(line, path) { stroke: var(--viz-hot); stroke-width: 3; }
+.viz .lens text { fill: var(--viz-hot); font: 600 24px/1 var(--viz-mono); text-anchor: middle; }
+
+/* ---------- gather: pieces fly to the centre ---------- */
+.viz .piece { position: absolute; width: 64px; height: 64px; border: 2px solid currentColor; display: grid; place-items: center; font: 500 20px/1 var(--viz-mono); }
+
+/* ---------- matrix ---------- */
+.viz[data-viz="matrix"] { display: grid; align-items: stretch; }
+.mx-col, .mx-row { font: 400 50px/1.1 var(--font-display); display: flex; align-items: center; }
+.mx-col { justify-content: center; padding: 0 0 22px; border-bottom: 2.5px solid var(--viz-ink); }
+.mx-row { padding: 0 24px 0 0; border-right: 2.5px solid var(--viz-ink); }
+.mx-row, .mx-cell { min-height: 186px; border-bottom: 1.5px solid var(--viz-faint); }
+.mx-cell { display: grid; place-items: center; text-align: center; padding: 18px 26px; font: 500 31px/1.35 var(--viz-mono); position: relative; transition: background-color .4s, color .4s, opacity .5s, transform .9s var(--morph-ease); }
+.slide:not([data-at="0"]) .viz .mx-cell.hot { background: var(--viz-ink); color: var(--viz-paper); transition-delay: 0s !important; }
+.slide:not([data-at="0"]) .viz .mx-cell:not(.hot) { opacity: .45; transition-delay: 0s !important; }
+
+/* ---------- network ---------- */
+.viz[data-viz="network"] svg, .viz[data-viz="funnel"] svg { position: absolute; inset: 0; }
+.viz .edge { fill: none; stroke: var(--viz-ink); stroke-width: 2; transition: stroke-dashoffset 1.3s cubic-bezier(.6, 0, .2, 1), stroke-width .4s, opacity .4s; }
+.viz .edge.off { stroke-dasharray: 6 8; stroke-dashoffset: 0; opacity: .5; }
+.viz .nd { position: absolute; width: 330px; margin: -55px 0 0 -165px; padding: 14px 20px; background: var(--viz-paper); border: 2px solid var(--viz-ink); display: flex; flex-direction: column; gap: 4px; transition: opacity .5s, background-color .4s, color .4s, transform .9s var(--morph-ease); }
+.viz .nd b { font: 600 28px/1.1 var(--viz-mono); }
+.viz .nd span { font-size: 20px; line-height: 1.3; color: var(--viz-muted); }
+.viz .nd.off { border-style: dashed; color: var(--viz-muted); }
+.viz .hub { position: absolute; width: 190px; height: 190px; margin: -95px 0 0 -95px; border-radius: 50%; background: var(--viz-ink); color: var(--viz-paper); display: grid; place-items: center; text-align: center; font: 400 44px/1 var(--font-display); }
+.slide:not([data-at="0"]) .viz .nd:not(.on) { opacity: .3; transition-delay: 0s !important; }
+.slide:not([data-at="0"]) .viz .nd.on { background: var(--viz-ink); color: var(--viz-paper); transition-delay: 0s !important; }
+.slide:not([data-at="0"]) .viz .nd.on span { color: var(--viz-paper); }
+.slide:not([data-at="0"]) .viz .edge.on { stroke-width: 6; }
+.slide:not([data-at="0"]) .viz .edge:not(.on) { opacity: .25; }
+
+/* ---------- funnel ---------- */
+.viz .ly { fill: var(--viz-fill); stroke: var(--viz-ink); stroke-width: 2.5; }
+.viz .ly:last-child { fill: var(--viz-ink); }
+.viz .ly-t { position: absolute; left: 0; right: 0; transform: translateY(-50%); text-align: center; font: 400 36px/1.1 var(--font-display); }
+.viz .ly-t:nth-last-of-type(1) { color: var(--viz-paper); }
+.viz .dot { position: absolute; width: 36px; height: 36px; margin-left: -18px; border-radius: 50%; background: var(--viz-paper); border: 3px solid var(--viz-ink); }
+.viz .dot.caught { background: var(--viz-hot); border-color: var(--viz-hot); }
+.slide.active .viz .dot { transition-timing-function: ease, cubic-bezier(.55, 0, 1, .45), ease, ease; transition-duration: .3s, .8s; }
+
+/* ---------- compare: the second panel wipes over the first on click ---------- */
+@property --cut { syntax: '<percentage>'; inherits: true; initial-value: 100%; }
+.viz[data-viz="compare"] { --cut: 100%; transition: --cut 1.1s cubic-bezier(.7, 0, .2, 1), opacity .5s ease, transform .9s var(--morph-ease); }
+.slide:not([data-at="0"]) .viz[data-viz="compare"] { --cut: 0%; transition-delay: 0s !important; }
+.viz .cmp-a, .viz .cmp-b { position: absolute; inset: 0; }
+.viz .cmp-b { clip-path: inset(0 0 0 var(--cut)); }
+.viz .cmp-knob { position: absolute; top: -18px; bottom: -18px; left: var(--cut); width: 6px; margin-left: -3px; background: var(--viz-hot); opacity: 0; }
+.viz .cmp-knob::after { content: "⇆"; position: absolute; top: 50%; left: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: var(--viz-hot); color: #fff; display: grid; place-items: center; font: 600 30px/1 var(--font-body); }
+.slide:not([data-at="0"]) .viz .cmp-knob { animation: sf-knob 1.1s cubic-bezier(.7, 0, .2, 1); }
+@keyframes sf-knob { 0%, 100% { opacity: 0; } 10%, 85% { opacity: 1; } }
+.deck-stage.auditing .viz[data-viz="compare"] { --cut: 0%; }
+
+</style>
+<style>
+/* ===========================================================
+   MORPH-SLIDES ICONS: Tabler Icons sized and coloured by the style.
+   An icon is a square box of 1em; size it with font-size or a size
+   class. Colour = currentColor (the text colour), .accent = style accent.
+   Restraint (checked by deck.audit): at most 6 icons on a slide, one
+   hero icon, never an icon on every bullet.
+   =========================================================== */
+.ico { display: inline-block; width: 1em; height: 1em; flex: none; vertical-align: -0.14em; line-height: 0; }
+.ico svg { display: block; width: 100%; height: 100%; stroke-width: var(--ico-stroke, 1.75); }
+.ico.accent { color: var(--accent); }
+.ico.muted { color: var(--muted); }
+/* sizes: thin strokes on big icons so they keep the type's weight */
+.ico-sm  { font-size: 32px; }
+.ico-md  { font-size: 56px; }
+.ico-lg  { font-size: 96px;  --ico-stroke: 1.5; }
+.ico-xl  { font-size: 200px; --ico-stroke: 1.15; }
+/* framed badge: icon inside a circle or square drawn with the style's ink */
+.ico-badge { display: inline-grid; place-items: center; width: 1.9em; height: 1.9em; border: 2px solid currentColor; border-radius: 50%; }
+.ico-badge.square { border-radius: var(--card-radius, 0); }
+.ico-badge > .ico { font-size: 1em; }
+/* a row of labelled icons (tools, steps): same size, evenly spaced */
+.ico-row { display: flex; gap: 40px; align-items: flex-start; }
+.ico-row > * { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; font-size: 24px; line-height: 1.25; }
+.ico-row .ico { font-size: 64px; }
+/* inside the highlight column of a content slide */
+.hl-icon .ico { font-size: 200px; --ico-stroke: 1.15; color: var(--accent); }
+.deck-stage.auditing .ico[data-missing] { outline: 3px dashed #E5484D; }
+
+/* ---------- icon grid: 3 to 6 short points, one icon each, one colour ----------
+   <ul class="ico-grid"><li><i class="ico" data-icon="..."></i><h3>Ý ngắn</h3><p>Một dòng giải thích</p></li>...</ul>
+   Fills the body zone; 4 items = 2 columns, 3/5/6 items = 3 columns.
+   Put it on a data-layout="agenda" slide: styles keep that zone clear of shapes. */
+.ico-grid {
+  position: absolute; top: var(--body-top); bottom: var(--body-bottom); left: var(--pad-x); right: var(--pad-x);
+  display: grid; grid-template-columns: repeat(var(--cols, 3), 1fr); grid-auto-rows: 1fr; gap: 36px 56px;
+  margin: 0; padding: 0; list-style: none;
+}
+.ico-grid:has(> li:nth-child(4):last-child) { --cols: 2; }
+.ico-grid > li { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; }
+/* the icon sits in a soft disc of the accent colour */
+.ico-grid .ico {
+  box-sizing: content-box; padding: calc(var(--g-ico, 80px) * .32); border-radius: 50%;
+  font-size: var(--g-ico, 80px); color: var(--ico-grid-color, var(--accent)); --ico-stroke: 1.5;
+  background: color-mix(in srgb, var(--ico-grid-color, var(--accent)) 14%, transparent);
+}
+.ico-grid h3 { margin: 0; font: var(--title-weight, 800) var(--g-h, 46px)/1.15 var(--font-display); }
+.ico-grid p { margin: 0; max-width: 16em; font-size: var(--g-p, 30px); line-height: 1.35; color: var(--muted); }
+.ico-grid:has(> li:nth-child(5)) { --g-ico: 68px; --g-h: 40px; --g-p: 27px; row-gap: 24px; }
+.ico-grid:has(> li:nth-child(5)) > li { gap: 12px; }
+
+</style>
+<style>
+/* ===========================================================
+   MORPH-SLIDES BRAND: one logo that lives on the stage, not on a
+   slide, and flies between poses like an actor:
+   hero (cover, closing) = big and centred at the top,
+   corner (inner slides) = small in the top-right corner,
+   hide (quote, photo)   = slides up out of the frame.
+   Markup, inside .deck-stage and before the first slide:
+     <div class="brand"><i class="ico" data-icon="leaf"></i><span class="brand-name">Tên</span></div>
+   or a logo file: <div class="brand"><img src="logo.svg" alt="Tên"></div>
+   One slide picks another pose with data-brand="hero|corner|hide".
+   A style or deck moves the poses with the --brand-* variables.
+   =========================================================== */
+.deck-stage {
+  /* a = anchor: -50% centres the logo on x, -100% puts its right edge on x */
+  --brand-hero-x: 960px;    --brand-hero-y: 84px;   --brand-hero-s: 1;    --brand-hero-a: -50%;
+  --brand-corner-x: 1840px; --brand-corner-y: 34px; --brand-corner-s: .4; --brand-corner-a: -100%;
+}
+.brand {
+  --bx: var(--brand-corner-x); --by: var(--brand-corner-y); --bs: var(--brand-corner-s); --ba: var(--brand-corner-a); --bo: 1;
+  position: absolute; left: 0; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 24px; height: 120px; white-space: nowrap;
+  color: var(--brand-color, var(--accent)); pointer-events: none;
+  font: var(--title-weight, 800) 52px/1 var(--font-display, var(--font-body)); letter-spacing: -.01em;
+  transform-origin: 0 0;
+  transform: translate(var(--bx), var(--by)) translateX(calc(var(--ba) * var(--bs))) scale(var(--bs));
+  opacity: var(--bo);
+  transition: transform var(--morph-dur) var(--morph-ease), opacity var(--morph-dur) var(--morph-ease);
+}
+.brand .ico { font-size: 120px; --ico-stroke: 1.4; }
+.brand img, .brand svg { height: 120px; width: auto; }
+.brand-name { color: var(--brand-name-color, var(--fg)); }
+
+/* poses: the layout decides, a slide's data-brand has the last word */
+.deck-stage:not([data-layout]) .brand { --by: -200px; --bo: 0; }
+.deck-stage:is([data-layout="cover"], [data-layout="closing"]) .brand,
+.deck-stage[data-brand="hero"] .brand {
+  --bx: var(--brand-hero-x); --by: var(--brand-hero-y); --bs: var(--brand-hero-s); --ba: var(--brand-hero-a);
+}
+.deck-stage[data-brand="corner"] .brand {
+  --bx: var(--brand-corner-x); --by: var(--brand-corner-y); --bs: var(--brand-corner-s); --ba: var(--brand-corner-a);
+}
+.deck-stage:is([data-layout="quote"], [data-layout="photo"]):not([data-brand="hero"], [data-brand="corner"]) .brand,
+.deck-stage[data-brand="hide"] .brand { --by: -200px; --bo: 0; }
+
+</style>
+<style>
+/* ===========================================================
+   MORPH-SLIDES MOCKS: app frames drawn in CSS, so a deck can show
+   a chat, a terminal, a web page or a phone without screenshots.
+     .mock.mock-chat     window + chat bubbles (.msg.user / .msg.ai)
+     .mock.mock-term     dark terminal (.cmd typed after a prompt, .out lines)
+     .mock.mock-browser  window with an address bar (data-url)
+     .mock.mock-phone    phone body; may hold a .mock-chat (its bar is dropped)
+   Window title = data-title. Motion (morph-mock.js sets the timing):
+     .type   the text is typed letter by letter
+     .lines  the children appear one line after another
+     .think  "..." dots first, then the lines (use with .lines)
+   Units run one after another inside the same click (data-step).
+   Final look = everything shown, so screenshots and the audit see it.
+   =========================================================== */
+:where(.deck-stage) {
+  /* a raised surface: a bit lighter than the stage on dark and light styles alike */
+  --mock-bg: color-mix(in srgb, var(--bg) 82%, #fff);
+  --mock-bar: color-mix(in srgb, var(--fg) 8%, var(--mock-bg));
+  --mock-line: color-mix(in srgb, var(--fg) 16%, transparent);
+  --mock-radius: 22px;
+  --mock-mono: var(--font-mono, ui-monospace, Consolas, monospace);
+}
+
+/* ---------- window frame ---------- */
+.mock {
+  position: absolute; display: flex; flex-direction: column; gap: 22px;
+  padding: 92px 40px 40px; overflow: hidden; text-align: left;
+  background: var(--mock-bg); color: var(--fg);
+  border: 2px solid var(--mock-line); border-radius: var(--mock-radius);
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, .5);
+  font: 400 28px/1.45 var(--font-body);
+}
+.mock-chat, .mock-term, .mock-browser { min-height: 300px; }
+.mock:is(.mock-chat, .mock-term, .mock-browser)::before {
+  content: attr(data-title);
+  position: absolute; left: 0; right: 0; top: 0; height: 60px;
+  display: flex; align-items: center; justify-content: center;
+  border-bottom: 2px solid var(--mock-line);
+  background:
+    radial-gradient(circle at 32px 30px, #FF5F57 0 7px, transparent 8px),
+    radial-gradient(circle at 58px 30px, #FEBC2E 0 7px, transparent 8px),
+    radial-gradient(circle at 84px 30px, #28C840 0 7px, transparent 8px),
+    var(--mock-bar);
+  font: 600 20px/1 var(--font-body); color: var(--muted, currentColor); letter-spacing: .02em;
+}
+.mock > :is(p, h3, ul, ol) { margin: 0; }
+
+/* ---------- chat ---------- */
+.mock .msg { position: relative; max-width: 84%; padding: 18px 26px; border-radius: 24px; }
+.mock .msg > * + * { margin-top: .45em; }
+.mock .msg :is(p, ul, ol) { margin-bottom: 0; }
+.mock .msg.user { align-self: flex-end; background: color-mix(in srgb, var(--accent) 22%, var(--bg)); border-bottom-right-radius: 6px; }
+.mock .msg.ai { align-self: flex-start; border: 2px solid var(--mock-line); border-bottom-left-radius: 6px; }
+.mock .msg[data-who]::before { content: attr(data-who); display: block; margin-bottom: 6px; font-size: .72em; font-weight: 700; letter-spacing: .04em; color: var(--accent); }
+.mock .composer {
+  margin-top: auto; display: flex; align-items: center; gap: 16px;
+  padding: 16px 22px; border: 2px solid var(--mock-line); border-radius: 18px;
+  background: var(--bg); color: var(--fg);
+}
+.mock .composer > :first-child { flex: 1; }
+.mock .composer .ico { font-size: 34px; color: var(--accent); }
+.mock code, .mock .mono { font-family: var(--mock-mono); font-size: .9em; }
+
+/* ---------- terminal: dark on every style ---------- */
+.mock-term {
+  --mock-line: rgba(255, 255, 255, .12); --mock-bar: #1A1F27; --muted: #9BA7B4;
+  gap: 4px; background: #0E1116; color: #E6EDF3;
+  font: 400 26px/1.5 var(--mock-mono);
+}
+.mock-term .cmd::before { content: var(--prompt, "$ "); color: #7EE787; }
+.mock-term .cmd:not(:first-child) { margin-top: 14px; }
+.mock-term .out { color: #9BA7B4; }
+.mock-term .ok { color: #7EE787; }
+.mock-term .err { color: #FF7B72; }
+.mock-term .hi { color: #FFD866; }
+
+/* ---------- browser ---------- */
+.mock-browser::after {
+  content: attr(data-url);
+  position: absolute; left: 120px; right: 36px; top: 12px; height: 36px;
+  display: flex; align-items: center; padding: 0 20px; border-radius: 18px;
+  background: var(--mock-bg); color: var(--muted, currentColor);
+  font: 400 19px/1 var(--mock-mono); white-space: nowrap; overflow: hidden;
+}
+.mock-browser img { display: block; width: 100%; border-radius: 10px; }
+
+/* ---------- phone ---------- */
+.mock-phone {
+  padding: 74px 22px 34px; border: 14px solid var(--phone-ink, #15171C); border-radius: 64px;
+  aspect-ratio: 9 / 19; width: 420px;
+}
+.mock-phone::before {
+  content: ""; position: absolute; left: 50%; top: 16px; width: 120px; height: 32px;
+  border-radius: 16px; background: var(--phone-ink, #15171C); transform: translateX(-50%);
+}
+.mock-phone .mock { position: relative; inset: auto; flex: 1; min-height: 0; padding: 0; border: 0; box-shadow: none; background: none; font-size: inherit; }
+.mock-phone .mock::before { content: none; }
+.mock-phone { font-size: 24px; }
+
+/* ---------- motion: units, typed letters, lines, thinking dots ---------- */
+.mock :is(.type, .lines, .msg) { opacity: 0; }
+.slide.active .mock :is(.type, .lines, .msg):not(.pending, .pending *) {
+  opacity: 1;
+  transition: opacity .35s ease calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s + var(--d0, 0s));
+}
+.mock .ch { opacity: 0; }
+.slide.active .mock .ch:not(.pending .ch) {
+  opacity: 1;
+  transition: opacity 0s linear calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s + var(--d0, 0s) + var(--k) * var(--per, .03s));
+}
+.mock .lines > :not(.dots) { opacity: 0; transform: translateY(14px); }
+.slide.active .mock .lines:not(.pending, .pending *) > :not(.dots) {
+  opacity: 1; transform: none;
+  transition: opacity .4s ease, transform .6s var(--morph-ease);
+  transition-delay: calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s + var(--d0, 0s) + var(--think-t, 0s) + var(--j, 0) * var(--line-gap, .35s));
+}
+.mock .think { --think-t: .9s; position: relative; }
+.mock .dots { position: absolute; left: 26px; top: 22px; display: flex; gap: 8px; opacity: 0; }
+.mock .msg[data-who] > .dots { top: 58px; }
+.mock .dots i { width: 12px; height: 12px; border-radius: 50%; background: currentColor; animation: sf-dot 1s ease-in-out infinite; }
+.mock .dots i:nth-child(2) { animation-delay: .15s; }
+.mock .dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes sf-dot { 0%, 100% { opacity: .25; transform: none; } 40% { opacity: .9; transform: translateY(-6px); } }
+@keyframes sf-life { from { opacity: 1; } to { opacity: 0; } }
+.slide.active .mock .think:not(.pending, .pending *) > .dots {
+  animation: sf-life var(--think-t) steps(1, end) both;
+  animation-delay: calc(var(--t0, var(--reveal-base)) + var(--d, 0) * 1s + var(--d0, 0s));
+}
+
+/* deck.audit() measures the finished slide */
+.deck-stage.auditing .mock :is(.type, .lines, .msg, .ch, .lines > *) { opacity: 1 !important; transform: none !important; transition: none !important; }
+
+</style>
+<style>
+/* ===========================================================
+   Buổi 03 (phân tích dữ liệu NCKH) on Signal: poses + parts.
+   Two surfaces: navy (light ink) and bone paper (dark ink).
+   Gold = the accepted number; --viz-hot red = error / forbidden.
+   =========================================================== */
+.deck-stage { --viz-hot: #D9534F; --ok: #4E9F7A; }
+
+/* ---------- poses (reset at layout weight, then per pose) ---------- */
+.deck-stage:where([data-pose]:not([data-pose=""])) [data-actor="paper"]     { --x: 1920px; --y: 0px; --w: 0px; --h: 1080px; }
+.deck-stage:where([data-pose]:not([data-pose=""])) [data-actor="grid"]      { --o: 1; --x: 0px; --w: 1920px; }
+.deck-stage:where([data-pose]:not([data-pose=""])) [data-actor="rule-top"]  { --x: 120px; --y: 210px; --w: 1680px; }
+.deck-stage:where([data-pose]:not([data-pose=""])) [data-actor="rule-foot"] { --x: 120px; --y: 1000px; --w: 1680px; }
+.deck-stage:where([data-pose]:not([data-pose=""])) [data-actor="spine"]     { --x: 960px; --y: 600px; --h: 0px; }
+.deck-stage:where([data-pose]:not([data-pose=""])) [data-actor="ring"]      { --x: 1740px; --y: 70px; --w: 70px; --o: 1; }
+.deck-stage:where([data-pose]:not([data-pose=""])) [data-actor="gold"]      { --x: 120px; --y: 209px; --w: 160px; --h: 3px; }
+.deck-stage:where([data-pose]:not([data-pose=""])) [data-actor="mark"]      { --x: -400px; --o: 0; }
+
+/* paper surfaces switch the stage ink to dark */
+.deck-stage:is([data-pose="pp"], [data-pose="pl"]) { --fg: #1A2030; --muted: #5A6270; --accent: #93733A; --rule: #CAC4B4; }
+.deck-stage[data-pose="pp"] [data-actor="paper"] { --x: 0px; --w: 1920px; }
+.deck-stage[data-pose="pp"] [data-actor="grid"]  { --o: 0; }
+/* pl: paper left page, navy panel right */
+.deck-stage[data-pose="pl"] [data-actor="paper"] { --x: 0px; --w: 1060px; }
+.deck-stage[data-pose="pl"] [data-actor="grid"]  { --x: 1060px; --w: 860px; }
+.deck-stage[data-pose="pl"] [data-actor="rule-top"], .deck-stage[data-pose="pl"] [data-actor="rule-foot"] { --w: 880px; }
+.deck-stage[data-pose="pl"] [data-actor="ring"]  { --x: 1760px; --y: -120px; --w: 260px; }
+.deck-stage[data-pose="pl"] [data-actor="spine"] { --x: 1059px; --y: 0px; --h: 1080px; }
+/* pr: navy left, bone card right */
+.deck-stage[data-pose="pr"] [data-actor="paper"] { --x: 1100px; --y: 250px; --w: 700px; --h: 760px; }
+.deck-stage[data-pose="pr"] [data-actor="gold"]  { --x: 1100px; --y: 250px; --w: 700px; --h: 4px; }
+.deck-stage[data-pose="pr"] [data-actor="rule-foot"] { --w: 940px; }
+/* pn: navy + grid, seal hangs on a plumb line */
+.deck-stage[data-pose="pn"] [data-actor="spine"] { --x: 1774px; --y: 0px; --h: 70px; }
+/* pc: cover of a chapter-like slide, big seal behind the right half */
+.deck-stage[data-pose="pc"] [data-actor="ring"]  { --x: 1270px; --y: 290px; --w: 460px; }
+.deck-stage[data-pose="pc"] [data-actor="paper"] { --x: 0px; --y: 1000px; --w: 1920px; --h: 80px; }
+
+/* ---------- local ink for panels on the other surface ---------- */
+.ink-dark  { color: #1A2030; --viz-ink: #1A2030; --viz-paper: #F0ECE3; --viz-muted: #5A6270; --viz-fill: rgba(26, 32, 48, .07); --viz-faint: rgba(26, 32, 48, .18); --g: #93733A; }
+.ink-light { color: #E2DCD0; --viz-ink: #E2DCD0; --viz-paper: #1C2644; --viz-muted: #8E9AAC; --viz-fill: rgba(226, 220, 208, .08); --viz-faint: rgba(226, 220, 208, .2); --g: #C8A870; }
+.deck-stage { --g: var(--accent); }
+
+/* ---------- slide chrome: kicker, title, lead, footer ---------- */
+.slide { font-size: 28px; line-height: 1.4; }
+.kk { position: absolute; left: 120px; top: 54px; font: 500 22px/1 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.tt { position: absolute; left: 120px; top: 92px; width: 1560px; font: 600 62px/1.08 var(--font-display); letter-spacing: -.01em; }
+.lede { position: absolute; left: 120px; top: 232px; width: 1680px; font: italic 400 32px/1.35 var(--font-display); color: var(--muted); }
+.foot { position: absolute; left: 120px; right: 120px; top: 1010px; display: flex; justify-content: space-between; gap: 40px; align-items: baseline; }
+.foot q { font: italic 400 22px/1.3 var(--font-display); quotes: none; color: var(--muted); }
+.foot span { flex: none; margin-left: auto; font: 500 18px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.abs { position: absolute; }
+.mono { font-family: var(--font-mono); }
+.gold { color: var(--g); }
+.hot { color: var(--viz-hot); }
+.ok { color: var(--ok); }
+
+/* ---------- prompt console with copy button ---------- */
+.con { position: absolute; background: #101935; color: #E2DCD0; border: 1px solid #34446A; display: flex; flex-direction: column; }
+.con .hd { display: flex; justify-content: space-between; align-items: center; padding: 14px 22px; border-bottom: 1px solid #34446A; font: 500 18px/1.2 var(--font-mono); letter-spacing: .06em; color: #C8A870; }
+.con .cp { font: 500 15px/1 var(--font-mono); letter-spacing: .08em; color: #E2DCD0; background: transparent; border: 1px solid #5A6A90; padding: 7px 12px; cursor: pointer; text-transform: uppercase; }
+.con .cp.done { color: #101935; background: #C8A870; border-color: #C8A870; }
+.con pre { margin: 0; padding: 20px 28px; white-space: pre-wrap; font: 400 var(--pf, 22px)/1.45 var(--font-body); flex: 1; }
+.con pre .note { color: #C8A870; font-style: italic; }
+
+/* ---------- cards, tags, result panels ---------- */
+.card { position: absolute; padding: 28px 30px; border-top: 3px solid var(--g); display: flex; flex-direction: column; gap: 10px; }
+.card .n { font: italic 600 var(--nf, 64px)/.9 var(--font-display); color: var(--g); }
+.card .lb { font: 500 17px/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--g); }
+.card h3 { font: 600 37px/1.15 var(--font-display); margin: 0; }
+.card p { font-size: 27px; line-height: 1.4; margin: 0; }
+.panel { position: absolute; padding: 26px 30px; border: 1.5px solid currentColor; }
+.panel h4 { margin: 0 0 12px; font: 500 18px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--g); }
+.panel ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.panel li { font-size: 26px; line-height: 1.38; padding-left: 26px; position: relative; }
+.panel li::before { content: ""; position: absolute; left: 0; top: .62em; width: 12px; height: 2px; background: var(--g); }
+.res { position: absolute; padding: 24px 28px; background: rgba(200, 168, 112, .1); border-left: 5px solid var(--g); }
+.res h4 { margin: 0 0 10px; font: 500 18px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--g); }
+.res p { margin: 0; font-size: 27px; line-height: 1.4; }
+.stamp { position: absolute; padding: 10px 22px; border: 4px double currentColor; font: 700 28px/1.1 var(--font-body); letter-spacing: .04em; text-transform: uppercase; z-index: 5; }
+
+/* ---------- tables ---------- */
+.tb { position: absolute; display: grid; }
+.tb > * { padding: 12px 10px; border-top: 1px solid var(--viz-faint); font-size: 27px; display: flex; align-items: center; }
+.tb .h { font: 500 16px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--g); border-top: 0; }
+.tb .v { font: 600 38px/1 var(--font-display); color: var(--g); }
+.tb .c { justify-content: center; }
+
+/* ---------- hand-drawn charts ---------- */
+.chart { position: absolute; overflow: visible; }
+.chart line, .chart path { fill: none; stroke: currentColor; }
+.chart .ax { stroke-width: 1.5; opacity: .55; }
+.chart .th { stroke: var(--viz-hot); stroke-width: 2.5; stroke-dasharray: 10 8; }
+.chart text { fill: currentColor; font: 500 20px var(--font-mono); }
+.chart .lbl { font: 500 22px var(--font-body); }
+.barv { position: absolute; background: var(--g); }
+.barh { position: absolute; background: currentColor; }
+.big { font: 600 120px/1 var(--font-display); color: var(--g); }
+
+/* ---------- path diagram (mediation) ---------- */
+.pnode { position: absolute; width: 260px; height: 120px; margin: -60px 0 0 -130px; border: 2px solid currentColor; display: grid; place-content: center; text-align: center; background: var(--viz-paper); z-index: 2; }
+.pnode b { font: 600 40px/1 var(--font-display) !important; }
+.pnode span { font-size: 19px; color: var(--viz-muted); }
+.plabel { position: absolute; padding: 6px 14px; background: var(--viz-paper); border: 1.5px solid var(--g); font: 500 21px/1.2 var(--font-mono); white-space: nowrap; z-index: 3; }
+
+/* ---------- timer ---------- */
+.timer { position: absolute; display: flex; align-items: center; gap: 22px; }
+.timer .t { font: 600 88px/1 var(--font-mono); color: var(--g); min-width: 300px; }
+.timer button { font: 500 18px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; padding: 12px 18px; background: transparent; color: inherit; border: 1.5px solid currentColor; cursor: pointer; }
+
+/* ---------- cover ---------- */
+.slide[data-layout="cover"] { padding: 0 640px 0 160px; gap: 22px; }
+.slide[data-layout="cover"] .title { font-size: 66px; line-height: 1.08; }
+.pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: 12px; }
+.pillars div { border-top: 2px solid #C8A870; padding-top: 14px; }
+.pillars .lb { font: 500 15px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: #C8A870; }
+.pillars h3 { margin: 8px 0 6px; font: 600 27px/1.2 var(--font-display); }
+.pillars p { margin: 0; font-size: 20px; line-height: 1.38; color: #B4BCC8; }
+.cover-side { position: absolute; left: 1400px; width: 520px; top: 760px; text-align: center; color: #1A2030; }
+.cover-side .n { font: 600 140px/1 var(--font-display); color: #93733A; }
+.cover-side span { display: block; font: 500 18px/1.3 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+
+</style>
+<style>
+/* ===========================================================
+   Buổi 03 deck: per-slide parts (charts drawn to scale from the
+   source numbers, cards, panels). Loaded after b3-deck.css.
+   =========================================================== */
+.slide b { font-family: var(--font-body); font-style: normal; font-weight: 600; color: inherit; }
+.slide b.gold { color: var(--g); }
+.slide b.ok, .slide .ok { color: var(--ok); }
+.slide .pnode b { font: 600 40px/1 var(--font-display); }
+.slide code { font: 500 .86em var(--font-mono); background: rgba(147, 115, 58, .12); padding: 0 .2em; }
+
+/* 2: outcome cards */
+.hrow { display: flex; align-items: baseline; gap: 18px; }
+.card { background: rgba(255, 255, 255, .35); }
+
+/* 3: tight matrix */
+.m-tight .mx-row, .m-tight .mx-cell { min-height: 116px; }
+.m-tight .mx-row { font: 600 30px/1.15 var(--font-display); }
+.m-tight .mx-col { font: 600 28px/1.25 var(--font-display); text-align: center; padding: 0 20px 16px; }
+.m-tight .mx-cell { font: 400 23px/1.4 var(--font-body); padding: 14px 26px; }
+.warn { position: absolute; padding: 16px 24px; border: 2px solid var(--viz-hot); color: #F3C8C4; font-size: 26px; line-height: 1.4; background: rgba(217, 83, 79, .12); }
+.warn b { color: #fff; }
+
+/* 4: five rules + wipe panels */
+.rules { position: absolute; left: 120px; top: 300px; width: 1680px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 22px; }
+.rules > div { border-top: 3px solid var(--g); padding: 14px 4px 0; }
+.rules .n { font: italic 600 64px/.9 var(--font-display); color: var(--g); }
+.rules h3 { margin: 10px 0 8px; font: 600 31px/1.15 var(--font-display); }
+.rules p { margin: 0; font-size: 23px; line-height: 1.4; }
+.cmp-panel { padding: 26px 34px; display: flex; flex-direction: column; gap: 14px; }
+.cmp-panel h4 { margin: 0; font: 600 26px/1.2 var(--font-body); }
+.cmp-panel ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.cmp-panel li { font-size: 26px; line-height: 1.38; padding-left: 26px; position: relative; }
+.cmp-panel li::before { content: ""; position: absolute; left: 0; top: .62em; width: 12px; height: 2px; background: currentColor; }
+.cmp-panel.bad { background: #F7E4E1; color: #7A2320; border: 2px solid var(--viz-hot); }
+.cmp-panel.good { background: #1C2644; color: #E2DCD0; border: 2px solid #C8A870; }
+.cmp-panel.good h4 { color: #C8A870; }
+.cmp-panel .quotes li { font-style: italic; font-family: var(--font-display); font-size: 29px; }
+.cmp-panel .pnote { margin: 0; font-size: 21px; font-weight: 600; }
+.tag-click { position: absolute; font: 500 16px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--viz-hot); }
+
+/* 5: produced file chip */
+.filechip { position: absolute; padding: 18px 26px; border: 2px solid #93733A; font: 600 28px/1 var(--font-mono); color: #1A2030; background: #fff; }
+
+/* 6: token bars drawn to scale (55.000 vs 3.800 over 1000px) */
+.panel.hotp { border-color: var(--viz-hot); }
+.panel.hotp h4 { color: #F08A84; }
+.deck-stage[data-pose="pp"] .panel.hotp h4 { color: var(--viz-hot); }
+.panel.okp { border-color: var(--ok); }
+.panel.okp h4 { color: var(--ok); }
+.tokbar { position: absolute; left: 120px; width: 1680px; height: 62px; }
+.tokbar .lb { position: absolute; left: 0; top: 14px; width: 320px; font-size: 24px; }
+.tokbar .barh { left: 340px; top: 6px; height: 50px; }
+.tokbar .nb { position: absolute; top: 12px; font: 600 30px/1 var(--font-mono); }
+.hotbar { background: var(--viz-hot) !important; }
+.goldbar { background: #C8A870 !important; }
+
+/* 7: pipeline boxes */
+.pipe { position: absolute; top: 300px; width: 520px; height: 230px; padding: 22px 26px; background: #F0ECE3; border: 2px solid #1A2030; z-index: 2; }
+.pipe .n { font: italic 600 54px/.9 var(--font-display); color: #93733A; }
+.pipe h3 { margin: 8px 0 8px; font: 600 30px/1.15 var(--font-display); }
+.pipe p { margin: 0; font-size: 25px; line-height: 1.4; }
+.packet { position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: #93733A; z-index: 1; }
+
+/* 8: variable cards + dataset dossier */
+.vcard { position: absolute; top: 600px; width: 520px; border-top: 2px solid #C8A870; padding-top: 14px; }
+.vcard h3 { margin: 0 0 8px; font: 600 28px/1.15 var(--font-display); color: #C8A870; }
+.vcard p { margin: 0; font-size: 23px; line-height: 1.4; }
+.dossier { position: absolute; left: 120px; top: 820px; width: 1680px; padding: 16px 24px; background: rgba(200, 168, 112, .1); border-left: 5px solid #C8A870; }
+.dossier h4 { margin: 0 0 8px; font: 500 18px/1.2 var(--font-mono); letter-spacing: .06em; color: #C8A870; }
+.dossier ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.dossier li { font-size: 23px; line-height: 1.35; }
+
+/* 9: facts card */
+.cardhd { margin: 0 0 18px; font: 500 18px/1.3 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: #93733A; }
+.facts { display: grid; gap: 22px; }
+.facts p { margin: 0 0 8px; font-size: 25px; line-height: 1.4; }
+.facts .big { font-size: 96px; display: block; color: #93733A; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips i { font: 500 18px/1 var(--font-mono); font-style: normal; padding: 7px 10px; border: 1.5px solid #1A2030; }
+.chips.g i { border-color: #93733A; color: #93733A; }
+.likert { display: flex; gap: 18px; }
+.likert i { width: 46px; height: 46px; border-radius: 50%; border: 2px solid #93733A; display: grid; place-items: center; font: 600 20px/1 var(--font-mono); font-style: normal; }
+
+/* 10: outliers on a 0..9 axis (x = 120 + value * 100) */
+.outl { position: absolute; }
+.outl i { position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; border-radius: 50%; background: var(--viz-hot); }
+.outl span { position: absolute; left: -14px; top: -84px; white-space: nowrap; font: 500 19px/1.25 var(--font-mono); color: #F08A84; }
+
+/* 11: mean bars + SD whiskers on the Likert axis (190px per point, origin = 1) */
+.msd { position: absolute; left: 120px; width: 1000px; height: 100px; }
+.msd .nm { position: absolute; left: 0; top: 0; font-size: 27px; font-weight: 600; }
+.msd .nm em { font: 500 18px/1 var(--font-mono); font-style: normal; color: var(--muted); margin-left: 16px; }
+.msd .barv { top: 42px; height: 44px; }
+.msd .sd { position: absolute; top: 62px; height: 4px; background: #1A2030; }
+.msd .sd::before, .msd .sd::after { content: ""; position: absolute; top: -12px; width: 3px; height: 28px; background: #1A2030; }
+.msd .sd::before { left: 0; }
+.msd .sd::after { right: 0; }
+.likaxis { position: absolute; left: 120px; top: 708px; width: 760px; height: 40px; border-top: 1.5px solid #5A6270; }
+.likaxis i { position: absolute; top: 8px; font: 500 18px/1 var(--font-mono); font-style: normal; transform: translateX(-50%); }
+.likaxis i:nth-child(1) { left: 0; } .likaxis i:nth-child(2) { left: 190px; } .likaxis i:nth-child(3) { left: 380px; }
+.likaxis i:nth-child(4) { left: 570px; } .likaxis i:nth-child(5) { left: 760px; }
+.notes { position: absolute; left: 120px; top: 780px; width: 1000px; margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.notes li { font-size: 27px; line-height: 1.4; padding-left: 24px; position: relative; }
+.notes li::before { content: ""; position: absolute; left: 0; top: .62em; width: 12px; height: 2px; background: var(--g); }
+
+/* 12: alpha columns (400px = 1.0), baseline 120px above the box bottom */
+.alpha { position: absolute; left: 120px; top: 330px; width: 860px; height: 540px; }
+.alpha .col { position: absolute; bottom: 120px; width: 180px; background: #C8A870; display: flex; justify-content: center; }
+.alpha .col b { font: 600 40px/1 var(--font-display); color: #1C2644; margin-top: 14px; }
+.alpha .th { position: absolute; left: 0; right: 0; border-top: 3px dashed var(--viz-hot); z-index: 2; }
+.alpha .th span { position: absolute; right: 0; top: -36px; background: #1C2644; padding: 4px 8px; font: 500 18px/1 var(--font-mono); color: #F08A84; }
+.alpha .cap { position: absolute; bottom: 0; width: 240px; margin: 0; text-align: center; font-size: 23px; line-height: 1.35; }
+.alpha::after { content: ""; position: absolute; left: 0; right: 0; bottom: 120px; border-top: 1.5px solid #8E9AAC; }
+
+/* 13: thesis paragraph */
+.thesis { margin: 0; font: 400 27px/1.5 var(--font-display); }
+
+/* 14: R squared ring */
+.r2 { stroke-dasharray: .26 1; stroke-dashoffset: .26; transform: rotate(-90deg); transform-origin: center; transform-box: fill-box; transition: stroke-dashoffset 1.2s cubic-bezier(.6, 0, .2, 1); }
+.slide.active .r2 { stroke-dashoffset: 0; transition-delay: calc(var(--reveal-base) + var(--d) * 1s); }
+.r2txt { position: absolute; left: 1350px; top: 455px; width: 300px; text-align: center; color: #E2DCD0; }
+.r2txt b { display: block; font: 600 76px/1 var(--font-display); color: #C8A870; }
+.r2txt > span { font: 500 17px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+
+/* 15: path tags + bootstrap CI on a -0.05..0.30 axis (1200px) */
+.plabel { transform: translate(-50%, -50%); }
+.legend { position: absolute; left: 120px; top: 640px; width: 1200px; margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.legend li { font-size: 26px; line-height: 1.35; }
+.ci { position: absolute; left: 120px; top: 760px; width: 1200px; }
+.ci .cih { margin: 0 0 14px; font-size: 26px; }
+.ci .axis { position: relative; height: 34px; border-top: 1.5px solid #8E9AAC; }
+.ci .zero { position: absolute; left: 171px; top: -14px; width: 3px; height: 28px; background: var(--viz-hot); }
+.ci .zero span { position: absolute; left: -6px; top: 32px; font: 600 18px/1 var(--font-mono); color: #F08A84; }
+.ci .band { position: absolute; left: 480px; width: 445px; top: -9px; height: 16px; background: #C8A870; }
+.ci .pt { position: absolute; left: 676px; top: -11px; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 3px solid #1C2644; }
+.ci .lo, .ci .hi, .ci .mid { position: absolute; top: 14px; font: 500 18px/1 var(--font-mono); transform: translateX(-50%); }
+.ci .lo { left: 480px; } .ci .hi { left: 925px; } .ci .mid { left: 686px; color: #C8A870; }
+
+/* 17: eight-part report */
+.parts { position: absolute; left: 120px; top: 300px; width: 1680px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.parts > div { border-top: 3px solid #C8A870; padding-top: 14px; display: grid; gap: 10px; align-content: start; }
+.parts .lb { font: 500 17px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: #C8A870; }
+.parts p { margin: 0; font-size: 26px; line-height: 1.4; }
+
+/* 18: limitations */
+.lim { position: absolute; left: 120px; width: 920px; height: 210px; display: flex; gap: 26px; border-top: 2px solid #C8A870; padding-top: 16px; }
+.lim .n { font: italic 600 96px/.9 var(--font-display); color: #C8A870; flex: none; width: 70px; }
+.lim .lb { font: 500 16px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: #C8A870; }
+.lim h3 { margin: 6px 0 6px; font: 600 30px/1.1 var(--font-display); }
+.lim p { margin: 0; font-size: 23px; line-height: 1.4; }
+
+/* 19: practice block with timer */
+.practice { position: absolute; left: 120px; top: 740px; width: 1680px; height: 240px; padding: 0 40px; background: #1C2644; color: #E2DCD0; display: flex; align-items: center; justify-content: space-between; gap: 40px; }
+.practice h3 { margin: 0 0 10px; font: 600 34px/1.2 var(--font-display); color: #C8A870; }
+.practice p { margin: 0; font-size: 23px; }
+.practice .timer { position: static; }
+.practice .timer .t { color: #C8A870; }
+
+/* 20: file flow */
+.flowfile { position: absolute; left: 120px; top: 840px; width: 1680px; display: flex; align-items: center; gap: 18px; }
+.flowfile span { padding: 14px 18px; border: 1.5px solid currentColor; font: 500 21px/1 var(--font-mono); white-space: nowrap; }
+.flowfile span.gold { border-color: #C8A870; }
+.flowfile i { flex: 1; height: 2px; background: #C8A870; }
+
+/* 22: checklist + homework */
+.check { position: absolute; display: grid; gap: 12px; }
+.check h4, .hw h4 { margin: 0 0 6px; font: 500 18px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: #C8A870; }
+.check p { margin: 0; display: flex; gap: 14px; align-items: flex-start; font-size: 27px; line-height: 1.35; }
+.check svg { flex: none; width: 30px; height: 30px; margin-top: 2px; }
+.check svg path { fill: none; stroke: #C8A870; stroke-width: 4; }
+.hw { position: absolute; left: 1060px; top: 300px; width: 740px; height: 690px; padding: 30px 34px; border: 1.5px solid #C8A870; display: flex; flex-direction: column; gap: 18px; }
+.hw p { margin: 0; display: flex; gap: 16px; font-size: 25px; line-height: 1.4; }
+.hw .n { font: italic 600 44px/1 var(--font-display); color: #C8A870; flex: none; width: 34px; }
+.hw .next { margin-top: auto; font: italic 600 28px/1.3 var(--font-display); color: #C8A870; }
+
+/* v2: big callouts that fill the space freed by moving prompts out */
+.bigstat { position: absolute; display: flex; flex-direction: column; gap: 10px; }
+.bigstat b { font: 500 150px/1 var(--font-display) !important; color: var(--g) !important; }
+.bigstat span { font: 600 22px/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.bigstat p { margin: 0; font-size: 28px; line-height: 1.4; }
+/* v2: SlideFly slides */
+.sf-facts { position: absolute; left: 120px; top: 330px; width: 1680px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.sf-facts > div { border-top: 3px solid var(--g); padding-top: 16px; }
+.sf-facts b { display: block; font: 500 84px/1 var(--font-display) !important; color: var(--g) !important; }
+.sf-facts h3 { margin: 10px 0 8px; font: 600 30px/1.2 var(--font-display); }
+.sf-facts p { margin: 0; font-size: 25px; line-height: 1.4; }
+.need { position: absolute; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.need i { font: 600 22px/1 var(--font-mono); font-style: normal; padding: 10px 16px; border: 2px solid currentColor; }
+.sfflow { position: absolute; left: 120px; top: 300px; width: 1680px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+.sfflow > div { border-top: 3px solid var(--g); padding-top: 12px; }
+.sfflow .n { font: italic 500 52px/1 var(--font-display); color: var(--g); }
+.sfflow h3 { margin: 6px 0 6px; font: 600 28px/1.2 var(--font-display); }
+.sfflow p { margin: 0; font-size: 23px; line-height: 1.4; }
+
+</style>
+<style>
+/* Buổi 03 v4: prompt windows (morph-mock) in the deck's navy console colours, course logo poses */
+
+/* ---------- logo: on the cover it sits on the paper panel, above the 150-minute count ---------- */
+.deck-stage[data-layout="cover"] { --brand-hero-x: 1660px; --brand-hero-y: 800px; --brand-hero-s: .75; }
+/* inner slides: stop left of the ring in the corner */
+.deck-stage { --brand-corner-x: 1700px; }
+.deck-stage[data-layout="cover"] .brand { --brand-color: #93733A; --brand-name-color: #1A2030; }
+.brand-name { font: 600 46px/1 var(--font-display); letter-spacing: 0; }
+
+/* ---------- prompt window ---------- */
+.pc {
+  --mock-bg: #101935; --mock-bar: #16214A; --mock-line: #34446A; --mock-radius: 12px;
+  min-height: 0; color: #E2DCD0; padding: 72px 24px 22px; gap: 12px;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, .7);
+}
+.mock.pc::before { display: block; line-height: 54px; text-align: left; padding-left: 112px; padding-right: 150px; height: 54px; font: 500 18px/54px var(--font-mono); letter-spacing: .06em; color: #C8A870; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc .cp {
+  position: absolute; right: 14px; top: 11px; z-index: 2;
+  font: 500 15px/1 var(--font-mono); letter-spacing: .08em; color: #E2DCD0; background: transparent;
+  border: 1px solid #5A6A90; border-radius: 6px; padding: 7px 12px; cursor: pointer; text-transform: uppercase;
+}
+.pc .cp.done { color: #101935; background: #C8A870; border-color: #C8A870; }
+/* the prompt = what the student types to Claude: one wide bubble */
+.pc .msg.user {
+  flex: 1; min-height: 0; max-width: none; align-self: stretch; margin: 0; overflow: hidden;
+  padding: 16px 24px; border-radius: 12px 12px 4px 12px;
+  background: rgba(200, 168, 112, .1); border: 1px solid rgba(200, 168, 112, .28);
+  white-space: pre-wrap; font: 400 var(--pf, 22px)/1.45 var(--font-body); color: #E2DCD0;
+}
+.pc .msg.user .note { color: #C8A870; font-style: italic; }
+
+/* ---------- PowerShell window ---------- */
+.mock-term.pc { padding-top: 76px; font: 400 21px/1.5 var(--font-mono); --prompt: "PS> "; }
+.mock-term.pc .cmd { white-space: pre-wrap; overflow-wrap: anywhere; }
+.mock-term.pc .cmd::before { color: #C8A870; }
+.mock-term.pc .out { margin-top: auto !important; padding: 0 !important; font-family: var(--font-body); }
+
+/* slides with the paper panel on the right (pose pr): the lede stops at the panel edge, wraps to 2 lines */
+.slide[data-pose="pr"] .lede { top: 214px; width: 960px; font-size: 26px; line-height: 1.3; }
+.slide[data-pose="pr"] .foot { top: 1024px; }   /* clear of the panel bottom (1010px) */
+/* contrast on the cream paper (found by deck.audit "chữ khó đọc"): darker green and gold */
+.deck-stage:is([data-pose="pp"], [data-pose="pl"]) { --ok: #2F7A57; }
+.slide[data-pose="pr"] .ok { color: #2F7A57; }
+.slide[data-pose="pc"] .foot span { color: #93733A; }
+
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<div class="deck-stage">
+
+<div class="brand"><i class="ico" data-icon="microscope"><svg
+  xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true" focusable="false"
+><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M5 21h14" /><path d="M6 18h2" /><path d="M7 18v3" /><path d="M9 11l3 3l6 -6l-3 -3l-6 6" /><path d="M10.5 12.5l-1.5 1.5" /><path d="M17 3l3 3" /><path d="M12 21a6 6 0 0 0 3.715 -10.712" /></svg></i><span class="brand-name">AI Agent NCKH · K3</span></div>
+
+<!-- 1 cover -->
+<section class="slide" data-layout="cover">
+  <p class="kicker reveal">Khóa K3 · AI Agent Cho Nghiên Cứu Khoa Học &amp; Luận Án Tiến Sĩ</p>
+  <h1 class="title reveal">Buổi 03: Kiến trúc CLAUDE.md 2 tầng, tối ưu token với MarkItDown &amp; phân tích dữ liệu NCKH</h1>
+  <p class="subtitle reveal" style="font-size:27px">Từ Hiến pháp cá nhân Global đến bộ dữ liệu 320 mẫu khảo sát · Làm sạch, Cronbach Alpha, Hồi quy &amp; Trung gian</p>
+  <div class="pillars">
+    <div class="fx fx-up" style="--d:.5"><span class="lb">Trụ cột 1</span><h3>Kiến Trúc CLAUDE.md 2 Tầng</h3><p>Phân biệt Global (toàn cục máy tính) và Local (dự án). Cài đặt 5 Super Rules: tự động đánh số file, backup và chuẩn Times New Roman.</p></div>
+    <div class="fx fx-up" style="--d:.65"><span class="lb">Trụ cột 2</span><h3>Tiết Kiệm 80% Token</h3><p>Dùng công cụ Microsoft MarkItDown bóc tách PDF/Word 30-50 trang thành Markdown sạch lưu ngay trong project. Bảo vệ Context Window tuyệt đối.</p></div>
+    <div class="fx fx-up" style="--d:.8"><span class="lb">Trụ cột 3</span><h3>Phân Tích Dữ Liệu &amp; Khai Báo AI</h3><p>Làm sạch 320 mẫu thành 302 mẫu sạch; chạy Cronbach Alpha; hồi quy và kiểm định trung gian Bootstrap 95%; báo cáo 8 phần có Tuyên bố dùng AI.</p></div>
+  </div>
+  <p class="meta reveal" style="text-transform:none;letter-spacing:0;font:italic 400 26px/1.35 var(--font-display);color:#B4BCC8">"Khoa học chuẩn mực bắt đầu từ dữ liệu trung thực, kỷ luật hệ thống và sự minh bạch liêm chính."</p>
+  <div class="cover-side fx fx-up" style="top:440px;--d:1"><div class="n count" style="--to:150;--d:1"></div><span>Phút · Thời lượng</span><span style="margin-top:10px">Live Zoom Masterclass</span></div>
+</section>
+
+<!-- 2 eight outcomes -->
+<section class="slide" data-layout="diagram" data-pose="pp">
+  <p class="kk reveal">Cam kết đầu ra Buổi 03</p>
+  <h2 class="tt reveal">Mục tiêu &amp; 8 chuẩn đầu ra bắt buộc</h2>
+  <p class="lede reveal">Sau 150 phút tối nay, bạn sẽ hoàn toàn làm chủ hệ thống trợ lý nghiên cứu ở cấp độ chuyên sâu</p>
+  <div class="card fx fx-up" style="left:120px;top:310px;width:800px;--d:.2"><div class="hrow"><span class="n">1·2</span><span class="lb">Chuẩn 1 &amp; 2</span></div><h3>2 Tầng CLAUDE.md &amp; Super Rules</h3><p>Làm chủ Global vs Local; cài Super Rule tự động đánh số file 01_..., lưu trữ _backup/ và cấm bịa số.</p></div>
+  <div class="card fx fx-up" style="left:1000px;top:310px;width:800px;--d:.35"><div class="hrow"><span class="n">3·4</span><span class="lb">Chuẩn 3 &amp; 4</span></div><h3>MarkItDown &amp; Làm Sạch Dữ Liệu</h3><p>Cài đặt markitdown ép gọn PDF/DOCX; phát hiện 14 ô trống và 4 outlier để làm sạch 320 mẫu về 302 mẫu chuẩn.</p></div>
+  <div class="card fx fx-up" style="left:120px;top:640px;width:800px;--d:.5"><div class="hrow"><span class="n">5·6</span><span class="lb">Chuẩn 5 &amp; 6</span></div><h3>Cronbach Alpha &amp; Hồi Quy</h3><p>Kiểm định thang đo đạt α ≥ 0.80; chạy hồi quy tuyến tính R² ≈ 0.26 và kiểm định trung gian Bootstrap 95%.</p></div>
+  <div class="card fx fx-up" style="left:1000px;top:640px;width:800px;--d:.65"><div class="hrow"><span class="n">7·8</span><span class="lb">Chuẩn 7 &amp; 8</span></div><h3>Báo Cáo APA &amp; Khai Báo AI</h3><p>Viết báo cáo 8 phần cẩn trọng (Hedging), làm mượt văn giữ 100% số và thêm dòng Tuyên bố dùng AI theo chuẩn Elsevier.</p></div>
+  <div class="foot reveal"><span>Bộ dữ liệu: 320 Phiếu DNNVV</span></div>
+</section>
+
+<!-- 3 two tiers as a matrix -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Kiến trúc hệ thống cấu hình 2 tầng</p>
+  <h2 class="tt reveal">Phân biệt CLAUDE.md Global vs Project</h2>
+  <p class="lede reveal">Nguyên tắc vàng: "Những gì áp dụng cho cả đời nghiên cứu thì để Global; đề tài cụ thể thì để Local"</p>
+  <div class="viz m-tight" data-viz="matrix" style="left:120px;right:120px;top:300px" data-hot="7"
+    data-cols="Tầng 1: Global CLAUDE.md · Hiến Pháp &amp; Kỷ Luật Nghiên Cứu|Tầng 2: Local CLAUDE.md · Hồ Sơ Chuyên Môn Của Từng Đề Tài"
+    data-rows="Vị trí|Phạm vi|Nội dung|Tần suất · Xung đột"
+    data-cells="~/.claude/CLAUDE.md (Thư mục User máy tính).|./CLAUDE.md (Ngay tại gốc thư mục nghiên cứu).|Toàn bộ thư mục và dự án mở trên máy.|Duy nhất thư mục đề tài đó.|Danh tính NCS/Giảng viên, cấm bịa số liệu, tự động đánh số thứ tự file, phông Times New Roman.|Tên đề tài, câu hỏi nghiên cứu, giả thuyết H₁, H₂, codebook biến số, định dạng riêng của tạp chí mục tiêu.|Tần suất: Cài 1 lần, áp dụng tự động cho mọi đề tài.|Nguyên tắc xung đột: Cụ thể hơn sẽ thắng (Local ghi đè Global)."></div>
+  <p class="warn fx fx-up shake" data-step="1" style="left:120px;right:120px;top:880px"><b>Thao tác then chốt:</b> Sau khi chỉnh sửa hoặc tạo mới file Global, BẮT BUỘC PHẢI MỞ PHIÊN MỚI (chạy lại lệnh claude trong Terminal hoặc New Session) để AI nạp quy tắc mới!</p>
+  <div class="foot reveal"><span>Quy tắc: Cụ thể hơn sẽ thắng</span></div>
+</section>
+
+<!-- 4 five rules + before/after wipe -->
+<section class="slide" data-layout="diagram" data-pose="pp">
+  <p class="kk reveal">5 quy tắc thép cho nhà nghiên cứu</p>
+  <h2 class="tt reveal">5 Super Rules cài vào máy tính của bạn</h2>
+  <p class="lede reveal">Đảm bảo dự án nghiên cứu luôn ngăn nắp, dữ liệu an toàn và số liệu chính xác 100%</p>
+  <div class="rules">
+    <div class="fx fx-drop" style="--d:.2"><span class="n">1</span><h3>Tự Đánh Số File</h3><p>Agent tự quét thư mục và gán tiền tố tuần tự (01_..., 02_...). Không đặt tên tùy tiện.</p></div>
+    <div class="fx fx-drop" style="--d:.32"><span class="n">2</span><h3>An Toàn &amp; Backup</h3><p>Cấm lệnh xóa hàng loạt (rm -rf, del *.*). Bản cũ tự chuyển vào _backup/.</p></div>
+    <div class="fx fx-drop" style="--d:.44"><span class="n">3</span><h3>Chống Bịa Số</h3><p>Số liệu phải dẫn từ file nguồn. Thiếu ghi [Chờ bổ sung], cấm tự suy diễn con số.</p></div>
+    <div class="fx fx-drop" style="--d:.56"><span class="n">4</span><h3>Times New Roman</h3><p>100% Word, PDF, Excel tạo ra dùng phông Times New Roman theo chuẩn NĐ 30/2020 và APA 7th.</p></div>
+    <div class="fx fx-drop" style="--d:.68"><span class="n">5</span><h3>Bố Cục Bảng Biểu</h3><p>Tách riêng cột STT căn giữa (rộng 6-8), cột số căn phải, dòng động chống dồn chữ, đè dòng.</p></div>
+  </div>
+  <div class="viz fx fx-up" data-viz="compare" style="left:120px;right:120px;top:650px;height:330px;--d:1">
+    <div class="cmp-panel bad"><h4>✕ Khi chưa cài Super Rules</h4><ul><li>File rác lộn xộn: de-cuong.md, de-cuong-moi.md, final-v2.md.</li><li>Agent tự động xóa đè làm mất công sức nghiên cứu đã chỉnh sửa trước đó.</li><li>Agent bịa ra số liệu p-value hoặc Beta "đẹp" mà không có kiểm định thật.</li></ul></div>
+    <div class="cmp-panel good"><h4>✓ Khi đã cài Super Rules vào Global</h4><ul><li>Cây thư mục tuần tự tuyệt đẹp: 01_..., 02_..., 03_....</li><li>Lịch sử nghiên cứu được bảo toàn nguyên vẹn trong _backup/.</li><li>Số liệu trung thực 100%, bảo vệ danh dự khoa học trước Hội đồng.</li></ul></div>
+  </div>
+  <span class="tag-click fx" data-step="1" style="right:120px;top:612px">Bấm để xem sau khi cài</span>
+  <div class="foot reveal"><span>Kỷ luật = Tự do học thuật</span></div>
+</section>
+
+<!-- 5 P1 + P2 -->
+<section class="slide" data-layout="diagram" data-pose="pr">
+  <p class="kk reveal">Thực hành tại chỗ (Prompt P1 &amp; P2)</p>
+  <h2 class="tt reveal">Cài đặt Global CLAUDE.md &amp; kiểm thử</h2>
+  <p class="lede reveal">Chạy prompt cài đặt hiến pháp cá nhân và chứng kiến phép màu tự động đánh số file</p>
+  <div class="mock mock-chat pc fx fx-left" data-title="Prompt P1 (Cài đặt Global CLAUDE.md)" style="left:120px;top:300px;width:920px;height:690px;--pf:21px;--d:.2"><button class="cp">Sao chép</button><pre class="msg user type">Tạo hoặc cập nhật file CLAUDE.md cấp Global tại ~/.claude/CLAUDE.md:
+- Vai trò: Trợ lý Nghiên cứu Khoa học cao cấp phục vụ Nghiên cứu sinh và Giảng viên.
+- Phong cách: Khách quan, trung thực học thuật, tiếng Việt chuẩn mực, không dùng emoji trong văn bản khoa học.
+- 5 SUPER RULES:
+1. Tự động quét thư mục để đánh số thứ tự tiếp theo cho file mới (01_..., 02_...).
+2. Không xóa đè, chuyển bản cũ vào _backup/. Cấm lệnh xóa hàng loạt (rm -rf, del *.*).
+3. Kỷ luật chống bịa số: Số liệu phải trích dẫn dòng/file nguồn. Thiếu ghi [Chờ bổ sung].
+4. 100% file tài liệu Word (.docx), PDF, Excel xuất ra bắt buộc dùng phông chữ Times New Roman chuẩn NĐ 30/2020 và APA 7.
+5. Bố cục bảng biểu khoa học, tách riêng cột STT căn giữa, cột số căn phải, chống dồn chữ đè dòng.</pre></div>
+  <div class="mock mock-chat pc fx fx-right" data-title="Prompt P2 (Kiểm tra Super Rule hoạt động)" style="left:1140px;top:290px;width:620px;height:270px;--pf:23px;--d:.5"><button class="cp">Sao chép</button><pre class="msg user type">Hãy tạo giúp tôi 1 file ghi chú tóm tắt 3 mục tiêu nghiên cứu trọng tâm của luận án vào thư mục hiện tại.</pre></div>
+  <p class="abs ink-dark fx fx-up" style="left:1140px;top:578px;width:620px;font-size:21px;line-height:1.4;font-style:italic;--d:.7">[LƯU Ý: Không dặn Agent đặt tên file là gì, để xem nó có tự động gán tiền tố 01_... hay không]</p>
+  <div class="ink-dark" data-step="1">
+    <div class="filechip fx fx-pop" style="left:1140px;top:690px">01_muc-tieu-nghien-cuu.md</div>
+    <p class="abs fx fx-up" style="left:1140px;top:790px;width:620px;font-size:23px;line-height:1.4;--d:.3"><b class="ok">✓ Kết quả mong đợi:</b> Agent quét thư mục và tự đặt tên file là 01_muc-tieu-nghien-cuu.md mà không cần nhắc!</p>
+  </div>
+  <div class="foot reveal"><span>Thao tác: Đóng &amp; Mở lại phiên</span></div>
+</section>
+
+<!-- 6 token hunger: bars to scale -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Tối ưu hóa tài nguyên &amp; Context Window</p>
+  <h2 class="tt reveal">Bài toán "cơn đói token" &amp; Microsoft MarkItDown</h2>
+  <p class="lede reveal">Giải pháp bóc tách tài liệu khoa học phức tạp giúp tiết kiệm 70% - 90% lượng token tiêu thụ</p>
+  <div class="panel hotp fx fx-left" style="left:120px;top:300px;width:810px;--d:.2"><h4>Nỗi Đau NCKH: Cơn Đói Token · Khi ném thẳng file PDF/Word cho AI</h4><ul>
+    <li>File PDF 30 trang hoặc Word đầy định dạng nhị phân, font chữ, style XML ẩn có thể ngốn 40.000 - 80.000 tokens.</li>
+    <li>Tràn Context Window: AI bị "ngáo", quên mất giả thuyết nghiên cứu ban đầu, trả lời vòng vo mất trí nhớ.</li>
+    <li>Tốn kém &amp; Chậm chạp: Chi phí tăng vọt, tốc độ phản hồi kéo dài hàng phút.</li></ul></div>
+  <div class="panel fx fx-right" style="left:990px;top:300px;width:810px;--d:.35"><h4>Giải Pháp: Microsoft MarkItDown · Mã nguồn mở chính thức của Microsoft</h4><ul>
+    <li>Cơ chế: Bóc tách ruột text và bảng biểu từ PDF/DOCX/XLSX/PPTX thành Markdown (.md) siêu tinh gọn.</li>
+    <li>Hiệu quả vượt trội: Giảm 80% - 90% lượng token tiêu thụ. Tốc độ đọc tăng gấp 5 lần.</li>
+    <li>Bảo toàn dữ liệu: Giữ nguyên 100% cấu trúc tiêu đề, bảng biểu khoa học mà không còn rác định dạng.</li></ul></div>
+  <p class="abs fx" style="left:120px;top:742px;font:500 18px/1 var(--font-mono);letter-spacing:.12em;color:var(--accent);--d:.8">CÙNG MỘT BÀI BÁO KHOA HỌC 25 TRANG:</p>
+  <div class="tokbar" style="top:780px"><span class="lb">Đọc PDF gốc</span><i class="barh hotbar fx fx-growx" style="width:1000px;--d:1"></i><span class="nb fx" style="left:1360px;--d:1.6">55.000 Tokens</span></div>
+  <div class="tokbar" style="top:862px"><span class="lb">Dùng MarkItDown sang .md</span><i class="barh goldbar fx fx-growx" style="width:69px;--d:1.4"></i><span class="nb fx" style="left:429px;--d:1.8">3.800 Tokens</span></div>
+  <p class="stamp slam" data-step="1" style="left:1360px;top:840px;color:#C8A870;--rot:-6deg">Giảm 93%! · Tiết kiệm 14 lần chi phí</p>
+  <div class="foot reveal"><span>Repo: microsoft/markitdown</span></div>
+</section>
+
+<!-- 7 pipeline + P3 -->
+<section class="slide" data-layout="diagram" data-pose="pp">
+  <p class="kk reveal">Quy trình vận hành tiết kiệm token</p>
+  <h2 class="tt reveal">Pipeline 3 bước &amp; thực hành MarkItDown</h2>
+  <p class="lede reveal">Chuyển đổi tài liệu khảo cứu sang Markdown sạch lưu ngay tại dự án trước khi phân tích</p>
+  <svg class="chart abs" style="left:300px;top:395px" width="1320" height="30" viewBox="300 395 1320 30"><path class="draw" pathLength="1" d="M300 410H1620" style="stroke-width:3;--d:.1"/></svg>
+  <i class="packet travel" style="offset-path:path('M300 410H1620');--dur:3.6s;--d:1"></i>
+  <div class="pipe fx fx-pop" style="left:120px;--d:.3"><span class="n">1</span><h3>Cài Đặt Công Cụ</h3><p>Mở Terminal gõ lệnh một lần duy nhất: <code>pip install markitdown</code>.</p></div>
+  <div class="pipe fx fx-pop" style="left:700px;--d:.5"><span class="n">2</span><h3>Convert Sang .MD</h3><p>Chạy ngầm: <code>markitdown file-goc.pdf -o 02_tai-lieu.md</code> lưu ngay trong project.</p></div>
+  <div class="pipe fx fx-pop" style="left:1280px;--d:.7"><span class="n">3</span><h3>Agent Đọc File Sạch</h3><p>Agent đọc file .md đã loại bỏ rác: Tốc độ siêu tốc, tiết kiệm 90% token.</p></div>
+  <div class="mock mock-chat pc fx fx-up" data-title="Prompt P3 (Chuyển đổi tài liệu và trích xuất thông tin nghiên cứu)" style="left:120px;top:600px;width:1680px;height:390px;--pf:24px;--d:.9"><button class="cp">Sao chép</button><pre class="msg user type">Hãy kiểm tra công cụ markitdown đã sẵn sàng chưa. Sau đó, hãy dùng markitdown để chuyển đổi file tài liệu khảo cứu trong thư mục du-lieu-mau/ (file .docx hoặc .pdf) thành một file markdown lưu tại thư mục hiện tại với tên đúng chuẩn Super Rule (ví dụ: 02_tong-quan-tai-lieu.md).
+Sau khi chuyển đổi xong, hãy đọc file markdown đó và tóm tắt:
+1. Mục tiêu nghiên cứu chính của tài liệu.
+2. Phương pháp nghiên cứu và cách thu thập dữ liệu được áp dụng.
+3. Ba phát hiện hoặc đóng góp lý thuyết quan trọng nhất.</pre></div>
+  <div class="foot reveal"><span>Cú pháp: pip install markitdown</span></div>
+</section>
+
+<!-- 8 research model -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Bối cảnh dữ liệu khảo sát thực hành</p>
+  <h2 class="tt reveal">Mô hình nghiên cứu &amp; bộ dữ liệu khảo sát</h2>
+  <p class="lede reveal">Đề tài: Tác động của Lãnh đạo số đến Hiệu quả đổi mới qua vai trò trung gian của Chia sẻ tri thức</p>
+  <svg class="chart abs ink-light" style="left:330px;top:330px" width="1260" height="200" viewBox="330 330 1260 200">
+    <path class="draw" pathLength="1" d="M330 500L960 360" style="stroke-width:2.5;--d:.6"/>
+    <path class="draw" pathLength="1" d="M960 360L1590 500" style="stroke-width:2.5;--d:.9"/>
+    <path class="draw" pathLength="1" d="M330 500H1590" style="stroke-width:2.5;stroke-dasharray:1;--d:1.2"/>
+  </svg>
+  <div class="pnode ink-light fx fx-pop" style="left:330px;top:500px;--d:.2"><b>DL</b><span>Biến Độc Lập</span></div>
+  <div class="pnode ink-light fx fx-pop" style="left:960px;top:360px;--d:.35"><b>KS</b><span>Biến Trung Gian (Mediator)</span></div>
+  <div class="pnode ink-light fx fx-pop" style="left:1590px;top:500px;--d:.5"><b>IP</b><span>Biến Phụ Thuộc</span></div>
+  <div class="vcard fx fx-up" style="left:120px;--d:.8"><h3>Lãnh Đạo Số (DL)</h3><p>Gồm 4 item Likert 1-5 (DL1 - DL4): Tầm nhìn số hóa, thúc đẩy đổi mới công nghệ, trao quyền kỹ thuật số và văn hóa học tập liên tục.</p></div>
+  <div class="vcard fx fx-up" style="left:700px;--d:.95"><h3>Chia Sẻ Tri Thức (KS)</h3><p>Gồm 4 item Likert 1-5 (KS1 - KS4): Chia sẻ kinh nghiệm chuyên môn, sẵn sàng hỗ trợ đồng nghiệp, đóng góp tri thức vào hệ thống nội bộ.</p></div>
+  <div class="vcard fx fx-up" style="left:1280px;--d:1.1"><h3>Hiệu Quả Đổi Mới (IP)</h3><p>Gồm 4 item Likert 1-5 (IP1 - IP4): Tốc độ phát triển sản phẩm mới, cải tiến quy trình vận hành, mức độ thành công khi thương mại hóa.</p></div>
+  <div class="dossier fx fx-up" data-step="1"><h4>Hồ sơ bộ dữ liệu: du-lieu-mau/khao-sat/khao-sat-doi-moi-dnnvv.csv</h4><ul>
+    <li><b>320 quan sát ban đầu:</b> Khảo sát lãnh đạo và quản lý cấp trung tại các Doanh nghiệp nhỏ và vừa (DNNVV).</li>
+    <li><b>Biến nhân khẩu học:</b> 5 cột (gioi_tinh, nhom_tuoi, kinh_nghiem, quy_mo_dn, nganh).</li>
+    <li><b>Lưu ý đặc biệt:</b> Dữ liệu được gài sẵn các lỗi thực tế (ô trống, số ngoài thang điểm) để bạn rèn luyện kỹ năng làm sạch dữ liệu.</li></ul></div>
+  <div class="foot reveal"><span>Thang đo: Likert 1-5</span></div>
+</section>
+
+<!-- 9 step 1: explore structure -->
+<section class="slide" data-layout="diagram" data-pose="pr">
+  <p class="kk reveal">Bước 1: Khám phá cấu trúc dữ liệu</p>
+  <h2 class="tt reveal">Nạp và rà soát bộ dữ liệu khảo sát</h2>
+  <p class="lede reveal">Không vội phân tích ngay: Phải đọc qua cấu trúc, phân loại biến định danh và các item thang đo</p>
+  <div class="mock mock-chat pc fx fx-left" data-title="Prompt P4 (Nạp dữ liệu &amp; Phân loại biến)" style="left:120px;top:300px;width:920px;height:690px;--pf:26px;--d:.2"><button class="cp">Sao chép</button><pre class="msg user type">Hãy đọc file du-lieu-mau/khao-sat/khao-sat-doi-moi-dnnvv.csv:
+1. In ra 5 dòng đầu tiên của dữ liệu để tôi kiểm tra cấu trúc.
+2. Cho biết tổng số dòng (quan sát) và tổng số cột.
+3. Liệt kê tên tất cả các cột và phân loại rạch ròi: Đâu là biến định danh/nhân khẩu học, đâu là các item thang đo Likert (thuộc khái niệm nào: DL, KS, hay IP).
+Trình bày câu trả lời bằng bảng rõ ràng, tiếng Việt chuẩn mực.</pre></div>
+  <div class="ink-dark abs" style="left:1140px;top:290px;width:620px">
+    <h4 class="cardhd fx" style="--d:.5">Kết Quả Đối Soát · Chỉ số kiểm định</h4>
+    <div class="facts">
+      <div class="fx fx-up" style="--d:.6"><span class="big count" style="--to:320;--d:.6"></span><p><b>Tổng dòng:</b> 320 quan sát.</p></div>
+      <div class="fx fx-up" style="--d:.8"><p><b>Cột nhân khẩu:</b> 5 cột (Giới tính, Tuổi, Kinh nghiệm, Quy mô, Ngành).</p><div class="chips"><i>Giới tính</i><i>Tuổi</i><i>Kinh nghiệm</i><i>Quy mô</i><i>Ngành</i></div></div>
+      <div class="fx fx-up" style="--d:1"><p><b>Cột thang đo:</b> 12 item (DL1-DL4, KS1-KS4, IP1-IP4).</p><div class="chips g"><i>DL1</i><i>DL2</i><i>DL3</i><i>DL4</i><i>KS1</i><i>KS2</i><i>KS3</i><i>KS4</i><i>IP1</i><i>IP2</i><i>IP3</i><i>IP4</i></div></div>
+      <div class="fx fx-up" style="--d:1.2"><p><b>Dạng thang đo:</b> Likert 1 đến 5.</p><div class="likert"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i></div></div>
+    </div>
+  </div>
+  <div class="foot reveal"><span>Bước 1 / 6 Phân tích</span></div>
+</section>
+
+<!-- 10 step 2: cleaning -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Bước 2: Nhặt lá úa trong dữ liệu</p>
+  <h2 class="tt reveal">Làm sạch dữ liệu theo phương pháp Listwise</h2>
+  <p class="lede reveal">Tìm kiếm ô trống (missing), giá trị vô lý ngoài thang 1-5 và loại bỏ minh bạch</p>
+  <p class="abs fx" style="left:120px;top:300px;font:500 18px/1 var(--font-mono);letter-spacing:.1em;color:var(--accent)">BỘ SỐ KIỂM ĐỊNH BẮT BUỘC KHỚP · KẾT QUẢ LÀM SẠCH MINH BẠCH</p>
+  <div class="viz" data-viz="span" style="left:120px;top:330px;width:900px;height:250px;--bar-h:70px" data-cap="320" data-hot="1" data-source="Slide 10 bản gốc"
+    data-values="302,14,4" data-sub="Còn lại|Ô trống (Missing)|Ngoài thang [1, 5]" data-labels="302 quan sát sạch|14 ô trống|4 giá trị"></div>
+  <svg class="chart abs ink-light" style="left:120px;top:610px" width="900" height="200" viewBox="0 0 900 200">
+    <rect x="100" y="70" width="400" height="60" fill="rgba(200,168,112,.16)"/>
+    <path class="ax" d="M0 100H900"/>
+    <path d="M0 92V108M100 92V108M200 92V108M300 92V108M400 92V108M500 92V108M600 92V108M700 92V108M800 92V108M900 92V108" class="ax"/>
+    <text x="0" y="160" text-anchor="middle">0</text><text x="100" y="160" text-anchor="middle">1</text><text x="300" y="160" text-anchor="middle">3</text><text x="500" y="160" text-anchor="middle">5</text><text x="700" y="160" text-anchor="middle">7</text><text x="900" y="160" text-anchor="middle">9</text>
+    <text x="300" y="58" text-anchor="middle" style="fill:#C8A870">thang Likert [1, 5]</text>
+  </svg>
+  <div class="outl fx fx-pop shake" style="left:120px;top:710px;--d:1"><i></i><span>R045: DL3 = 0<br>R110: KS1 = 0</span></div>
+  <div class="outl fx fx-pop shake" style="left:820px;top:710px;--d:1.2"><i></i><span style="left:auto;right:-14px;text-align:right">R077: IP2 = 7</span></div>
+  <div class="outl fx fx-pop shake" style="left:1020px;top:710px;--d:1.4"><i></i><span style="left:auto;right:-14px;text-align:right">R203: IP4 = 9</span></div>
+  <div class="bigstat fx fx-up" style="left:1120px;top:320px;width:680px;--d:.4"><b class="count" style="--to:302;--d:.4"></b><span>Số mẫu sạch</span></div>
+  <p class="res fx fx-up" data-step="1" style="left:1120px;top:600px;width:680px;font-size:30px">➔ Loại 18 phiếu lỗi: 320 ban đầu ➔ Còn lại đúng <b class="gold">302 quan sát sạch!</b></p>
+  <div class="foot reveal"><span>Số mẫu sạch: 302</span></div>
+</section>
+
+<!-- 10b prompt on its own slide -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Bước 2: Nhặt lá úa trong dữ liệu</p>
+  <h2 class="tt reveal">Prompt P5 (Phát hiện lỗi &amp; Làm sạch Listwise)</h2>
+  <div class="mock mock-chat pc fx fx-up" data-title="Prompt P5 (Phát hiện lỗi &amp; Làm sạch Listwise)" style="left:120px;top:250px;width:1680px;height:740px;--pf:38px;--d:.2"><button class="cp">Sao chép</button><pre class="msg user type">Trên file dữ liệu du-lieu-mau/khao-sat/khao-sat-doi-moi-dnnvv.csv:
+1. Đếm số ô trống (missing) trên từng cột và cho biết mã phiếu vi phạm.
+2. Quét các giá trị ngoài khoảng thang đo Likert [1, 5] ở tất cả 12 item, chỉ rõ mã phiếu (ID), tên cột và giá trị sai lệch.
+3. Kiểm tra các nhãn không nhất quán ở biến định danh hoặc dòng trùng lặp.
+4. Đề xuất quy trình làm sạch theo phương pháp listwise deletion: Nêu rõ tổng số quan sát bị loại theo từng lý do, và xác định chính xác số quan sát sạch còn lại để đưa vào phân tích.
+Trình bày bằng các bảng đối soát chi tiết.</pre></div>
+  <div class="foot reveal"><span>Số mẫu sạch: 302</span></div>
+</section>
+
+<!-- 11 step 3: mean / SD on the Likert scale -->
+<section class="slide" data-layout="diagram" data-pose="pp">
+  <p class="kk reveal">Bước 3: Vẽ chân dung mẫu nghiên cứu</p>
+  <h2 class="tt reveal">Thống kê mô tả mẫu &amp; giá trị Mean, SD</h2>
+  <p class="lede reveal">Lập bảng tần số, tỷ lệ phần trăm nhân khẩu học và độ lệch chuẩn của các thang đo chuẩn APA</p>
+  <p class="abs fx" style="left:120px;top:300px;font:500 18px/1 var(--font-mono);letter-spacing:.1em;color:var(--accent)">ĐẶC TRƯNG THỐNG KÊ MẪU SẠCH · KẾT QUẢ PHÂN PHỐI ĐIỂM SỐ (N = 302)</p>
+  <div class="msd" style="top:350px"><span class="nm">Lãnh đạo số (DL)<em>4 item · Mean 3.71 · SD 0.78</em></span><i class="barv fx fx-growx" style="left:0;width:514.9px;--d:.3"></i><i class="sd fx" style="left:366.7px;width:296.4px;--d:1.1"></i></div>
+  <div class="msd" style="top:470px"><span class="nm">Chia sẻ tri thức (KS)<em>4 item · Mean 3.64 · SD 0.75</em></span><i class="barv fx fx-growx" style="left:0;width:501.6px;--d:.45"></i><i class="sd fx" style="left:359px;width:285px;--d:1.25"></i></div>
+  <div class="msd" style="top:590px"><span class="nm">Hiệu quả đổi mới (IP)<em>4 item · Mean 3.58 · SD 0.82</em></span><i class="barv fx fx-growx" style="left:0;width:490.2px;--d:.6"></i><i class="sd fx" style="left:334.4px;width:311.6px;--d:1.4"></i></div>
+  <div class="likaxis fx" style="--d:.2"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i></div>
+  <div class="bigstat fx fx-up" style="left:1200px;top:320px;width:600px;--d:.4"><b>N = 302</b><span>Kết quả phân phối điểm số</span></div>
+  <ul class="notes fx fx-up" style="left:1200px;top:560px;width:600px;--d:1.6"><li>Điểm trung bình dao động 3.58 - 3.71 phản ánh mức độ đồng thuận khá tốt.</li><li>Độ lệch chuẩn SD quanh mức 0.75 - 0.82 cho thấy ý kiến phân tán hợp lý.</li></ul>
+  <div class="foot reveal"><span>Định dạng số: 2 số thập phân</span></div>
+</section>
+
+<!-- 11b prompt on its own slide -->
+<section class="slide" data-layout="diagram" data-pose="pp">
+  <p class="kk reveal">Bước 3: Vẽ chân dung mẫu nghiên cứu</p>
+  <h2 class="tt reveal">Prompt P6 (Bảng Nhân khẩu học &amp; Mean/SD)</h2>
+  <div class="mock mock-chat pc fx fx-up" data-title="Prompt P6 (Bảng Nhân khẩu học &amp; Mean/SD)" style="left:120px;top:250px;width:1680px;height:740px;--pf:38px;--d:.2"><button class="cp">Sao chép</button><pre class="msg user type">Dựa trên bộ dữ liệu đã làm sạch (302 quan sát sạch):
+1. Lập bảng thống kê mô tả đặc điểm mẫu nghiên cứu (nhân khẩu học): Giới tính, Nhóm tuổi, Kinh nghiệm công tác, Quy mô doanh nghiệp, Ngành nghề. Mỗi biến nêu rõ Số lượng (Tần số N) và Tỷ lệ phần trăm (%).
+2. Tính giá trị Trung bình (Mean) và Độ lệch chuẩn (Standard Deviation - SD) cho từng item từ DL1 đến IP4, đồng thời tính điểm trung bình đại diện cho 3 thang đo tổng hợp (DL, KS, IP).
+Trình bày chuẩn bảng APA 7, phông Times New Roman, các số thập phân lấy 2 chữ số sau dấu phẩy.</pre></div>
+  <div class="foot reveal"><span>Định dạng số: 2 số thập phân</span></div>
+</section>
+
+<!-- 12 step 4: Cronbach alpha vs threshold -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Bước 4: Kiểm định tính nhất quán nội tại</p>
+  <h2 class="tt reveal">Kiểm định độ tin cậy Cronbach's Alpha</h2>
+  <p class="lede reveal">Bốn câu hỏi có thực sự cùng đo một khái niệm hay mỗi câu đo một nẻo? Tiêu chuẩn Nunnally ≥ 0.70</p>
+  <p class="abs fx" style="left:120px;top:300px;font:500 18px/1 var(--font-mono);letter-spacing:.1em;color:var(--accent)">KẾT QUẢ KIỂM ĐỊNH CHUẨN XÁC · CẢ 3 THANG ĐO ĐỀU ĐẠT ĐỘ TIN CẬY CAO</p>
+  <div class="alpha ink-light">
+    <div class="th fx" style="bottom:400px;--d:1.4"><span>Ngưỡng 0.70 (Nunnally)</span></div>
+    <div class="col fx fx-growy" style="left:60px;height:324px;--d:.3"><b>0.81</b></div>
+    <div class="col fx fx-growy" style="left:300px;height:324px;--d:.45"><b>0.81</b></div>
+    <div class="col fx fx-growy" style="left:540px;height:332px;--d:.6"><b>0.83</b></div>
+    <p class="cap" style="left:30px">Lãnh đạo số (DL)<br>4 item · <span class="ok">✓ Đạt tốt</span></p>
+    <p class="cap" style="left:270px">Chia sẻ tri thức (KS)<br>4 item · <span class="ok">✓ Đạt tốt</span></p>
+    <p class="cap" style="left:510px">Hiệu quả đổi mới (IP)<br>4 item · <span class="ok">✓ Đạt tốt</span></p>
+  </div>
+  <div class="bigstat fx fx-up" style="left:1120px;top:320px;width:680px;--d:.4"><b>≥ 0.70</b><span>Chuẩn: Alpha ≥ 0.70 (Nunnally)</span></div>
+  <ul class="notes ink-light fx fx-up" style="left:1120px;top:600px;width:680px;--d:1.7"><li>Toàn bộ 12 item đều có tương quan biến - tổng &gt; 0.50 (vượt chuẩn 0.30).</li><li>Không có item nào mà nếu loại bỏ sẽ làm tăng Alpha ➔ Giữ nguyên toàn bộ 12 item!</li></ul>
+  <div class="foot reveal"><span>Chuẩn: Alpha ≥ 0.70</span></div>
+</section>
+
+<!-- 12b prompt on its own slide -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Bước 4: Kiểm định tính nhất quán nội tại</p>
+  <h2 class="tt reveal">Prompt P7 (Tính Cronbach's Alpha)</h2>
+  <div class="mock mock-chat pc fx fx-up" data-title="Prompt P7 (Tính Cronbach's Alpha)" style="left:120px;top:250px;width:1680px;height:740px;--pf:38px;--d:.2"><button class="cp">Sao chép</button><pre class="msg user type">Trên bộ dữ liệu 302 quan sát đã làm sạch, hãy tính toán kiểm định độ tin cậy thang đo Cronbach's Alpha cho 3 khái niệm:
+1. Thang đo Lãnh đạo số (DL): Gồm DL1, DL2, DL3, DL4.
+2. Thang đo Chia sẻ tri thức (KS): Gồm KS1, KS2, KS3, KS4.
+3. Thang đo Hiệu quả đổi mới (IP): Gồm IP1, IP2, IP3, IP4.
+Với mỗi thang đo, hãy báo cáo:
+- Hệ số Cronbach's Alpha tổng thể.
+- Bảng chi tiết từng item: Tương quan biến - tổng hiệu chỉnh (Corrected Item-Total Correlation) và Cronbach's Alpha nếu loại item (Alpha if item deleted).
+- Nhận xét đánh giá độ tin cậy theo ngưỡng chuẩn học thuật (ngưỡng 0.70 và tương quan biến tổng 0.30).</pre></div>
+  <div class="foot reveal"><span>Chuẩn: Alpha ≥ 0.70</span></div>
+</section>
+
+<!-- 13 P8 + sample paragraph -->
+<section class="slide" data-layout="diagram" data-pose="pr">
+  <p class="kk reveal">Trình bày &amp; bảo vệ trước Hội đồng</p>
+  <h2 class="tt reveal">Đọc hiểu &amp; diễn giải kết quả Alpha</h2>
+  <p class="lede reveal">Không chỉ chép lại số liệu: Phải biết diễn đạt gãy gọn, tự tin trước các câu hỏi chất vấn</p>
+  <div class="mock mock-chat pc fx fx-left" data-title="Prompt P8 (Viết diễn giải học thuật kết quả Alpha)" style="left:120px;top:300px;width:920px;height:690px;--pf:26px;--d:.2"><button class="cp">Sao chép</button><pre class="msg user type">Dựa trên kết quả Cronbach's Alpha ở trên, hãy viết một đoạn văn giải thích học thuật ngắn gọn (khoảng 150-200 từ) để đưa vào Luận án hoặc thuyết trình trước Hội đồng:
+- Khẳng định tính nhất quán nội tại của cả 3 thang đo.
+- Giải thích vì sao không cần loại bỏ bất kỳ item nào.
+- Kết luận về tính sẵn sàng của dữ liệu để tiến hành phân tích hồi quy và kiểm định giả thuyết tiếp theo.
+Văn phong khách quan, chuẩn mực học thuật.</pre></div>
+  <div class="ink-dark abs" style="left:1140px;top:290px;width:620px">
+    <h4 class="cardhd fx" style="--d:.5">Đoạn Văn Mẫu Chuẩn Luận Án · Trích đoạn báo cáo học thuật</h4>
+    <p class="thesis fx fx-blur" style="--d:.7">"Kết quả kiểm định độ tin cậy cho thấy cả ba thang đo đều đạt tính nhất quán nội tại rất cao với hệ số Cronbach's alpha lần lượt là <b class="gold">0.81</b> (Lãnh đạo số), <b class="gold">0.81</b> (Chia sẻ tri thức) và <b class="gold">0.83</b> (Hiệu quả đổi mới), vượt xa ngưỡng khuyến nghị tối thiểu <b class="gold">0.70</b> theo Nunnally và Bernstein (1994). Hệ số tương quan biến - tổng của tất cả 12 item đều lớn hơn <b class="gold">0.50</b> và không có biến quan sát nào nếu loại bỏ làm tăng hệ số Alpha tổng thể. Do đó, toàn bộ các thang đo được giữ nguyên vẹn, đảm bảo độ tin cậy vững chắc để tiếp tục đưa vào các bước phân tích hồi quy và kiểm định giả thuyết."</p>
+  </div>
+  <div class="foot reveal"><span>Thuật ngữ: Internal Consistency</span></div>
+</section>
+
+<!-- 14 step 5: regression -->
+<section class="slide" data-layout="diagram" data-pose="pc">
+  <p class="kk reveal">Bước 5: Kiểm định tác động tổng thể</p>
+  <h2 class="tt reveal">Hồi quy tuyến tính đơn: DL ➔ IP</h2>
+  <p class="lede reveal">Lãnh đạo số có đi cùng Hiệu quả đổi mới không? Giải thích ý nghĩa của hệ số Beta, R² và p-value</p>
+  <div class="tb ink-light" style="left:120px;top:300px;width:1000px;grid-template-columns:230px 150px 1fr">
+    <span class="h">Chỉ số</span><span class="h c">Giá trị</span><span class="h">Ý nghĩa học thuật</span>
+    <span class="fx fx-left" style="--d:.3">Hệ số B</span><span class="v c fx fx-pop" style="--d:.35">0.53</span><span class="fx fx-left" style="--d:.4">Hệ số hồi quy chưa chuẩn hóa (SE = 0.05)</span>
+    <span class="fx fx-left" style="--d:.5">Hệ số Beta</span><span class="v c fx fx-pop" style="--d:.55">0.51</span><span class="fx fx-left" style="--d:.6">Tác động chuẩn hóa (t ≈ 10.3)</span>
+    <span class="fx fx-left" style="--d:.7">Mức ý nghĩa p</span><span class="v c fx fx-pop" style="--d:.75">&lt; 0.001</span><span class="fx fx-left" style="--d:.8">Rất có ý nghĩa thống kê (khó do may rủi)</span>
+    <span class="fx fx-left" style="--d:.9">Hệ số R²</span><span class="v c fx fx-pop" style="--d:.95">0.26</span><span class="fx fx-left" style="--d:1">DL giải thích được 26% biến thiên của IP</span>
+  </div>
+  <svg class="chart abs ink-light" style="left:1310px;top:330px" width="380" height="380" viewBox="0 0 380 380">
+    <circle cx="190" cy="190" r="150" style="stroke:rgba(226,220,208,.18);stroke-width:46;fill:none"/>
+    <circle class="r2" cx="190" cy="190" r="150" pathLength="1" style="stroke:#C8A870;stroke-width:46;fill:none;--d:1.1"/>
+  </svg>
+  <div class="r2txt fx fx-pop" style="--d:1.3"><b><span class="count" style="--to:26;--d:1.3"></span>%</b><span>biến thiên của IP</span></div>
+  <p class="abs ink-light fx fx-up" style="left:120px;top:760px;width:1680px;text-align:center;font:italic 400 42px/1.35 var(--font-display);--d:1.6">"R² = 0.26 nghĩa là Lãnh đạo số giải thích được 26% biến động của Hiệu quả đổi mới trong doanh nghiệp."</p>
+  <div class="foot reveal"><span>p &lt; 0.001 (Ý nghĩa cao)</span></div>
+</section>
+
+<!-- 14b prompt on its own slide -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Bước 5: Kiểm định tác động tổng thể</p>
+  <h2 class="tt reveal">Prompt P9 (Hồi quy tuyến tính DL lên IP)</h2>
+  <div class="mock mock-chat pc fx fx-up" data-title="Prompt P9 (Hồi quy tuyến tính DL lên IP)" style="left:120px;top:250px;width:1680px;height:740px;--pf:38px;--d:.2"><button class="cp">Sao chép</button><pre class="msg user type">1. Tính biến đại diện (Composite variable) cho mỗi khái niệm bằng giá trị trung bình cộng của 4 item tương ứng:
+- DL = Mean(DL1, DL2, DL3, DL4)
+- KS = Mean(KS1, KS2, KS3, KS4)
+- IP = Mean(IP1, IP2, IP3, IP4)
+2. Chạy mô hình hồi quy tuyến tính đơn kiểm định tác động tổng thể: Biến phụ thuộc IP theo Biến độc lập DL.
+3. Báo cáo bảng kết quả gồm: Hệ số hồi quy chưa chuẩn hóa (B), Sai số chuẩn (SE), Hệ số Beta chuẩn hóa, Giá trị thống kê t, Mức ý nghĩa p-value, Hệ số xác định R² và R² hiệu chỉnh, Thống kê kiểm định F.</pre></div>
+  <div class="foot reveal"><span>p &lt; 0.001 (Ý nghĩa cao)</span></div>
+</section>
+
+<!-- 15 step 6: mediation path diagram + CI line -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Bước 6: Trạm trung chuyển tri thức</p>
+  <h2 class="tt reveal">Kiểm định vai trò trung gian (Mediation)</h2>
+  <p class="lede reveal">Phương pháp Bootstrap 95% (Preacher &amp; Hayes): Bao nhiêu tác động đi thẳng, bao nhiêu đi qua cây cầu tri thức?</p>
+  <svg class="chart abs ink-light" style="left:250px;top:370px" width="980" height="170" viewBox="250 370 980 170">
+    <path class="draw" pathLength="1" d="M250 540L740 370" style="stroke-width:3;--d:.5"/>
+    <path class="draw" pathLength="1" d="M740 370L1230 540" style="stroke-width:3;--d:.8"/>
+    <path class="draw" pathLength="1" d="M250 540H1230" style="stroke-width:3;--d:1.1"/>
+  </svg>
+  <div class="pnode ink-light fx fx-pop" style="left:250px;top:540px;--d:.2"><b>DL</b><span>Lãnh đạo số</span></div>
+  <div class="pnode ink-light fx fx-pop" style="left:740px;top:370px;--d:.3"><b>KS</b><span>Chia sẻ tri thức</span></div>
+  <div class="pnode ink-light fx fx-pop" style="left:1230px;top:540px;--d:.4"><b>IP</b><span>Hiệu quả đổi mới</span></div>
+  <span class="plabel ink-light fx fx-pop" style="left:495px;top:455px;--d:.9">a = 0.48</span>
+  <span class="plabel ink-light fx fx-pop" style="left:985px;top:455px;--d:1.2">b = 0.32</span>
+  <span class="plabel ink-light fx fx-pop" style="left:740px;top:540px;--d:1.5">c' = 0.37</span>
+  <ul class="legend ink-light fx fx-up" style="--d:1.7">
+    <li><b>Đường a (DL ➔ KS):</b> B = 0.48 (p &lt; 0.001)</li>
+    <li><b>Đường b (KS ➔ IP):</b> B = 0.32 (p &lt; 0.001)</li>
+    <li><b>Trực tiếp c' (DL ➔ IP):</b> B = 0.37 (p &lt; 0.001 - vẫn còn ý nghĩa)</li>
+  </ul>
+  <div class="ci ink-light fx" data-step="1">
+    <p class="cih">Gián tiếp (a × b): <b class="gold">0.15</b> [95% CI: 0.09 đến 0.22, <b class="gold">KHÔNG CHỨA SỐ 0</b>]</p>
+    <div class="axis"><i class="zero"><span>0</span></i><i class="band fx fx-growx" style="--d:.2"></i><i class="pt fx fx-pop" style="--d:.7"></i><span class="lo">0.09</span><span class="hi">0.22</span><span class="mid">0.15</span></div>
+  </div>
+  <div class="res fx fx-up" data-step="2" style="left:120px;top:880px;width:1200px;padding:14px 24px"><h4>➔ Kết luận: Trung gian một phần (Partial Mediation)</h4><p>Chia sẻ tri thức gánh một phần quan trọng của tác động từ Lãnh đạo số sang Đổi mới. Cây cầu tri thức là có thật!</p></div>
+  <div class="bigstat ink-light fx fx-up" style="left:1400px;top:330px;width:400px;--d:.5"><b>0.15</b><span>Gián tiếp (a × b)</span><p>95% CI: 0.09 đến 0.22</p></div>
+  <div class="foot reveal"><span>Chuẩn Preacher &amp; Hayes</span></div>
+</section>
+
+<!-- 15b prompt on its own slide -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Bước 6: Trạm trung chuyển tri thức</p>
+  <h2 class="tt reveal">Prompt P10 (Kiểm định trung gian Bootstrap 95%)</h2>
+  <div class="mock mock-chat pc fx fx-up" data-title="Prompt P10 (Kiểm định trung gian Bootstrap 95%)" style="left:120px;top:250px;width:1680px;height:740px;--pf:38px;--d:.2"><button class="cp">Sao chép</button><pre class="msg user type">Thực hiện quy trình kiểm định vai trò trung gian của Chia sẻ tri thức (KS) trong mối quan hệ giữa Lãnh đạo số (DL) và Hiệu quả đổi mới (IP) theo phương pháp Bootstrap 95% (Preacher &amp; Hayes):
+1. Phương trình đường a: Hồi quy KS theo DL.
+2. Phương trình đường b và c': Hồi quy IP đồng thời theo cả DL và KS.
+3. So sánh Tổng tác động c với Tác động trực tiếp c'.
+4. Ước lượng Tác động gián tiếp (Indirect Effect = a * b) kèm Khoảng tin cậy Bootstrap 95% (Lower Bound - Upper Bound).
+5. Kết luận rõ ràng: Vai trò trung gian có ý nghĩa thống kê hay không? Đây là trung gian một phần (partial) hay toàn phần (full)?</pre></div>
+  <div class="foot reveal"><span>Chuẩn Preacher &amp; Hayes</span></div>
+</section>
+
+<!-- 16 hedging wipe -->
+<section class="slide" data-layout="diagram" data-pose="pp">
+  <p class="kk reveal">Cạm bẫy lớn nhất của người làm nghiên cứu</p>
+  <h2 class="tt reveal">Kỷ luật Hedging: chống phóng đại nhân quả</h2>
+  <p class="lede reveal">Dữ liệu cắt ngang (Cross-sectional) chỉ phản ánh tương quan: tuyệt đối không quy kết nhân quả!</p>
+  <div class="viz fx fx-up" data-viz="compare" style="left:120px;right:120px;top:300px;height:440px;--d:.2">
+    <div class="cmp-panel bad"><h4>✕ Cấm dùng (Dễ bị Hội đồng đánh trượt)</h4><ul class="quotes"><li>"Nghiên cứu chứng minh Lãnh đạo số gây ra / làm tăng Đổi mới sáng tạo."</li><li>"Lãnh đạo số tạo nên kết quả kinh doanh vượt trội."</li><li>"Khẳng định chắc chắn mối quan hệ nhân quả giữa các biến số."</li></ul><p class="pnote">Dữ liệu cắt ngang đo cùng một thời điểm không thỏa mãn tính tuần tự thời gian!</p></div>
+    <div class="cmp-panel good"><h4>✓ Bắt buộc dùng (Văn phong Hedging chuẩn)</h4><ul class="quotes"><li>"Kết quả cho thấy mối liên hệ thuận giữa Lãnh đạo số và Đổi mới."</li><li>"Dữ liệu khảo sát ủng hộ giả thuyết về vai trò trung gian..."</li><li>"Phản ánh mối liên hệ thống kê có ý nghĩa, tuy nhiên cần kiểm chứng thêm qua thiết kế theo thời gian."</li></ul><p class="pnote">✓ Khiêm tốn học thuật, phản ánh đúng giới hạn phương pháp luận.</p></div>
+  </div>
+  <span class="tag-click fx" data-step="1" style="right:120px;top:752px">Viết lại theo Hedging</span>
+  <div class="mock mock-chat pc fx fx-up" data-title="Prompt P11 (Diễn giải thảo luận kết quả áp dụng Hedging)" style="left:120px;top:790px;width:1680px;height:200px;--pf:24px;--d:.6"><button class="cp">Sao chép</button><pre class="msg user type">Dựa trên kết quả hồi quy và kiểm định trung gian, hãy viết đoạn thảo luận kết quả nghiên cứu áp dụng kỹ thuật Hedging: Nêu rõ mối liên hệ thuận, giải thích vai trò trung gian của KS, nhắc lại tính chất dữ liệu cắt ngang và từ chối khẳng định nhân quả tuyệt đối.</pre></div>
+  <div class="foot reveal"><span>Kỷ luật Hedging</span></div>
+</section>
+
+<!-- 17 eight-part report -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Đóng gói toàn diện kết quả nghiên cứu</p>
+  <h2 class="tt reveal">Cấu trúc báo cáo định lượng 8 phần chuẩn APA</h2>
+  <p class="lede reveal">Gói tất cả kết quả vào một khuôn quen thuộc để Thầy Hướng dẫn và Hội đồng thẩm định dễ dàng</p>
+  <div class="parts ink-light">
+    <div class="fx fx-up" style="--d:.2"><span class="lb">Phần 1 &amp; 2</span><p><b>1. Mẫu &amp; Dữ liệu:</b> 320 phiếu ban đầu.</p><p><b>2. Làm sạch:</b> Loại 18 phiếu lỗi ➔ Còn 302 mẫu sạch.</p></div>
+    <div class="fx fx-up" style="--d:.35"><span class="lb">Phần 3 &amp; 4</span><p><b>3. Thống kê mô tả:</b> Tần số %, Mean/SD.</p><p><b>4. Cronbach's Alpha:</b> 3 thang đo đạt α ≥ 0.81.</p></div>
+    <div class="fx fx-up" style="--d:.5"><span class="lb">Phần 5 &amp; 6</span><p><b>5. Hồi quy &amp; Trung gian:</b> R² = 0.26, Bootstrap.</p><p><b>6. Thảo luận:</b> Hedging, hàm ý quản trị.</p></div>
+    <div class="fx fx-up" style="--d:.65"><span class="lb">Phần 7 &amp; 8</span><p><b>7. Hạn chế nghiên cứu:</b> 3 điểm yếu kinh điển.</p><p><b>8. Khai báo AI:</b> Minh bạch theo chuẩn quốc tế.</p></div>
+  </div>
+  <div class="mock mock-chat pc fx fx-up" data-title="Prompt P12 (Đổ kết quả vào báo cáo 8 phần hoàn chỉnh)" style="left:120px;top:620px;width:1680px;height:370px;--pf:23px;--d:.8"><button class="cp">Sao chép</button><pre class="msg user type">Dựa trên toàn bộ kết quả đã phân tích từ Phần 4 đến Phần 7 (Làm sạch 302 mẫu, Nhân khẩu học, Mean/SD, Cronbach's Alpha, Hồi quy, Bootstrap trung gian):
+Hãy tổng hợp và lập một Báo cáo Kết quả Phân tích Dữ liệu hoàn chỉnh theo đúng cấu trúc 8 phần học thuật chuẩn mực.
+Yêu cầu:
+- Tên file lưu tại thư mục hiện tại theo đúng Super Rule đánh số thứ tự tuần tự: 03_bao-cao-phan-tich-du-lieu.md.
+- Toàn bộ các bảng số liệu phải được điền số thật, chính xác 100% từ kết quả đã chạy.
+- Văn phong học thuật, khách quan, áp dụng triệt để kỹ thuật Hedging.</pre></div>
+  <div class="foot reveal"><span>File: 03_bao-cao...md</span></div>
+</section>
+
+<!-- 18 limitations -->
+<section class="slide" data-layout="diagram" data-pose="pr">
+  <p class="kk reveal">Dũng cảm nêu điểm yếu của đề tài</p>
+  <h2 class="tt reveal">Viết phần hạn chế nghiên cứu trung thực</h2>
+  <p class="lede reveal">Không có nghiên cứu nào hoàn hảo: Nêu rõ 3 hạn chế kinh điển trước khi bị Hội đồng chất vấn</p>
+  <div class="lim ink-light fx fx-left" style="top:300px;--d:.2"><span class="n">1</span><div><span class="lb">Hạn chế 1</span><h3>Thiết Kế Cắt Ngang</h3><p>Dữ liệu chụp tại một thời điểm (Cross-sectional). <b class="gold">Đề xuất:</b> Nghiên cứu tương lai nên theo dõi dọc theo thời gian (Longitudinal study) để kiểm chứng nhân quả.</p></div></div>
+  <div class="lim ink-light fx fx-left" style="top:530px;--d:.4"><span class="n">2</span><div><span class="lb">Hạn chế 2</span><h3>Mẫu Thuận Tiện</h3><p>Mẫu 302 DNNVV lấy theo phương pháp thuận tiện. <b class="gold">Đề xuất:</b> Mở rộng cỡ mẫu phân tầng ngẫu nhiên trên nhiều vùng kinh tế để tăng tính đại diện.</p></div></div>
+  <div class="lim ink-light fx fx-left" style="top:760px;--d:.6"><span class="n">3</span><div><span class="lb">Hạn chế 3</span><h3>Sai Lệch Tự Báo Cáo</h3><p>Dữ liệu đo bằng bảng hỏi tự đánh giá (Self-report bias). <b class="gold">Đề xuất:</b> Bổ sung chỉ số đo lường khách quan từ báo cáo tài chính hoặc đăng ký sáng chế.</p></div></div>
+  <div class="mock mock-chat pc fx fx-right" data-title="Prompt P13 &amp; P14 (Soạn phần Hạn chế &amp; Rà soát câu chữ nói quá)" style="left:1140px;top:300px;width:620px;height:500px;--pf:25px;--d:.8"><button class="cp">Sao chép</button><pre class="msg user type">Hãy viết lại Phần 7 (Hạn chế) trong 03_bao-cao-phan-tich-du-lieu.md tập trung vào 3 hạn chế kinh điển (cắt ngang, mẫu thuận tiện, tự báo cáo) và giải pháp khắc phục. Sau đó rà soát toàn bộ báo cáo, loại bỏ mọi câu chữ nói quá (overclaiming).</pre></div>
+  <p class="abs ink-dark fx fx-up" style="left:1140px;top:790px;width:620px;font:italic 400 27px/1.35 var(--font-display);--d:1">"Hội đồng luôn đánh giá rất cao tác giả dũng cảm chỉ ra các điểm yếu trong thiết kế của mình."</p>
+  <div class="foot reveal"><span>Tính tự phản biện cao</span></div>
+</section>
+
+<!-- 19 ethics + timer -->
+<section class="slide" data-layout="diagram" data-pose="pp">
+  <p class="kk reveal">Ranh giới đạo đức &amp; liêm chính học thuật</p>
+  <h2 class="tt reveal">Làm mượt văn học thuật đúng đạo đức</h2>
+  <p class="lede reveal">Công cụ này để làm rõ tiếng nói của chính bạn. Tuyệt đối không phải để giả mạo nó!</p>
+  <div class="panel okp fx fx-left" style="left:120px;top:300px;width:810px;height:400px;--d:.2"><h4>✓ Dùng đúng đạo đức (Ethical AI Use)</h4><ul>
+    <li>Làm mượt đoạn văn do chính bạn viết còn khô cứng, lặp từ.</li>
+    <li>Chỉnh ngữ pháp, nâng cấp từ vựng học thuật cho người không phải bản ngữ.</li>
+    <li>Bảo toàn nguyên vẹn 100% số liệu và luận điểm cốt lõi của bạn.</li>
+    <li>Khai báo công khai và minh bạch việc có dùng AI hỗ trợ ngôn ngữ.</li></ul></div>
+  <div class="panel hotp fx fx-right" style="left:990px;top:300px;width:810px;height:400px;--d:.35"><h4>✕ Dùng sai &amp; gian lận (Academic Dishonesty)</h4><ul>
+    <li class="strike" style="--d:1.2">Để AI tự nghĩ hộ toàn bộ nội dung mà bản thân không hiểu gì.</li>
+    <li class="strike" style="--d:1.4">Để AI tự bịa số liệu "đẹp" mà không có khảo sát thực tế.</li>
+    <li class="strike" style="--d:1.6">Dùng công cụ để qua mặt máy dò AI nhằm che giấu, lừa dối Hội đồng.</li></ul></div>
+  <div class="practice fx fx-up" style="--d:.8">
+    <div><h3>20 Phút Thực Hành Làm Mượt Văn &amp; Đối Soát</h3><p>Áp dụng quy trình chinh-van-phong: Giữ nguyên 100% số liệu, tối ưu câu cú</p></div>
+    <div class="timer" data-min="20"><span class="t">20:00</span><button class="go">Bắt đầu</button><button class="reset">Đặt lại</button></div>
+  </div>
+  <div class="foot reveal"><span>Quy trình: chinh-van-phong</span></div>
+</section>
+
+<!-- 20 P16 + P17 -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Tuyên bố liêm chính &amp; xuất bản báo cáo</p>
+  <h2 class="tt reveal">Khai báo dùng AI &amp; xuất Word chuẩn thể thức</h2>
+  <p class="lede reveal">Tuân thủ thông lệ quốc tế của Elsevier, Springer Nature và thể thức luận án Nghị định 30</p>
+  <div class="mock mock-chat pc fx fx-left" data-title="Prompt P16 (Tuyên bố Khai báo Sử dụng AI song ngữ)" style="left:120px;top:300px;width:810px;height:500px;--pf:25px;--d:.2"><button class="cp">Sao chép</button><pre class="msg user type">Hãy viết Tuyên bố Khai báo Sử dụng AI (AI Disclosure Statement) chuẩn mực song ngữ (Việt - Anh) và bổ sung vào Mục 8 của 03_bao-cao-phan-tich-du-lieu.md:
+- Tác giả đã dùng Claude để hỗ trợ: (1) Làm sạch dữ liệu, (2) Chạy kiểm định thống kê và lập bảng, (3) Rà soát ngữ pháp và văn phong học thuật.
+- Tác giả khẳng định dữ liệu là trung thực, đã tự đối soát kết quả và chịu 100% trách nhiệm về nội dung.</pre></div>
+  <div class="mock mock-chat pc fx fx-right" data-title="Prompt P17 (Xuất báo cáo sang file Word .docx)" style="left:990px;top:300px;width:810px;height:500px;--pf:25px;--d:.4"><button class="cp">Sao chép</button><pre class="msg user type">Hãy chuyển đổi file 03_bao-cao-phan-tich-du-lieu.md thành file Word (.docx) lưu tại thư mục hiện tại với tên đúng chuẩn Super Rule (04_bao-cao-ket-qua-phan-tich.docx):
+- BẮT BUỘC 100% dùng phông chữ Times New Roman.
+- Cỡ chữ 13, giãn dòng 1.3 - 1.5 lines, lề trang A4 chuẩn (Trên 2cm, Dưới 2cm, Trái 3cm, Phải 2cm).
+- Bảng biểu có viền rõ ràng, tiêu đề in đậm phía trên, ghi chú nguồn phía dưới.</pre></div>
+  <div class="flowfile ink-light">
+    <span class="fx fx-pop" style="--d:.9">03_bao-cao-phan-tich-du-lieu.md</span><i class="fx fx-growx" style="--d:1.1"></i><span class="fx fx-pop" style="--d:1.3">+ Mục 8: Tuyên bố dùng AI</span><i class="fx fx-growx" style="--d:1.5"></i><span class="gold fx fx-pop" style="--d:1.7">04_bao-cao-ket-qua-phan-tich.docx</span>
+  </div>
+  <div class="foot reveal"><span>Chuẩn: Times New Roman 13</span></div>
+</section>
+
+<!-- 21 ground truth -->
+<section class="slide" data-layout="diagram" data-pose="pr">
+  <p class="kk reveal">Đối soát chuẩn xác &amp; sẵn sàng bảo vệ</p>
+  <h2 class="tt reveal">Tự phản biện &amp; bảng số kiểm định chuẩn</h2>
+  <p class="lede reveal">Bộ số "chống ảo giác" để tự chấm bài và 3 câu hỏi chất vấn phương pháp luận hóc búa nhất</p>
+  <p class="abs fx" style="left:120px;top:300px;font:500 18px/1 var(--font-mono);letter-spacing:.1em;color:var(--accent)">BẢNG SỐ KIỂM ĐỊNH CHUẨN (GROUND TRUTH)</p>
+  <div class="tb ink-light" style="left:120px;top:335px;width:940px;grid-template-columns:240px 230px 1fr">
+    <span class="h">Chỉ số</span><span class="h c">Giá trị chuẩn</span><span class="h">Tiêu chí đánh giá</span>
+    <span class="fx fx-left" style="--d:.2">Mẫu sạch</span><span class="v c fx fx-pop" style="--d:.25">302</span><span class="fx fx-left" style="--d:.3">Loại 18 phiếu lỗi từ 320</span>
+    <span class="fx fx-left" style="--d:.4">Alpha DL</span><span class="v c fx fx-pop" style="--d:.45">0.81</span><span class="fx fx-left" style="--d:.5">Đạt chuẩn (≥ 0.70)</span>
+    <span class="fx fx-left" style="--d:.6">Alpha KS</span><span class="v c fx fx-pop" style="--d:.65">0.81</span><span class="fx fx-left" style="--d:.7">Đạt chuẩn (≥ 0.70)</span>
+    <span class="fx fx-left" style="--d:.8">Alpha IP</span><span class="v c fx fx-pop" style="--d:.85">0.83</span><span class="fx fx-left" style="--d:.9">Đạt chuẩn (≥ 0.70)</span>
+    <span class="fx fx-left" style="--d:1">Hồi quy DL➔IP</span><span class="v c fx fx-pop" style="--d:1.05;font-size:32px">Beta = 0.51</span><span class="fx fx-left" style="--d:1.1">R² = 0.26, p &lt; 0.001</span>
+    <span class="fx fx-left" style="--d:1.2">Trung gian a*b</span><span class="v c fx fx-pop" style="--d:1.25">0.15</span><span class="fx fx-left" style="--d:1.3">Bootstrap 95% không chứa 0</span>
+  </div>
+  <p class="stamp slam" data-step="1" style="left:560px;top:880px;color:#C8A870;--rot:-4deg">Bảng đối soát 100% khớp</p>
+  <div class="mock mock-chat pc fx fx-right" data-title="Prompt P18 (Tự phản biện trước Hội đồng)" style="left:1140px;top:290px;width:620px;height:520px;--pf:23px;--d:.5"><button class="cp">Sao chép</button><pre class="msg user type">Hãy đóng vai một Vị Phản biện khó tính trong Hội đồng Luận án:
+1. Đặt ra 3 câu hỏi chất vấn hóc búa nhất nhắm vào các điểm yếu phương pháp luận trong báo cáo vừa rồi (về việc dùng dữ liệu cắt ngang để kiểm định trung gian, về cỡ mẫu 302, về nguy cơ sai lệch Common Method Bias).
+2. Đề xuất cho tôi câu trả lời thông minh, khiêm tốn nhưng chặt chẽ về mặt học thuật để thuyết phục Hội đồng.</pre></div>
+  <p class="abs ink-dark fx fx-up" style="left:1140px;top:830px;width:620px;font:italic 400 26px/1.35 var(--font-display);--d:1">"Tự chất vấn nghiên cứu của mình trước khi bước vào phòng bảo vệ là đỉnh cao của tư duy khoa học."</p>
+  <div class="foot reveal"><span>Bảng đối soát 100% khớp</span></div>
+</section>
+
+<!-- 21a SlideFly: what it is -->
+<section class="slide" data-layout="diagram" data-pose="pp">
+  <p class="kk reveal">Công cụ bổ sung: SlideFly</p>
+  <h2 class="tt reveal">Biến báo cáo phân tích thành slide trình chiếu</h2>
+  <p class="lede reveal">Skill mã nguồn mở cho Claude Code: tạo slide HTML có hiệu ứng chuyển cảnh kiểu PowerPoint Morph, một file mở bằng trình duyệt là chạy</p>
+  <div class="sf-facts">
+    <div class="fx fx-up" style="--d:.2"><b class="count" style="--to:47;--d:.2"></b><h3>Style có sẵn</h3><p>Mọi font đều có bộ chữ tiếng Việt. Xem trước rồi mới chọn.</p></div>
+    <div class="fx fx-up" style="--d:.35"><b class="count" style="--to:8;--d:.35"></b><h3>Dạng sơ đồ tự vẽ</h3><p>Thanh tỷ lệ, vòng chia phần, ma trận, phễu, mạng lưới... vẽ đúng tỷ lệ từ số liệu.</p></div>
+    <div class="fx fx-up" style="--d:.5"><b>100%</b><h3>Số có nguồn</h3><p>Biểu đồ có số mà thiếu nguồn sẽ bị công cụ kiểm tra báo lỗi.</p></div>
+    <div class="fx fx-up" style="--d:.65"><b>1</b><h3>File HTML duy nhất</h3><p>Không cần cài phần mềm trình chiếu. Gửi file là người nhận mở được.</p></div>
+  </div>
+  <div class="res fx fx-up" style="left:120px;top:720px;width:1680px;--d:.9"><h4>Ví dụ ngay trước mắt</h4><p>Bộ slide Buổi 03 anh chị đang xem được dựng bằng SlideFly: biểu đồ Alpha, sơ đồ trung gian, màn quét Hedging đều vẽ từ Bộ số kiểm định chuẩn.</p></div>
+  <div class="foot reveal"><span>Giấy phép mã nguồn mở</span></div>
+</section>
+
+<!-- 21b SlideFly: install -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Thực hành: cài skill SlideFly</p>
+  <h2 class="tt reveal">Cài đặt trong 4 lệnh, hoặc nhờ Claude cài hộ</h2>
+  <p class="need reveal" style="left:120px;top:236px"><span style="font:italic 400 30px/1 var(--font-display);color:var(--muted)">Cần có sẵn:</span><i>Claude Code</i><i>Git</i><i>Python 3.10+</i></p>
+  <div class="mock mock-chat pc fx fx-left" data-title="Cách 1 · Prompt P19 (Nhờ Claude cài skill)" style="left:120px;top:320px;width:810px;height:520px;--pf:26px;--d:.2"><button class="cp">Sao chép</button><pre class="msg user type">Hãy cài skill SlideFly cho tôi từ https://github.com/andyluu98/slidefly:
+1. Tải repo về máy.
+2. Chép thư mục skill/slidefly vào ~/.claude/skills/.
+3. Cài thư viện trong requirements.txt, rồi chạy playwright install chromium.
+Xong thì báo tôi đường dẫn skill đã cài.</pre></div>
+  <div class="mock mock-term pc fx fx-right" data-title="Cách 2 · Tự gõ lệnh (Windows PowerShell)" style="left:990px;top:320px;width:810px;height:520px;--pf:24px;--d:.4"><button class="cp">Sao chép</button><div class="cmd type">git clone https://github.com/andyluu98/slidefly.git</div><div class="cmd type">Copy-Item -Recurse slidefly\skill\slidefly $HOME\.claude\skills\</div><div class="cmd type">pip install -r slidefly\requirements.txt</div><div class="cmd type">playwright install chromium</div><p class="out" style="margin:0;padding:0 28px 22px;font-size:21px;color:#B9B2A6">macOS / Linux: dòng 2 thay bằng<br><code style="color:#E8C27A;background:none">cp -r slidefly/skill/slidefly ~/.claude/skills/</code></p></div>
+  <div class="res fx fx-up" data-step="1" style="left:120px;top:868px;width:1680px;padding:16px 28px"><p><b>Kiểm tra:</b> mở phiên Claude Code mới, gõ <code>/slidefly</code>. Claude nhận skill là cài thành công. Python chỉ cần cho bước kiểm tra và đóng gói; file slide mở bằng trình duyệt nào cũng chạy.</p></div>
+  <div class="foot reveal"><span>Repo: andyluu98/slidefly</span></div>
+</section>
+
+<!-- 21c SlideFly: use it on the report -->
+<section class="slide" data-layout="diagram" data-pose="pp">
+  <p class="kk reveal">Thực hành: dựng slide từ báo cáo</p>
+  <h2 class="tt reveal">Từ 03_bao-cao-phan-tich-du-lieu.md đến slide bảo vệ</h2>
+  <p class="lede reveal">Skill tự đi qua 5 bước; người nghiên cứu chỉ duyệt dàn ý, chọn style và soát số</p>
+  <div class="sfflow">
+    <div class="fx fx-up" style="--d:.2"><span class="n">1</span><h3>Nhận nội dung</h3><p>Đọc báo cáo, hỏi mục đích, người xem, số slide.</p></div>
+    <div class="fx fx-up" style="--d:.32"><span class="n">2</span><h3>Chọn style</h3><p>Dựng 3 bản xem thử để anh chị chọn.</p></div>
+    <div class="fx fx-up" style="--d:.44"><span class="n">3</span><h3>Dựng deck</h3><p>Mỗi ý một dạng hình; số liệu ghi nguồn.</p></div>
+    <div class="fx fx-up" style="--d:.56"><span class="n">4</span><h3>Tự kiểm tra</h3><p>check-deck.py chụp mọi slide, đo chữ tràn, khoảng trống.</p></div>
+    <div class="fx fx-up" style="--d:.68"><span class="n">5</span><h3>Bàn giao</h3><p>Một file HTML, kèm đường dẫn và cách trình chiếu.</p></div>
+  </div>
+  <div class="mock mock-chat pc fx fx-up" data-title="Prompt P20 (Dựng slide trình bày kết quả phân tích)" style="left:120px;top:580px;width:1680px;height:300px;--pf:27px;--d:.9"><button class="cp">Sao chép</button><pre class="msg user type">/slidefly Dựng 12 slide trình bày kết quả từ file 03_bao-cao-phan-tich-du-lieu.md để báo cáo trước Hội đồng. Giữ nguyên 100% số liệu, mỗi biểu đồ ghi nguồn từ Bảng số kiểm định chuẩn. Áp dụng văn phong Hedging. Cho tôi xem 3 style trước khi dựng.</pre></div>
+  <p class="abs fx fx-up" style="left:120px;top:905px;width:1680px;font-size:26px;--d:1.2"><b>Trình chiếu:</b> mũi tên phải hoặc Space để sang, mũi tên trái để lùi, phím <code>F</code> toàn màn hình, <code>Home</code> / <code>End</code> về đầu hoặc cuối.</p>
+  <div class="foot reveal"><span>Lệnh gọi: /slidefly</span></div>
+</section>
+
+<!-- 22 wrap-up -->
+<section class="slide" data-layout="diagram" data-pose="pn">
+  <p class="kk reveal">Về đích Buổi 03</p>
+  <h2 class="tt reveal">Tổng kết Buổi 03 &amp; bài tập về nhà</h2>
+  <p class="lede reveal">Kiểm tra lại toàn bộ sản phẩm bạn đã tạo ra và nhiệm vụ rèn luyện chuẩn bị cho Buổi 4</p>
+  <div class="check ink-light" style="left:120px;top:300px;width:880px">
+    <h4 class="fx" style="--d:.1">Checklist Sản Phẩm Đạt Được</h4>
+    <p class="fx fx-left" style="--d:.2"><svg viewBox="0 0 30 30"><path class="draw" pathLength="1" d="M4 16l7 7L26 6" style="--d:.4"/></svg>File ~/.claude/CLAUDE.md Global có 5 Super Rules.</p>
+    <p class="fx fx-left" style="--d:.3"><svg viewBox="0 0 30 30"><path class="draw" pathLength="1" d="M4 16l7 7L26 6" style="--d:.5"/></svg>Cây thư mục tự động đánh số thứ tự tuần tự (01_..., 02_...).</p>
+    <p class="fx fx-left" style="--d:.4"><svg viewBox="0 0 30 30"><path class="draw" pathLength="1" d="M4 16l7 7L26 6" style="--d:.6"/></svg>Cài đặt thành công markitdown tiết kiệm 80% token.</p>
+    <p class="fx fx-left" style="--d:.5"><svg viewBox="0 0 30 30"><path class="draw" pathLength="1" d="M4 16l7 7L26 6" style="--d:.7"/></svg>Làm sạch 320 mẫu khảo sát về đúng 302 mẫu sạch.</p>
+    <p class="fx fx-left" style="--d:.6"><svg viewBox="0 0 30 30"><path class="draw" pathLength="1" d="M4 16l7 7L26 6" style="--d:.8"/></svg>Bảng Cronbach's Alpha và Hồi quy, Trung gian Bootstrap 95%.</p>
+    <p class="fx fx-left" style="--d:.7"><svg viewBox="0 0 30 30"><path class="draw" pathLength="1" d="M4 16l7 7L26 6" style="--d:.9"/></svg>File báo cáo 03_bao-cao-phan-tich-du-lieu.md chuẩn APA 7.</p>
+    <p class="fx fx-left" style="--d:.8"><svg viewBox="0 0 30 30"><path class="draw" pathLength="1" d="M4 16l7 7L26 6" style="--d:1"/></svg>Tuyên bố khai báo sử dụng AI minh bạch theo chuẩn quốc tế.</p>
+  </div>
+  <div class="hw ink-light fx fx-right" style="--d:.6">
+    <h4>Bài Tập Về Nhà (Nộp Trước Buổi 4)</h4>
+    <p><span class="n">1</span><span><b>Cá nhân hóa Global CLAUDE.md:</b> Chụp ảnh màn hình cây thư mục tự động đánh số thứ tự tuần tự nộp lên nhóm.</span></p>
+    <p><span class="n">2</span><span><b>Thực hành MarkItDown:</b> Lấy 1 bài báo khoa học PDF thật (15-30 trang), convert sang Markdown và tóm tắt Research Gap.</span></p>
+    <p><span class="n">3</span><span><b>Hoàn thiện báo cáo phân tích:</b> Chạy lại toàn bộ quy trình trên tập dữ liệu khảo sát, đối soát khớp 100% với Bảng số kiểm định và nộp file Word .docx.</span></p>
+    <p class="next">Hẹn gặp lại ở Buổi 4: Hệ thống hóa &amp; Xây dựng Research Portfolio!</p>
+  </div>
+  <p class="abs ink-light fx fx-up" style="left:120px;right:120px;top:1006px;text-align:center;font:italic 400 24px/1.3 var(--font-display);--d:1.2">"Chúc mừng bạn đã hoàn thành xuất sắc Buổi 3: nắm vững tư duy phân tích định lượng cùng AI!" · Hoàn Thành 100% · Buổi 4: Portfolio Nghiên Cứu</p>
+</section>
+
+</div>
+</div>
+<script>
+/* MORPH-SLIDES MOCKS: timing for morph-mock.css. Load after the slides.
+   Inside each .mock, units (.msg, .type, .lines) play one after another;
+   the chain restarts in every data-step, because a click resets the clock.
+   .type  -> each letter becomes <span class="ch" style="--k:n">; typing
+             speed adapts so a long prompt still types in about 2.6 s.
+   .lines -> each child gets --j (line order); .think adds the dots first.
+   Every unit gets --d0 = when it starts, in seconds after its trigger. */
+(() => {
+  const SPEED = 0.035;  // s per letter for short texts
+  const MAX = 2.6;      // s: longest typing time
+  const LINE = 0.35;    // s between two lines (matches --line-gap)
+  const THINK = 0.9;    // s of "..." before the lines (matches --think-t)
+  const GAP = 0.25;     // s pause between two units
+
+  /* wrap every letter in a span; keeps inline tags such as <b> and <code> */
+  function split(el) {
+    const nodes = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    // pre / pre-wrap text keeps its line breaks (a prompt someone will copy)
+    const raw = getComputedStyle(el).whiteSpace.startsWith('pre');
+    let k = 0;
+    nodes.forEach((node) => {
+      const text = node.textContent.normalize('NFC');
+      if (!raw && !text.trim()) return;
+      const frag = document.createDocumentFragment();
+      for (const c of raw ? text : text.replace(/\s+/g, ' ')) {
+        const s = document.createElement('span');
+        s.className = 'ch';
+        s.style.setProperty('--k', k++);
+        s.textContent = c;
+        frag.append(s);
+      }
+      node.replaceWith(frag);
+    });
+    return k;
+  }
+
+  document.querySelectorAll('.mock').forEach((mock) => {
+    if (mock.parentElement?.closest('.mock')) return;      // a chat inside a phone is timed with the phone
+    const clock = new Map();                                // step -> seconds used so far
+    mock.querySelectorAll('.msg, .type, .lines').forEach((u) => {
+      const key = u.closest('[data-step]')?.dataset.step || '0';
+      let t = clock.get(key) || 0;
+      u.style.setProperty('--d0', `${t.toFixed(2)}s`);
+      const typed = u.classList.contains('type');
+      const lined = u.classList.contains('lines');
+      if (typed && !u.querySelector('.ch')) {
+        const n = split(u);
+        const per = Math.min(SPEED, MAX / Math.max(n, 1));
+        u.style.setProperty('--per', `${per.toFixed(4)}s`);
+        t += n * per + GAP;
+      }
+      if (lined) {
+        if (u.classList.contains('think') && !u.querySelector(':scope > .dots')) {
+          const dots = Object.assign(document.createElement('span'), { className: 'dots', innerHTML: '<i></i><i></i><i></i>' });
+          dots.setAttribute('aria-hidden', 'true');
+          u.prepend(dots);
+          t += THINK;
+        }
+        const kids = [...u.children].filter((c) => !c.classList.contains('dots'));
+        kids.forEach((c, j) => c.style.setProperty('--j', j));
+        t += kids.length * LINE + GAP;
+      }
+      if (!typed && !lined && !u.querySelector('.type, .lines')) t += 2 * GAP; // a plain bubble
+      clock.set(key, t);
+    });
+  });
+})();
+
+</script>
+<script>
+/* MORPH-SLIDES DIAGRAMS, pack 2: matrix, network, funnel, compare.
+   Registers into window.sfVizKinds; load BEFORE morph-viz.js, which renders.
+     <div class="viz" data-viz="matrix"  data-cols data-rows data-cells data-hot>
+     <div class="viz" data-viz="network" data-hub data-nodes data-sub data-on data-off>
+     <div class="viz" data-viz="funnel"  data-stages data-dots="p,0,1,p">
+     <div class="viz" data-viz="compare"><div>before</div><div>after</div></div>   */
+(() => {
+  // data-* text is shown as text, never parsed as HTML ("<tên>" must stay visible)
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const list = (s) => (s || '').split('|').map(esc);
+  const nums = (s) => (s || '').split(',').map((x) => x.trim()).filter(Boolean).map(Number).filter(Number.isFinite);
+  const NS = 'http://www.w3.org/2000/svg';
+  const d = (x) => x.toFixed(2);
+
+  /* matrix: header row + row heads, cells pop in along the diagonal.
+     data-hot = cell index (0-based) that the slide's click spotlights. */
+  function matrix(el) {
+    const cols = list(el.dataset.cols), rows = list(el.dataset.rows), cells = list(el.dataset.cells), hot = el.dataset.hot;
+    el.style.gridTemplateColumns = `var(--mx-head, 280px) repeat(${cols.length}, 1fr)`;
+    let h = '<span></span>' + cols.map((c, j) => `<b class="mx-col fx fx-up" style="--d:${d(0.1 * j)}">${c}</b>`).join('');
+    rows.forEach((r, i) => {
+      h += `<b class="mx-row fx fx-left" style="--d:${d(0.2 + 0.15 * i)}">${r}</b>`;
+      cols.forEach((_, j) => {
+        const k = i * cols.length + j;
+        h += `<span class="mx-cell fx fx-pop${String(k) === hot ? ' hot' : ''}" style="--d:${d(0.45 + 0.15 * (i + j))}">${cells[k] || ''}</span>`;
+      });
+    });
+    el.innerHTML = h;
+  }
+
+  /* network: hub in the middle, nodes on an ellipse, spokes draw out.
+     data-on = nodes (1-based) a click keeps lit; data-off = nodes shown dashed. */
+  function network(el) {
+    const names = list(el.dataset.nodes), sub = list(el.dataset.sub), on = nums(el.dataset.on), off = nums(el.dataset.off);
+    const W = el.clientWidth, H = el.clientHeight, cx = W / 2, cy = H / 2, rx = W / 2 - 190, ry = H / 2 - 70;
+    const pts = names.map((_, i) => {
+      const a = -Math.PI / 2 + (i * 2 * Math.PI) / names.length;
+      return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)];
+    });
+    const cls = (i) => (on.includes(i + 1) ? ' on' : '') + (off.includes(i + 1) ? ' off' : '');
+    const edges = pts.map(([x, y], i) => `<path class="edge ${off.includes(i + 1) ? 'fx' : 'draw'}${cls(i)}"${off.includes(i + 1) ? '' : ' pathLength="1"'} d="M${cx} ${cy}L${d(x)} ${d(y)}" style="--d:${d(0.3 + 0.08 * i)}"/>`).join('');
+    const nodes = pts.map(([x, y], i) => `<div class="nd fx fx-pop${cls(i)}" style="left:${d(x)}px;top:${d(y)}px;--d:${d(0.7 + 0.08 * i)}"><b>${names[i]}</b><span>${sub[i] || ''}</span></div>`).join('');
+    el.innerHTML = `<svg xmlns="${NS}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${edges}</svg>${nodes}
+      <div class="hub fx fx-pop" style="left:${cx}px;top:${cy}px;--d:.1">${esc(el.dataset.hub)}</div>`;
+  }
+
+  /* funnel: stacked layers narrowing down. Each dot falls from the top and
+     stops where it is caught (layer index) or passes to the bottom ("p").
+     The dots illustrate the idea only: they are not counts. */
+  function funnel(el) {
+    const st = list(el.dataset.stages), dots = (el.dataset.dots || '').split(',').map((x) => x.trim()).filter(Boolean);
+    const W = el.clientWidth, H = el.clientHeight, n = st.length, lh = H / n, gap = 14, bot = W * 0.34;
+    const wAt = (y) => W - ((W - bot) * y) / H;
+    const poly = (i) => {
+      const y0 = i * lh, y1 = (i + 1) * lh - gap, a = wAt(y0), b = wAt(y1);
+      return `${d((W - a) / 2)},${d(y0)} ${d((W + a) / 2)},${d(y0)} ${d((W + b) / 2)},${d(y1)} ${d((W - b) / 2)},${d(y1)}`;
+    };
+    const layers = st.map((s, i) => `<polygon class="ly fx fx-up" points="${poly(i)}" style="--d:${d(0.15 * i)}"/>`).join('');
+    const labels = st.map((s, i) => `<span class="ly-t fx fx-up" style="top:${d(i * lh + (lh - gap) / 2)}px;--d:${d(0.15 * i + 0.2)}">${s}</span>`).join('');
+    const rest = {};
+    const balls = dots.map((t, k) => {
+      const i = t === 'p' ? n - 1 : +t, y = (i + 1) * lh - gap - 22;
+      const slot = (rest[i] = (rest[i] || 0) + 1), w = wAt(y) - 120;
+      const x = W / 2 + ((slot % 2 ? -1 : 1) * Math.ceil(slot / 2) * Math.min(56, w / 6));
+      return `<i class="dot fx fx-from${t === 'p' ? '' : ' caught'}" style="left:${d(x)}px;top:${d(y)}px;--from:translateY(${d(-y - 80)}px);--d:${d(1 + 0.25 * k)}"></i>`;
+    }).join('');
+    el.innerHTML = `<svg xmlns="${NS}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${layers}</svg>${labels}${balls}`;
+  }
+
+  /* compare: the "after" panel wipes over the "before" panel on the slide's click */
+  function compare(el) {
+    const [a, b] = el.children;
+    a?.classList.add('cmp-a');
+    b?.classList.add('cmp-b');
+    el.insertAdjacentHTML('beforeend', '<i class="cmp-knob"></i>');
+  }
+
+  window.sfVizKinds = Object.assign(window.sfVizKinds || {}, { matrix, network, funnel, compare });
+})();
+
+</script>
+<script>
+/* MORPH-SLIDES DIAGRAMS: turns short data-* markup into geometry,
+   so a slide states WHAT the numbers are and the kit draws them.
+   Load order: morph-viz-diagrams.js, morph-viz.js, then
+   morph-engine.js (the engine measures the finished DOM).
+   Every chart with numbers needs data-source (audit checks it).
+     <div class="viz" data-viz="span"   data-values data-labels data-sub>
+     <div class="viz" data-viz="donut"  data-values>
+     <div class="viz" data-viz="plan"   data-w data-h data-top data-bottom data-left data-right>
+     <div class="viz" data-viz="gather" data-n>                                   */
+(() => {
+  const nums = (s) => (s || '').split(',').map((x) => x.trim()).filter(Boolean).map(Number).filter(Number.isFinite);
+  // data-* text is shown as text, never parsed as HTML
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const list = (s) => (s || '').split('|').map(esc);
+  const sum = (a) => a.reduce((x, y) => x + y, 0);
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = (w, h, inner) => `<svg xmlns="${NS}" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${inner}</svg>`;
+
+  /* span: proportional bar (time, budget...). Notes alternate above / below
+     the bar, start at their segment and never run into the next note. */
+  function span(el) {
+    const v = nums(el.dataset.values), lab = list(el.dataset.labels), sub = list(el.dataset.sub);
+    const W = el.clientWidth || 1680, tot = sum(v) || 1, cap = +el.dataset.cap || 420;
+    const morphId = el.dataset.morphId ? esc(el.dataset.morphId) : '';
+    el.removeAttribute('data-morph-id');   // only the segment below carries it
+    let acc = 0;
+    const segs = v.map((n, i) => { const s = { i, n, x: (acc / tot) * W, w: (n / tot) * W }; acc += n; return s; });
+    const bar = segs.map((s) => `<div class="seg fx fx-growx${s.i === +el.dataset.hot ? ' hot' : ''}" style="left:${s.x}px;width:${s.w}px;--d:${(0.15 * s.i).toFixed(2)}">
+      ${s.i === +el.dataset.morphSeg ? `<i class="morph-src" data-morph-id="${morphId}"></i>` : ''}<b>${s.n}</b></div>`).join('');
+    const end = { above: 0, below: 0 };   // right edge of the last note on each side
+    const notes = segs.map((s) => {
+      const side = s.i % 2 ? 'below' : 'above';
+      const nxt = segs.find((o) => o.i > s.i && o.i % 2 === s.i % 2);
+      let x = s.x, w = Math.min(cap, (nxt ? nxt.x : W) - s.x - 24), flip = false;
+      if (!nxt && w < 220) { flip = true; w = Math.min(cap, s.x + s.w - end[side] - 24); x = s.x + s.w - w; }
+      end[side] = x + w;
+      return `<div class="note ${side}${flip ? ' flip' : ''} fx fx-up" style="left:${x}px;width:${w}px;--d:${(0.3 + 0.15 * s.i).toFixed(2)}">
+        <span class="mono">${sub[s.i] || ''}</span><span>${lab[s.i] || ''}</span></div>`;
+    }).join('');
+    el.innerHTML = `<div class="bar">${bar}</div>${notes}`;
+  }
+
+  /* donut: arcs drawn one after another, numbered at their middle */
+  function donut(el) {
+    const v = nums(el.dataset.values), tot = sum(v) || 1, R = 300, r = 220, c = R + 40, gap = 0.5;
+    let acc = 0;
+    const arcs = v.map((n, i) => {
+      const p = (n / tot) * 100, mid = ((acc + n / 2) / tot) * 2 * Math.PI - Math.PI / 2;
+      const out = `<circle class="arc" cx="${c}" cy="${c}" r="${r + 40}" pathLength="100"
+          style="--v:${(p - gap).toFixed(2)};--off:${(-(acc / tot) * 100).toFixed(2)};--d:${(0.25 * i).toFixed(2)};--k:${i}"/>
+        <text class="arc-n fx fx-pop" x="${c + Math.cos(mid) * (R + 34)}" y="${c + Math.sin(mid) * (R + 34)}" style="--d:${(0.25 * i + 0.4).toFixed(2)}">${i + 1}</text>`;
+      acc += n;
+      return out;
+    }).join('');
+    el.innerHTML = svg(2 * c, 2 * c, arcs);
+  }
+
+  /* plan: building outline + four dimension chains, ticks at every
+     cumulative mark. A chain that does not close is drawn hot and
+     gets a lens on the gap. Scale fits the element height. */
+  function plan(el) {
+    const Wmm = +el.dataset.w, Hmm = +el.dataset.h, k = Math.max(10, el.clientHeight - 200) / Hmm;
+    const w = Wmm * k, h = Hmm * k, ox = 110, oy = 100, off = 52, t = 11;
+    const chain = (key, horiz, far, d) => {
+      if (!el.dataset[key]) return '';
+      const seg = nums(el.dataset[key]), full = horiz ? Wmm : Hmm, ok = Math.abs(sum(seg) - full) < 1e-6;
+      const at = (mm) => (horiz ? ox + mm * k : oy + mm * k);
+      const base = horiz ? (far ? oy + h + off : oy - off) : (far ? ox + w + off : ox - off);
+      let marks = [0], a = 0;
+      seg.forEach((s) => { a += s; marks.push(a); });
+      const line = horiz ? `M${at(0)} ${base}H${at(sum(seg))}` : `M${base} ${at(0)}V${at(sum(seg))}`;
+      const ticks = marks.map((m) => (horiz ? `M${at(m) - t} ${base + t}L${at(m) + t} ${base - t}` : `M${base - t} ${at(m) + t}L${base + t} ${at(m) - t}`)).join('');
+      const cls = ok ? '' : ' hot';
+      // lens: magnify the end of a chain that does not close
+      const ex = horiz ? at(full) : base, ey = horiz ? base : at(full), miss = full - sum(seg);
+      const lens = ok ? '' : `<g class="lens fx fx-pop shake" style="--d:${d + 1.6};transform-origin:${ex + 90}px ${ey + 70}px">
+        <line x1="${ex}" y1="${ey}" x2="${ex + 46}" y2="${ey + 30}"/><circle cx="${ex + 90}" cy="${ey + 70}" r="62"/>
+        <path d="M${ex + 52} ${ey + 52}h76M${ex + 52} ${ey + 88}h76"/><text x="${ex + 90}" y="${ey + 78}">${miss} mm</text></g>`;
+      return `<path class="dim draw${cls}" pathLength="1" d="${line}" style="--d:${d}"/><path class="tick fx${cls}" d="${ticks}" style="--d:${d + 0.9}"/>${lens}`;
+    };
+    const vx = ox + (+el.dataset.wall || 0) * k, vw = (+el.dataset.wallW || 0) * k;
+    el.innerHTML = svg(w + 2 * ox, h + 2 * oy, `
+      <rect class="wall draw" pathLength="1" x="${ox}" y="${oy}" width="${w}" height="${h}" style="--d:0"/>
+      ${vw ? `<rect class="part fx fx-growy" x="${vx}" y="${oy}" width="${vw}" height="${h}" style="--d:.8"/>` : ''}
+      ${chain('top', true, false, 0.3)}${chain('bottom', true, true, 0.5)}${chain('left', false, false, 0.7)}${chain('right', false, true, 0.9)}`);
+  }
+
+  /* gather: n small pieces on a grid, each knows the way to the centre */
+  function gather(el) {
+    const n = +el.dataset.n, cols = +el.dataset.cols || 6, s = 64, g = 22;
+    const rows = Math.ceil(n / cols), W = cols * s + (cols - 1) * g, H = rows * s + (rows - 1) * g;
+    el.style.width = `${W}px`; el.style.height = `${H}px`;
+    el.innerHTML = Array.from({ length: n }, (_, i) => {
+      const x = (i % cols) * (s + g), y = Math.floor(i / cols) * (s + g);
+      return `<span class="gather piece" style="left:${x}px;top:${y}px;--i:${i};--to:translate(${W / 2 - s / 2 - x}px, ${H / 2 - s / 2 - y}px) scale(.4)">${i + 1}</span>`;
+    }).join('');
+  }
+
+  // kind packs (morph-viz-diagrams.js) load before this file and register in window.sfVizKinds
+  const kinds = Object.assign({ span, donut, plan, gather }, window.sfVizKinds);
+  document.querySelectorAll('.viz[data-viz]').forEach((el) => {
+    const make = kinds[el.dataset.viz];
+    if (!make) return console.warn('sf-viz: unknown kind', el.dataset.viz);
+    if (/\d/.test(['values', 'top', 'bottom', 'left', 'right'].map((k) => el.dataset[k] || '').join('')) && !el.dataset.source) console.warn('sf-viz: chart without data-source', el);
+    make(el);
+  });
+})();
+
+</script>
+<script>
+/* ===========================================================
+   MORPH-SLIDES ENGINE (no dependencies)
+   - Scales the 1920x1080 stage to the window (letterbox)
+   - Builds actors from the style's --actors list
+   - Sets data-layout / data-pose / data-parity on .deck-stage
+     -> style CSS moves actors, CSS transitions do the "morph"
+   - FLIP for elements sharing data-morph-id across two slides
+   Input (keys, click, swipe, wheel, #hash) lives in morph-nav.js.
+   =========================================================== */
+(() => {
+  const stage = document.querySelector('.deck-stage');
+  const slides = stage ? [...stage.querySelectorAll(':scope > .slide')] : [];
+  if (!slides.length) return;
+  const REVEAL = '.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur';
+  let cur = -1;
+  let scale = 1;
+
+  /* ---------- fit stage to window ---------- */
+  function fit() {
+    scale = Math.min(innerWidth / 1920, innerHeight / 1080);
+    const x = (innerWidth - 1920 * scale) / 2;
+    const y = (innerHeight - 1080 * scale) / 2;
+    stage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+  }
+
+  /* Actors: if the deck has no .actors markup, build them from the style's
+     --actors list (DOM order = z-order), so switching style = swapping one CSS link. */
+  if (!stage.querySelector('.actors')) {
+    const names = getComputedStyle(stage).getPropertyValue('--actors').replace(/["']/g, '').trim().split(/\s+/).filter(Boolean);
+    const layer = Object.assign(document.createElement('div'), { className: 'actors back' });
+    layer.setAttribute('aria-hidden', 'true');
+    names.forEach((name) => {
+      const el = Object.assign(document.createElement('div'), { className: 'actor' });
+      el.dataset.actor = name;
+      layer.append(el);
+    });
+    stage.prepend(layer);
+  }
+
+  /* item count -> type size step. Agenda/timeline/stats tiles are bigger, so they allow more items. */
+  function densityOf(slide) {
+    const cols = [...slide.querySelectorAll('.col')];
+    const n = cols.length
+      ? Math.max(...cols.map((c) => c.querySelectorAll('li, p').length))
+      : slide.querySelectorAll('.bullets > li, .agenda-list > li, .stats > .stat, .timeline > .step').length;
+    const [lg, md] = slide.querySelector('.agenda-list, .timeline, .stats') ? [4, 6] : [3, 5];
+    return n <= lg ? 'lg' : n <= md ? 'md' : 'sm';
+  }
+
+  /* ---------- one-time prep per slide ---------- */
+  const seen = {};
+  slides.forEach((slide, k) => {
+    // stagger order for reveal items (author may override with style="--i:n")
+    slide.querySelectorAll(REVEAL).forEach((el, i) => {
+      if (!el.style.getPropertyValue('--i')) el.style.setProperty('--i', i);
+    });
+    if (!slide.dataset.density) slide.dataset.density = densityOf(slide);
+    // parity of the slide itself: content tweaks must not follow the *current* slide
+    slide.dataset.parity = k % 2 ? 'even' : 'odd';
+    // variant 1..3: Nth time this layout appears (styles may give repeats a different pose)
+    const lay = slide.dataset.layout || 'content';
+    seen[lay] = (seen[lay] || 0) + 1;
+    if (!slide.dataset.variant) slide.dataset.variant = String(((seen[lay] - 1) % 3) + 1);
+    slide.querySelectorAll('.agenda-list').forEach((list) => {
+      const items = [...list.children];
+      const rows = Math.ceil(items.length / 2);
+      list.style.setProperty('--rows', rows);
+      items.forEach((li, i) => li.classList.toggle('is-right', i >= rows));
+    });
+  });
+
+  /* ---------- UI chrome ---------- */
+  const progress = Object.assign(document.createElement('div'), { className: 'deck-progress' });
+  const counter = Object.assign(document.createElement('div'), { className: 'deck-counter' });
+  counter.setAttribute('aria-live', 'polite');
+  document.body.append(progress, counter);
+
+  function morphMs() {
+    const v = getComputedStyle(stage).getPropertyValue('--morph-dur').trim();
+    const ms = v.endsWith('ms') ? parseFloat(v) : parseFloat(v) * 1000;
+    return Number.isFinite(ms) ? ms : 1200;
+  }
+
+  /* rect in stage coordinates (only differences are used) */
+  function rectOf(el) {
+    const r = el.getBoundingClientRect();
+    return { x: r.left / scale, y: r.top / scale, w: r.width / scale, h: r.height / scale };
+  }
+
+  /* ---------- FLIP: First, Last, Invert, Play ---------- */
+  function flip(a, b, ra, fontA) {
+    a._flipDone?.();             // finish any flight still running on either element
+    b._flipDone?.();
+    b.classList.remove('flip-src');
+    b.style.transition = 'none';
+    b.style.transformOrigin = '0 0';
+    b.style.transform = 'none';
+    const rb = rectOf(b);
+    if (!rb.w || !rb.h) { b.style.transition = ''; b.style.transform = ''; b.style.transformOrigin = ''; return; }
+    const isText = b.textContent.trim() && !b.querySelector('img, svg, video');
+    const fontB = parseFloat(getComputedStyle(b).fontSize);
+    // text: uniform scale by font-size ratio (avoids squashed letters)
+    const sx = isText ? fontA / fontB : ra.w / rb.w;
+    const sy = isText ? fontA / fontB : ra.h / rb.h;
+    b.style.transform = `translate(${ra.x - rb.x}px, ${ra.y - rb.y}px) scale(${sx}, ${sy})`;
+    a.classList.add('flip-src');
+    void b.offsetWidth; // commit the inverted position
+    b.style.transition = '';
+    b.classList.add('flip-run');
+    b.style.transform = 'none';
+
+    let timer = 0;
+    const onEnd = (e) => { if (e.target === b && e.propertyName === 'transform') done(); };
+    const done = () => {
+      clearTimeout(timer);
+      b.removeEventListener('transitionend', onEnd);
+      b.classList.remove('flip-run');
+      b.style.transform = '';
+      b.style.transformOrigin = '';
+      a.classList.remove('flip-src');
+      a._flipDone = b._flipDone = null;
+    };
+    a._flipDone = b._flipDone = done;
+    b.addEventListener('transitionend', onEnd);
+    timer = setTimeout(done, morphMs() + 150);
+  }
+
+  /* ---------- go to slide n ---------- */
+  function go(n) {
+    n = Math.max(0, Math.min(slides.length - 1, Number(n) || 0));
+    if (n === cur) return;
+    const from = slides[cur];
+    const to = slides[n];
+
+    // FIRST: measure shared elements on the outgoing slide
+    const pairs = [];
+    if (from) {
+      from.querySelectorAll('[data-morph-id]').forEach((a) => {
+        const b = to.querySelector(`[data-morph-id="${CSS.escape(a.dataset.morphId)}"]`);
+        if (b) pairs.push([a, b, rectOf(a), parseFloat(getComputedStyle(a).fontSize)]);
+      });
+    }
+
+    // switch: actors re-pose via CSS, content cross-fades.
+    // A slide with its own data-pose gets parity "none" so the pose is never fought by parity rules.
+    stage.dataset.dir = n > cur ? 'fwd' : 'back';
+    stage.dataset.layout = to.dataset.layout || 'content';
+    stage.dataset.pose = to.dataset.pose || '';
+    stage.dataset.parity = to.dataset.pose ? 'none' : to.dataset.parity;
+    stage.dataset.variant = to.dataset.variant;
+    stage.dataset.brand = to.dataset.brand || ''; // morph-brand.css: hero | corner | hide
+    stage.dataset.slide = String(n + 1);
+    from?.classList.remove('active');
+    to.classList.add('active');
+    cur = n;
+
+    pairs.forEach(([a, b, ra, fa]) => flip(a, b, ra, fa));
+
+    progress.style.width = `${((n + 1) / slides.length) * 100}%`;
+    progress.style.background = getComputedStyle(stage).getPropertyValue('--accent'); // bar lives outside the stage
+    counter.textContent = `${n + 1} / ${slides.length}`;
+    history.replaceState(null, '', `#${n + 1}`);
+  }
+
+  addEventListener('resize', fit);
+
+  /* ---------- start: actors fly in from off-stage defaults ---------- */
+  fit();
+  const start = Math.max(0, (parseInt(location.hash.slice(1), 10) || 1) - 1);
+  requestAnimationFrame(() => requestAnimationFrame(() => go(start)));
+
+  window.deck = {
+    go,
+    next: () => go(cur + 1),
+    prev: () => go(cur - 1),
+    get index() { return cur; },
+    get count() { return slides.length; },
+  };
+})();
+
+</script>
+<script>
+/* ===========================================================
+   MORPH-SLIDES NAVIGATION (load after morph-engine.js)
+   Keys: Right/Down/PageDown/Space/Enter = next,
+         Left/Up/PageUp/Backspace = back, Home/End, F = fullscreen.
+   Two edge buttons (left = back, right = next). Clicking the slide itself
+   does nothing, so text can be selected and copied while presenting;
+   the mouse wheel does not page either. One-finger swipe. Editing the
+   #hash jumps to that slide.
+   =========================================================== */
+(() => {
+  const deck = window.deck;
+  if (!deck) return;
+  const isEditable = (t) => t.closest?.('a, button, input, textarea, select, [contenteditable]');
+
+  addEventListener('keydown', (e) => {
+    // leave browser shortcuts alone (Ctrl+F, Alt+Left, ...)
+    if (e.ctrlKey || e.metaKey || e.altKey || isEditable(e.target)) return;
+    const k = e.key;
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); deck.next(); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); deck.prev(); }
+    else if (k === 'Home') deck.go(0);
+    else if (k === 'End') deck.go(deck.count - 1);
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen?.();
+    }
+  });
+
+  // edge buttons live outside the stage; screenshots by automated browsers leave them out
+  if (!navigator.webdriver) {
+    [['prev', '\u2039', 'Slide trước'], ['next', '\u203A', 'Slide sau']].forEach(([dir, mark, label]) => {
+      const b = Object.assign(document.createElement('button'), { className: `deck-edge ${dir}`, type: 'button' });
+      b.setAttribute('aria-label', label);
+      b.innerHTML = `<span aria-hidden="true">${mark}</span>`;
+      b.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus off, so Space/Enter still page
+      b.addEventListener('click', () => deck[dir]());
+      document.body.append(b);
+    });
+  }
+
+  let touch = null;
+  addEventListener('touchstart', (e) => {
+    touch = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+  }, { passive: true });
+  addEventListener('touchend', (e) => {
+    if (!touch || e.touches.length) { touch = null; return; } // pinch / multi-finger: ignore
+    const dx = e.changedTouches[0].clientX - touch.x;
+    const dy = e.changedTouches[0].clientY - touch.y;
+    touch = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 50) return;
+    const forward = Math.abs(dx) > Math.abs(dy) ? dx < 0 : dy < 0;
+    (forward ? deck.next : deck.prev)();
+  });
+
+  addEventListener('hashchange', () => {
+    const n = parseInt(location.hash.slice(1), 10);
+    if (n) deck.go(n - 1);
+  });
+})();
+
+</script>
+<script>
+/* ===========================================================
+   MORPH-SLIDES AUDIT: measures how well each slide fills space.
+   Run in the browser console (or via a test tool): deck.audit()
+   - Collects "ink" (text line boxes + media) per slide.
+   - maxGapY / maxGapX = biggest empty band inside the safe area.
+   - overflow = ink outside the slide or past the safe margins.
+   Display slides (cover, section, quote, closing) are only
+   checked for overflow: their emptiness is intentional.
+   - a chart with numbers (morph-viz) must carry data-source.
+   - icons (morph-icons): at most 6 per slide, none missing.
+   - a photo slide (morph-photo) must credit its picture.
+   - text lying on a solid actor whose colour gives a contrast ratio
+     under 3:1 with the text (WCAG) = hard to read: "chữ khó đọc trên hình".
+   - variety: 3 inner slides in a row with the same look
+     (layout, pose, diagram kinds, motion verbs) = monotone.
+   Run it outside a live talk: it briefly shows steps not yet clicked.
+   =========================================================== */
+(() => {
+  const stage = document.querySelector('.deck-stage');
+  if (!stage || !window.deck) return;
+  const SAFE = { x0: 80, x1: 1840, y0: 60, y1: 1020 };
+  const LIMIT = { gapY: 0.28, gapX: 0.3 };
+  // big-number slides are meant to breathe around the figures
+  const LIMIT_Y_BY_LAYOUT = { stats: 0.34 };
+  const DISPLAY = ['cover', 'section', 'quote', 'closing', 'photo'];
+
+  /* text line boxes + images/svg, in stage coordinates */
+  function inkRects(slide) {
+    const s = stage.getBoundingClientRect();
+    const k = s.width / 1920;
+    const out = [];
+    const push = (r) => {
+      if (r.width < 1 || r.height < 1) return;
+      out.push({ x0: (r.left - s.left) / k, x1: (r.right - s.left) / k, y0: (r.top - s.top) / k, y1: (r.bottom - s.top) / k });
+    };
+    const walker = document.createTreeWalker(slide, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (!node.textContent.trim()) continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      [...range.getClientRects()].forEach(push);
+    }
+    slide.querySelectorAll(':is(img, svg, video, canvas):not(.photo-bg)').forEach((el) => push(el.getBoundingClientRect()));
+    return out;
+  }
+
+  /* solid actors in the pose this slide would have (same attributes the engine sets) */
+  function actorRects(slide, k, s) {
+    Object.assign(stage.dataset, {
+      layout: slide.dataset.layout || 'content', pose: slide.dataset.pose || '',
+      parity: slide.dataset.pose ? 'none' : slide.dataset.parity, variant: slide.dataset.variant,
+    });
+    return [...stage.querySelectorAll('.actor')].flatMap((a) => {
+      const cs = getComputedStyle(a);
+      // soft glows (radial gradients, blur) and faint shapes do not hurt reading
+      // masked or clipped shapes (pins, scribbles): the box is not the drawn shape, skip
+      const soft = /radial-gradient/.test(cs.backgroundImage) || /blur/.test(cs.filter) || +cs.opacity < 0.6
+        || cs.maskImage !== 'none' || cs.webkitMaskImage !== 'none' || cs.clipPath !== 'none';
+      const solid = !soft && (cs.backgroundImage !== 'none' || !clear(cs.backgroundColor));
+      const r = a.getBoundingClientRect();
+      if (!solid || r.width / k < 24 || r.height / k < 24) return [];
+      const rgb = cs.backgroundColor.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+      if (!rgb || cs.backgroundImage !== 'none') return [];   // pictures: colour unknown, skip
+      return [{ name: a.dataset.actor, lum: lum(rgb), x0: (r.left - s.left) / k, x1: (r.right - s.left) / k, y0: (r.top - s.top) / k, y1: (r.bottom - s.top) / k }];
+    });
+  }
+
+  /* WCAG relative luminance and contrast ratio */
+  const lum = ([r, g, b]) => [r, g, b].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; })
+    .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+  const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  const clear = (c) => c === 'transparent' || /rgba\(.*,\s*0(\.0*[0-2]\d*)?\)$/.test(c);
+  /* text on its own box (card, band, window) is shielded from the actors behind */
+  const shielded = (el, slide) => {
+    for (let e = el; e && e !== slide; e = e.parentElement) {
+      const cs = getComputedStyle(e);
+      if (!clear(cs.backgroundColor) || /gradient|url\(/.test(cs.backgroundImage)) return true;
+    }
+    return false;
+  };
+
+  /* text that ends the slide hidden (pieces gathered away, opacity 0) is not read */
+  const faded = (el, slide) => {
+    let o = 1;
+    for (let e = el; e && e !== slide; e = e.parentElement) o *= +getComputedStyle(e).opacity;
+    return o < 0.2 || getComputedStyle(el).visibility === 'hidden';
+  };
+
+  /* text lines lying (even partly) on a solid actor of too similar a brightness */
+  function crossings(slide) {
+    const s = stage.getBoundingClientRect();
+    const k = s.width / 1920;
+    // styles may pose actors by what the active slide holds (:has(.slide.active .takeaway))
+    const was = stage.querySelector(':scope > .slide.active');
+    was?.classList.remove('active');
+    slide.classList.add('active');
+    const shapes = actorRects(slide, k, s);
+    const hits = new Map();   // actor -> first text found on it
+    const walker = document.createTreeWalker(slide, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (!node.textContent.trim() || node.parentElement.closest('.mock, svg') || shielded(node.parentElement, slide) || faded(node.parentElement, slide)) continue;
+      const tcs = getComputedStyle(node.parentElement);
+      if (parseFloat(tcs.webkitTextStrokeWidth) > 0 || tcs.textShadow !== 'none') continue; // outlined text carries its own contrast
+      const ink = lum(tcs.color.match(/[\d.]+/g).slice(0, 3).map(Number));
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      [...range.getClientRects()].forEach((r) => {
+        const l = { x0: (r.left - s.left) / k, x1: (r.right - s.left) / k, y0: (r.top - s.top) / k, y1: (r.bottom - s.top) / k };
+        const area = (l.x1 - l.x0) * (l.y1 - l.y0);
+        if (area < 50) return;
+        // three points along the line; under each, only the topmost actor (DOM order = z-order) counts
+        const y = (l.y0 + l.y1) / 2;
+        [0.1, 0.5, 0.9].forEach((f) => {
+          const x = l.x0 + (l.x1 - l.x0) * f;
+          const top = shapes.findLast((a) => x > a.x0 && x < a.x1 && y > a.y0 && y < a.y1);
+          if (top && ratio(ink, top.lum) < 3 && !hits.has(top.name)) hits.set(top.name, node.textContent.trim().slice(0, 24));
+        });
+      });
+    }
+    slide.classList.remove('active');
+    was?.classList.add('active');
+    return [...hits].map(([name, text]) => `${name} ("${text}")`);
+  }
+
+  /* biggest uncovered interval of [lo, hi] given covered spans */
+  function maxGap(spans, lo, hi) {
+    const sorted = spans.map(([a, b]) => [Math.max(a, lo), Math.min(b, hi)]).filter(([a, b]) => b > a).sort((p, q) => p[0] - q[0]);
+    let gap = 0;
+    let cursor = lo;
+    for (const [a, b] of sorted) {
+      gap = Math.max(gap, a - cursor);
+      cursor = Math.max(cursor, b);
+    }
+    return Math.max(gap, hi - cursor);
+  }
+
+  function auditSlide(slide, i) {
+    const layout = slide.dataset.layout || 'content';
+    const ink = inkRects(slide);
+    const issues = [];
+    const out = ink.filter((r) => r.x0 < SAFE.x0 - 40 || r.x1 > SAFE.x1 + 40 || r.y0 < SAFE.y0 - 30 || r.y1 > SAFE.y1 + 30);
+    if (out.length) issues.push(`tràn khung (${out.length} dòng)`);
+    // text overflow = a text line box past its container (decorative pseudo-elements are ignored)
+    slide.querySelectorAll('.col, .takeaway, .highlight').forEach((box) => {
+      const b = box.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(box);
+      const past = [...range.getClientRects()].some((r) => r.height && (r.bottom > b.bottom + 2 || r.right > b.right + 2));
+      if (past) issues.push(`chữ tràn hộp .${box.className.split(' ')[0]}`);
+    });
+    slide.querySelectorAll('.viz[data-viz]').forEach((v) => {
+      if (/\d/.test(['values', 'top', 'bottom', 'left', 'right'].map((k) => v.dataset[k] || '').join('')) && !v.dataset.source) issues.push(`biểu đồ ${v.dataset.viz} thiếu data-source`);
+    });
+    if (slide.querySelector('.photo-bg') && !slide.querySelector('.photo-credit')) issues.push('ảnh thiếu .photo-credit (tác giả, nguồn, giấy phép)');
+    const icons = slide.querySelectorAll('.ico');
+    if (icons.length > 6) issues.push(`quá nhiều icon (${icons.length}, tối đa 6)`);
+    const lost = [...slide.querySelectorAll('.ico[data-missing]')].map((e) => e.dataset.icon);
+    if (lost.length) issues.push(`icon không tồn tại: ${lost.join(', ')}`);
+    const cut = crossings(slide);
+    if (cut.length) issues.push(`chữ khó đọc trên hình ${cut.join(', ')}`);
+    const gapY = maxGap(ink.map((r) => [r.y0, r.y1]), SAFE.y0, SAFE.y1) / (SAFE.y1 - SAFE.y0);
+    const gapX = maxGap(ink.map((r) => [r.x0, r.x1]), SAFE.x0, SAFE.x1) / (SAFE.x1 - SAFE.x0);
+    const display = DISPLAY.includes(layout);
+    if (!display && gapY > (LIMIT_Y_BY_LAYOUT[layout] || LIMIT.gapY)) issues.push(`trống dọc ${Math.round(gapY * 100)}%`);
+    if (!display && gapX > LIMIT.gapX) issues.push(`trống ngang ${Math.round(gapX * 100)}%`);
+    return {
+      slide: i + 1, layout, density: slide.dataset.density || '',
+      gapY: `${Math.round(gapY * 100)}%`, gapX: `${Math.round(gapX * 100)}%`,
+      status: issues.length ? 'SỬA' : 'OK', issues: issues.join('; '),
+    };
+  }
+
+  /* look of a slide = what the eye recognises: layout, pose, diagram and mock kinds, motion verbs */
+  const VERB = /^(fx-[a-z]+|draw|count|slam|shake|strike|ping|travel|gather)$/;
+  function lookOf(slide) {
+    const kinds = [...slide.querySelectorAll('.viz[data-viz]')].map((v) => v.dataset.viz)
+      .concat([...slide.querySelectorAll('.mock')].map((m) => [...m.classList].find((c) => c.startsWith('mock-')) || 'mock')).sort();
+    const verbs = new Set([...slide.querySelectorAll('[class]')].flatMap((e) => [...e.classList].filter((c) => VERB.test(c))));
+    return [slide.dataset.layout || 'content', slide.dataset.pose || '', kinds.join('+'), [...verbs].sort().join('+')].join('|');
+  }
+
+  window.deck.audit = () => {
+    stage.classList.add('auditing');
+    const saved = { ...stage.dataset };
+    const slides = [...stage.querySelectorAll(':scope > .slide')];
+    const report = slides.map(auditSlide);
+    const looks = slides.map(lookOf);
+    report.forEach((r, i) => {
+      if (i < 2 || DISPLAY.includes(r.layout) || looks[i] !== looks[i - 1] || looks[i] !== looks[i - 2]) return;
+      r.issues = [r.issues, 'nhàm: giống hệt 2 slide trước'].filter(Boolean).join('; ');
+      r.status = 'SỬA';
+    });
+    ['layout', 'pose', 'parity', 'variant'].forEach((key) => { stage.dataset[key] = saved[key] ?? ''; });
+    stage.classList.remove('auditing');
+    console.table(report);
+    return report;
+  };
+})();
+
+</script>
+<script>
+/* MORPH-SLIDES STEPS: click-by-click build. Load after morph-engine.js.
+   Elements with data-step="n" wait for the n-th "next" on their slide;
+   the slide gets data-at="<steps shown>" so CSS can style each state.
+   "Back" first takes the last shown step away (its effect plays in reverse),
+   then goes to the previous slide, which arrives finished. Automated browsers
+   (check-deck.py screenshots) always see every step. */
+(() => {
+  const deck = window.deck;
+  const stage = document.querySelector('.deck-stage');
+  if (!deck || !stage) return;
+  const slides = [...stage.querySelectorAll(':scope > .slide')];
+  const auto = navigator.webdriver;
+  const last = (s) => Math.max(0, ...[...s.querySelectorAll('[data-step]')].map((e) => +e.dataset.step || 0));
+  const show = (s, n) => {
+    s.dataset.at = n;
+    s.querySelectorAll('[data-step]').forEach((e) => e.classList.toggle('pending', +e.dataset.step > n));
+  };
+  const enter = () => {
+    const s = slides[deck.index];
+    if (s) show(s, auto || stage.dataset.dir === 'back' ? last(s) : 0);
+  };
+  const { next, prev, go } = deck;
+  deck.next = () => {
+    const s = slides[deck.index];
+    if (!s) return next();
+    const at = +s.dataset.at || 0;
+    if (at < last(s)) show(s, at + 1); else { next(); enter(); }
+  };
+  deck.prev = () => {
+    const s = slides[deck.index];
+    const at = +s?.dataset.at || 0;
+    if (s && at > 0) show(s, at - 1); else { prev(); enter(); }
+  };
+  deck.go = (n) => { go(n); enter(); };
+  slides.forEach((s) => show(s, auto ? last(s) : 0));
+  new MutationObserver(enter).observe(stage, { attributes: true, attributeFilter: ['data-slide'] });
+})();
+
+</script>
+<script>
+/* MORPH-SLIDES ICONS: Tabler Icons (MIT, Paweł Kuna) for decks being edited.
+   <i class="ico" data-icon="database"></i>, data-style="filled" for the solid set.
+   While a deck is a source file, empty icons are fetched from jsDelivr (pinned
+   version). inline-assets.py embeds the SVGs, so the final deck needs no network
+   and this script then has nothing to do. A name that does not exist gets
+   data-missing, which deck.audit() reports. Load anywhere after the slides. */
+(() => {
+  const VERSION = '3.48.0';
+  const CDN = `https://cdn.jsdelivr.net/npm/@tabler/icons@${VERSION}/icons`;
+  const cache = new Map();
+  const load = (name, style) => {
+    const key = `${style}/${name}`;
+    if (!cache.has(key)) {
+      cache.set(key, fetch(`${CDN}/${key}.svg`).then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status)))));
+    }
+    return cache.get(key);
+  };
+  document.querySelectorAll('.ico[data-icon]').forEach(async (el) => {
+    if (el.querySelector('svg')) return;
+    const name = el.dataset.icon;
+    const style = el.dataset.style === 'filled' ? 'filled' : 'outline';
+    if (!/^[a-z0-9-]+$/.test(name)) { el.dataset.missing = ''; return; }
+    try {
+      const svg = (await load(name, style))
+        .replace(/\s(width|height)="24"/g, '')
+        .replace(/\sclass="[^"]*"/, ' aria-hidden="true" focusable="false"');
+      el.innerHTML = svg;
+    } catch {
+      el.dataset.missing = '';
+      console.warn('morph-icons: không tải được icon', name, style);
+    }
+  });
+})();
+
+</script>
+<script>
+/* Buổi 03 deck helpers: copy a prompt to the clipboard, 20-minute practice timer.
+   Buttons are ignored by morph-nav, so clicking them never changes slide. */
+(() => {
+  document.querySelectorAll('.pc .cp').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const box = btn.closest('.pc');
+      const pre = box.querySelector('pre');
+      const text = (pre ? pre.innerText : [...box.querySelectorAll('.cmd')].map((c) => c.textContent).join('\n')).trim();
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const ta = Object.assign(document.createElement('textarea'), { value: text });
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+      }
+      btn.textContent = 'Đã chép'; btn.classList.add('done');
+      setTimeout(() => { btn.textContent = 'Sao chép'; btn.classList.remove('done'); }, 1600);
+    });
+  });
+
+  document.querySelectorAll('.timer').forEach((box) => {
+    const full = (+box.dataset.min || 20) * 60;
+    const out = box.querySelector('.t'), go = box.querySelector('.go'), reset = box.querySelector('.reset');
+    let left = full, tick = 0;
+    const show = () => { out.textContent = `${String(Math.floor(left / 60)).padStart(2, '0')}:${String(left % 60).padStart(2, '0')}`; };
+    const stop = () => { clearInterval(tick); tick = 0; go.textContent = 'Bắt đầu'; };
+    go.addEventListener('click', () => {
+      if (tick) return stop();
+      go.textContent = 'Tạm dừng';
+      tick = setInterval(() => { left = Math.max(0, left - 1); show(); if (!left) stop(); }, 1000);
+    });
+    reset.addEventListener('click', () => { stop(); left = full; show(); });
+    show();
+  });
+
+  /* a prompt never gets cut: shrink its type until the window holds it */
+  document.fonts.ready.then(() => {
+    document.querySelectorAll('.pc pre').forEach((pre) => {
+      let px = parseFloat(getComputedStyle(pre).fontSize);
+      while (pre.scrollHeight > pre.clientHeight + 1 && px > 16) { px -= 1; pre.style.fontSize = `${px}px`; }
+    });
+  });
+})();
+
+</script>
+</body>
+</html>
